@@ -1,0 +1,20 @@
+# large raw downloads — reproduce with data-pack/scripts/fetch_raw.py
+data-pack/raw/*
+!data-pack/raw/SOURCES.md
+
+# video/ad work and research caches are not part of the web app
+ad/
+_research_cache/
+
+# node / build
+node_modules/
+prototype/dist/
+prototype/.vite/
+prototype/.env
+prototype/.env.*
+.vercel/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log

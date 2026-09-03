@@ -1,0 +1,121 @@
+{
+  "stats": {
+    "techReviewTotal": {
+      "value": 736,
+      "label": "전력 1차 기술검토 신청 (2024.8.1~2026.3.27)",
+      "source": "기후에너지환경부·이정헌 의원실, 머니투데이 2026.5.19",
+      "sourceUrl": "https://www.mt.co.kr/tech/2026/05/19/2026051809384296879"
+    },
+    "capitalShare": { "value": 0.71, "label": "수도권 신청 비중 (522건)", "source": "머니투데이 2026.5.19" },
+    "capitalMainReviewFailRate": { "value": 0.583, "label": "수도권 본심사 탈락률", "source": "머니투데이 2026.5.19" },
+    "seoulPassCount": { "value": 1, "label": "서울 통과 건수", "source": "머니투데이 2026.5.19" },
+    "nonCapitalPassRate": { "value": 0.897, "label": "비수도권 통과율 (29건 중 26건)", "source": "머니투데이 2026.5.19" },
+    "capitalFinalApprovalRate": {
+      "value": 0.019,
+      "label": "수도권 최종 공급가능 승인률 (522건 중 10건·1,010MW)",
+      "source": "CBRE코리아 『한국 데이터센터 투자』 2026.7, KHARN 2026.7.14",
+      "sourceUrl": "https://www.kharn.kr/news/article.html?no=31267"
+    },
+    "capitalPermitDelayed": {
+      "value": 0.515,
+      "label": "수도권 건축허가 데이터센터 중 지연·차질 비율 (33곳 중 17곳, 2024.2)",
+      "source": "국토교통부, 중소기업신문 2024.10.30",
+      "sourceUrl": "https://www.smedaily.co.kr/news/articleView.html?idxno=307821"
+    },
+    "gridImpactAssessment": {
+      "label": "전력계통영향평가: 분산에너지법(2024.6.14 시행), 계약전력 10MW 이상, 100점 만점 70점 합격(기술 60·비기술 40). 계통관리지역 고시 미제정(시범운영)",
+      "source": "법제처·KHARN·아시아경제 2024.12.5"
+    }
+  },
+  "scoring": {
+    "power": {
+      "weightSupply": 0.45,
+      "weightRegion": 0.3,
+      "weightDistance": 0.25,
+      "supplyScoreBySubstationCount": { "0": 0, "1": 70, "2": 85, "3plus": 100 },
+      "regionPrior": { "서울": 20, "경기": 45, "인천": 45, "default": 90 },
+      "distanceScoreKm": [
+        { "maxKm": 2, "score": 100 },
+        { "maxKm": 5, "score": 80 },
+        { "maxKm": 10, "score": 60 },
+        { "maxKm": 20, "score": 40 },
+        { "maxKm": 999, "score": 20 }
+      ],
+      "gateFailCap": 40,
+      "emdMatchUncertainKm": 3,
+      "capacityBands": [
+        { "cond": "n>=2 && d<=5", "label": "40MW+ 검토 가능 (전용선로·이중화 여지)" },
+        { "cond": "n==1 && d<=10", "label": "10~40MW 검토 가능" },
+        { "cond": "n==1 && d>10", "label": "10MW급 (선로 신설 부담 예상)" },
+        { "cond": "n==0", "label": "신규 공급 협의 필요 (장기·불확실)" }
+      ]
+    },
+    "permit": {
+      "popRadiusKm": 1.0,
+      "populationDeduction": [
+        { "maxPop": 2000, "deduction": 0 },
+        { "maxPop": 8000, "deduction": 10 },
+        { "maxPop": 20000, "deduction": 20 },
+        { "maxPop": 999999999, "deduction": 30 }
+      ],
+      "schoolDeduction": [
+        { "maxKm": 0.2, "deduction": 20 },
+        { "maxKm": 0.5, "deduction": 10 },
+        { "maxKm": 1.0, "deduction": 5 },
+        { "maxKm": 999, "deduction": 0 }
+      ],
+      "landUseDeduction": {
+        "industrial": 0,
+        "semiIndustrial": 0,
+        "commercial": 5,
+        "green": 10,
+        "residential": 25,
+        "unknown": 10
+      },
+      "incheonResidentialExtraDeduction": 15,
+      "caseDeduction": { "무산": 12, "중단후재개": 10, "진행중분쟁": 10, "지연후준공": 6, "대응중": 3 },
+      "caseSameSigunguCap": 25,
+      "caseNearbyKm": 5,
+      "caseNearbyDeduction": 5,
+      "newsDeduction": [
+        { "maxCount": 0, "deduction": 0 },
+        { "maxCount": 3, "deduction": 5 },
+        { "maxCount": 10, "deduction": 10 },
+        { "maxCount": 999999, "deduction": 15 }
+      ]
+    },
+    "composite": {
+      "weightPower": 0.45,
+      "weightPermit": 0.55,
+      "grades": [
+        { "min": 85, "grade": "A" },
+        { "min": 70, "grade": "B" },
+        { "min": 55, "grade": "C" },
+        { "min": 40, "grade": "D" },
+        { "min": 0, "grade": "E" }
+      ],
+      "gateFailGradeCap": "D"
+    },
+    "delayByPermitGrade": {
+      "A": { "minMonths": 0, "maxMonths": 3, "point": 1.5, "anchor": "통상 협의 수준" },
+      "B": { "minMonths": 3, "maxMonths": 6, "point": 4.5, "anchor": "용인 죽전 (주민 합의 후 준공)" },
+      "C": { "minMonths": 6, "maxMonths": 12, "point": 9, "anchor": "고양 덕이 착공신고 반려·고양 식사 재심의·금천 독산 공사중단" },
+      "D": { "minMonths": 12, "maxMonths": 24, "point": 18, "anchor": "부천 삼정 도로심의 3회 부결·인천 청천 공사중지" },
+      "E": { "minMonths": 24, "maxMonths": 48, "point": 30, "anchor": "김포 구래 48개월·안양 호계 무산·용인 공세 무산" }
+    },
+    "finance": {
+      "defaultCapexKrw": 500000000000,
+      "capexLabel": "40MW급 총사업비 가정 (에포크 안양급, MW당 약 125억원)",
+      "defaultAnnualRate": 0.055,
+      "rateLabel": "PF 금리 가정",
+      "capexRangeKrw": [100000000000, 2000000000000],
+      "rateRange": [0.03, 0.09]
+    }
+  },
+  "disclaimer": {
+    "main": "본 도구는 공개 자료 기반 스크리닝 참고용입니다. 법적 판단이나 한국전력 공식 전력공급 가능 검토를 대체하지 않습니다.",
+    "power": "한전이 공개하는 여유용량 정보는 발전접속(신재생 계통연계) 기준으로, 데이터센터의 수전(부하) 가능량과 다릅니다. 읍면동별 공급가능 변전소 정보는 비식별 처리된 참고 자료입니다.",
+    "substation": "변전소 위치는 국가보안시설로 공식 좌표가 공개되지 않아 OpenStreetMap 참고치를 사용합니다.",
+    "stats": "인용 통계는 2026.9.1 기준 언론 보도 확인치로, 발표 시점에는 갱신되었을 수 있습니다."
+  }
+}

@@ -1,0 +1,241 @@
+import type {
+  AppData,
+  CaseRow,
+  Deduction,
+  LandUse,
+  ScoreInput,
+  ScoreResult,
+} from '../types';
+import { haversineKm, nearest, sumWithinKm } from './geo';
+
+const LAND_USE_LABEL: Record<LandUse, string> = {
+  industrial: '공업지역',
+  semiIndustrial: '준공업지역',
+  commercial: '상업지역',
+  green: '녹지·관리지역',
+  residential: '주거지역',
+  unknown: '미확인',
+};
+
+function fmtKm(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
+
+export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
+  const { scoring } = data.constants;
+  const { lat, lng } = input;
+
+  const emdMatch = nearest(lat, lng, data.emdCentroids, (c) => [c.lat, c.lng]);
+  const emdUncertain =
+    emdMatch === null || emdMatch.distanceKm > scoring.power.emdMatchUncertainKm;
+  const emdInfo = emdMatch
+    ? {
+        key: `${emdMatch.item.sido}|${emdMatch.item.sigungu}|${emdMatch.item.emd}`,
+        sido: emdMatch.item.sido,
+        sigungu: emdMatch.item.sigungu,
+        emd: emdMatch.item.emd,
+        distanceKm: emdMatch.distanceKm,
+      }
+    : null;
+
+  let emdPower = emdInfo
+    ? data.emdPower.find(
+        (p) =>
+          p.sido === emdInfo.sido && p.sigungu === emdInfo.sigungu && p.emd === emdInfo.emd,
+      )
+    : undefined;
+  if (!emdPower && emdInfo) {
+    const bySidoEmd = data.emdPower.filter(
+      (p) => p.sido === emdInfo.sido && p.emd === emdInfo.emd,
+    );
+    if (bySidoEmd.length === 1) emdPower = bySidoEmd[0];
+  }
+  const subCount = emdPower?.count ?? 0;
+  const gatePass = subCount > 0;
+
+  const p = scoring.power;
+  const supplyScore =
+    subCount >= 3
+      ? p.supplyScoreBySubstationCount['3plus']
+      : (p.supplyScoreBySubstationCount[String(subCount)] ?? 0);
+  const regionScore = emdInfo
+    ? (p.regionPrior[emdInfo.sido.slice(0, 2)] ?? p.regionPrior['default'])
+    : p.regionPrior['default'];
+  const nearestSub = nearest(lat, lng, data.substations, (s) => [s.lat, s.lng]);
+  const subDistKm = nearestSub?.distanceKm ?? 999;
+  const distanceScore =
+    p.distanceScoreKm.find((b) => subDistKm <= b.maxKm)?.score ?? 20;
+  let powerScore =
+    p.weightSupply * supplyScore + p.weightRegion * regionScore + p.weightDistance * distanceScore;
+  if (!gatePass) powerScore = Math.min(powerScore, p.gateFailCap);
+  powerScore = Math.round(powerScore);
+
+  const capacityBand = !gatePass
+    ? p.capacityBands[3].label
+    : subCount >= 2 && subDistKm <= 5
+      ? p.capacityBands[0].label
+      : subCount >= 1 && subDistKm <= 10
+        ? p.capacityBands[1].label
+        : p.capacityBands[2].label;
+
+  const q = scoring.permit;
+  const deductions: Deduction[] = [];
+
+  const popNearby = Math.round(
+    sumWithinKm(lat, lng, data.popGrid, (g) => [g[0], g[1]], q.popRadiusKm, (g) => g[2]),
+  );
+  const popDed = q.populationDeduction.find((b) => popNearby <= b.maxPop)?.deduction ?? 0;
+  if (popDed > 0) {
+    deductions.push({
+      label: '주거 인접',
+      points: popDed,
+      evidence: `반경 ${q.popRadiusKm}km 인구 약 ${popNearby.toLocaleString()}명 (SGIS 1km 격자)`,
+      anchor: '김포 구래동: 아파트 인접 반발로 허가 후 착공까지 4년',
+    });
+  }
+
+  const nearestSchool = nearest(lat, lng, data.schools, (s) => [s[2], s[3]]);
+  const schoolDistKm = nearestSchool?.distanceKm ?? 999;
+  const schoolDed = q.schoolDeduction.find((b) => schoolDistKm <= b.maxKm)?.deduction ?? 0;
+  if (schoolDed > 0 && nearestSchool) {
+    deductions.push({
+      label: '학교 근접',
+      points: schoolDed,
+      evidence: `최근접 학교 ${nearestSchool.item[0]} ${fmtKm(schoolDistKm)} (교육환경보호구역 200m)`,
+      anchor: '금천 독산동: 학교 인접 민원으로 공사 1.5개월 중단',
+    });
+  }
+
+  const landDed = q.landUseDeduction[input.landUse];
+  if (landDed > 0) {
+    deductions.push({
+      label: `용도지역: ${LAND_USE_LABEL[input.landUse]}`,
+      points: landDed,
+      evidence:
+        input.landUse === 'unknown'
+          ? '용도지역 미확인 (VWorld 오버레이 또는 토지이음에서 확인 필요)'
+          : '데이터센터는 공업·준공업 입지가 인허가 마찰 최소',
+    });
+  }
+
+  const matchedRegulations = emdInfo
+    ? data.regulations.filter(
+        (r) =>
+          r.sido === emdInfo.sido.slice(0, 2) &&
+          (r.sigungu === '전체' || r.sigungu === emdInfo.sigungu),
+      )
+    : [];
+  for (const reg of matchedRegulations) {
+    deductions.push({
+      label: `지자체 규제 (${reg.reg_type})`,
+      points: reg.deduction,
+      evidence: reg.detail,
+    });
+  }
+  if (
+    input.landUse === 'residential' &&
+    emdInfo &&
+    emdInfo.sido.startsWith('인천') &&
+    matchedRegulations.some((r) => r.reg_type === '조례시행')
+  ) {
+    deductions.push({
+      label: '조례상 입지 불가',
+      points: q.incheonResidentialExtraDeduction,
+      evidence: '인천시 도시계획 조례: 일반주거지역 데이터센터 입지 금지 (2024.9 시행)',
+    });
+  }
+
+  const matchedCases: CaseRow[] = [];
+  let caseDedSum = 0;
+  if (emdInfo) {
+    for (const c of data.cases) {
+      const sameSigungu =
+        c.sido === emdInfo.sido.slice(0, 2) && emdInfo.sigungu.startsWith(c.sigungu.slice(0, 2));
+      if (sameSigungu) {
+        matchedCases.push(c);
+        caseDedSum += q.caseDeduction[c.status] ?? 0;
+      }
+    }
+  }
+  caseDedSum = Math.min(caseDedSum, q.caseSameSigunguCap);
+  if (caseDedSum > 0) {
+    deductions.push({
+      label: '동일 시군구 갈등 사례',
+      points: caseDedSum,
+      evidence: matchedCases.map((c) => `${c.name}(${c.status})`).join(', '),
+    });
+  }
+  const nearbyCase = data.cases.find(
+    (c) =>
+      !matchedCases.includes(c) && haversineKm(lat, lng, c.lat, c.lng) <= q.caseNearbyKm,
+  );
+  if (nearbyCase) {
+    matchedCases.push(nearbyCase);
+    deductions.push({
+      label: '인근 갈등 사례',
+      points: q.caseNearbyDeduction,
+      evidence: `${fmtKm(haversineKm(lat, lng, nearbyCase.lat, nearbyCase.lng))} 거리 ${nearbyCase.name}(${nearbyCase.status})`,
+    });
+  }
+
+  const permitScore = Math.max(
+    0,
+    Math.round(100 - deductions.reduce((s, d) => s + d.points, 0)),
+  );
+
+  const comp = scoring.composite;
+  const compositeScore = Math.round(
+    comp.weightPower * powerScore + comp.weightPermit * permitScore,
+  );
+  let grade = comp.grades.find((g) => compositeScore >= g.min)?.grade ?? 'E';
+  let gradeCapped = false;
+  if (!gatePass) {
+    const capIdx = comp.grades.findIndex((g) => g.grade === comp.gateFailGradeCap);
+    const curIdx = comp.grades.findIndex((g) => g.grade === grade);
+    if (curIdx < capIdx) {
+      grade = comp.gateFailGradeCap;
+      gradeCapped = true;
+    }
+  }
+
+  const permitGrade =
+    comp.grades.find((g) => permitScore >= g.min)?.grade ?? 'E';
+  const delay = scoring.delayByPermitGrade[permitGrade];
+
+  const monthlyCostKrw = (input.capexKrw * input.annualRate) / 12;
+  const delayCostKrw = monthlyCostKrw * delay.point;
+
+  return {
+    emd: emdInfo,
+    emdUncertain,
+    gate: { pass: gatePass, substationCount: subCount, substations: emdPower?.subs ?? [] },
+    power: {
+      score: powerScore,
+      supplyScore,
+      regionScore,
+      distanceScore,
+      nearestSubstation: nearestSub
+        ? { name: nearestSub.item.name || '(무명 변전소)', distanceKm: nearestSub.distanceKm }
+        : null,
+      capacityBand,
+    },
+    permit: {
+      score: permitScore,
+      deductions,
+      popNearby,
+      nearestSchool: nearestSchool
+        ? { name: nearestSchool.item[0], distanceKm: nearestSchool.distanceKm }
+        : null,
+      matchedCases,
+      matchedRegulations,
+    },
+    composite: { score: compositeScore, grade, gradeCapped },
+    delay: {
+      minMonths: delay.minMonths,
+      maxMonths: delay.maxMonths,
+      pointMonths: delay.point,
+      anchor: delay.anchor,
+    },
+    finance: { delayCostKrw, monthlyCostKrw },
+  };
+}
