@@ -1,10 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk';
-
 export const config = { runtime: 'edge' };
 
 // Provider is chosen by which key is configured on the server (first match wins):
 // GEMINI_API_KEY (free tier) -> OPENROUTER_API_KEY (:free models) -> ANTHROPIC_API_KEY.
 // Optional model override: LLM_MODEL.
+// Every provider is called with fetch + SSE parsing: the Edge runtime cannot bundle
+// @anthropic-ai/sdk (it references node:fs / node:path).
 
 function sseToText(
   res: Response,
@@ -72,23 +72,27 @@ async function openrouter(prompt: string, key: string, model: string) {
   );
 }
 
-function anthropic(prompt: string, key: string, model: string) {
-  const client = new Anthropic({ apiKey: key });
-  const stream = client.messages.stream({
-    model,
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }],
+async function anthropic(prompt: string, key: string, model: string) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4000,
+      stream: true,
+      messages: [{ role: 'user', content: prompt }],
+    }),
   });
-  const enc = new TextEncoder();
-  return new ReadableStream<Uint8Array>({
-    start(controller) {
-      stream.on('text', (t) => controller.enqueue(enc.encode(t)));
-      stream.on('end', () => controller.close());
-      stream.on('error', (e) => controller.error(e));
-    },
-    cancel() {
-      stream.abort();
-    },
+  if (!res.ok || !res.body) return new Response(`anthropic ${res.status}`, { status: 502 });
+  return sseToText(res, (j) => {
+    const e = j as { type?: string; delta?: { type?: string; text?: string } };
+    return e.type === 'content_block_delta' && e.delta?.type === 'text_delta'
+      ? e.delta.text
+      : undefined;
   });
 }
 
@@ -108,7 +112,7 @@ export default async function handler(req: Request): Promise<Response> {
       env.LLM_MODEL || 'deepseek/deepseek-chat-v3-0324:free',
     );
   } else if (env.ANTHROPIC_API_KEY) {
-    body = anthropic(prompt, env.ANTHROPIC_API_KEY, env.LLM_MODEL || 'claude-opus-5');
+    body = await anthropic(prompt, env.ANTHROPIC_API_KEY, env.LLM_MODEL || 'claude-opus-5');
   } else {
     return new Response('no LLM key configured on server', { status: 503 });
   }

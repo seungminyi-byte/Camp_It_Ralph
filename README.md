@@ -5,6 +5,7 @@
 예상 지연 개월을 금융비용(원)으로 환산해 보여준다. GS그룹 해커톤(PLAI CAMP S3) 개발자리그 출품용 프로토타입.
 
 - 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph (브랜치 `seungminyi-byte-prototype`)
+- 배포(프로덕션): https://grand-site-dc.vercel.app (Vercel Hobby, 팀 `camp-it-ralph` · 프로젝트 `grand-site-dc`)
 - 로컬 실행: http://localhost:5199 (아래 빠른 시작)
 - 계획서: [docs/PLAN.md](docs/PLAN.md) · 데이터 인벤토리: [docs/DATA.md](docs/DATA.md)
 
@@ -52,8 +53,8 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 | 네이버 검색 API | https://developers.naver.com/apps | `p06_news_api.py`(미작성) 지역별 반대 기사 카운트 | P1 확장 |
 
 LLM 키 우선순위: Gemini 무료 티어면 충분하다. 브라우저 "LLM 설정"에 넣으면 그 브라우저의 localStorage에만 저장되고
-번들·저장소에는 남지 않는다. Vercel 배포 시에는 `prototype/.env.example` 항목을 환경변수로 넣으면
-서버 프록시(`api/generate.ts`)가 키를 숨긴 채 대신 호출한다. 키 없음 + 프록시 없음이면 데모 3지점은
+번들·저장소에는 남지 않는다. Vercel 배포 시에는 `GEMINI_API_KEY` / `OPENROUTER_API_KEY` / `ANTHROPIC_API_KEY` 중 하나(선택 `LLM_MODEL`)를
+환경변수로 넣으면 서버 프록시(`api/generate.ts`)가 키를 숨긴 채 대신 호출한다. 키 없음 + 프록시 없음이면 데모 3지점은
 `public/data/precomputed_memos.json`(아직 없음, 생성 예정)으로 폴백한다.
 
 ## 폴더 구조
@@ -72,12 +73,15 @@ docs/         PLAN.md(전체 계획·일정) DATA.md(데이터 출처·제약·�
 
 ## 현재 상태와 다음 단계
 
-완료: 데이터 확보·전처리·검증, 앱(지도·스코어카드·슬라이더·사례 레이어·통계 스트립·GenAI 메모 3모드), 골든 테스트, 프로덕션 빌드.
+완료: 데이터 확보·전처리·검증, 앱(지도·스코어카드·슬라이더·사례 레이어·통계 스트립·GenAI 메모 3모드), 골든 테스트, 프로덕션 빌드, Vercel 배포(2026-09-03).
 
 남은 일 (PLAN.md P4~P6, 해커톤 9.21~22):
 
 1. Gemini 무료 키로 실사 메모 실기 확인 → 데모 3지점 프리컴퓨트(`precomputed_memos.json`)
-2. Vercel 배포 (`vercel --prod`, 환경변수에 LLM 키) → 심사위원 공유 URL 확보
+2. ~~Vercel 배포~~ 완료 → 공유 URL https://grand-site-dc.vercel.app. 환경변수는 `OPENROUTER_API_KEY` +
+   `LLM_MODEL=minimax/minimax-m3:free` (Production·Preview). 재배포는 `cd prototype && vercel --prod`
+   (프로젝트는 `prototype/.vercel/`에 연결됨, 처음이면 `vercel link --project grand-site-dc`). 프리뷰 URL은
+   Vercel 로그인 사용자만 열 수 있다(기본 Deployment Protection).
 3. P1 확장(선택): VWorld 용도지역 WMS 오버레이·건축HUB 지연 통계·네이버 뉴스 시그널
 4. `docs/DEMO.md` 데모 대본, `ralphathon/` 현장 재빌드 팩(SPEC·TASKS·prompts·fixtures) + 빈 폴더 재빌드 드라이런
 
