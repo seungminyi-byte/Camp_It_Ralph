@@ -79,9 +79,11 @@ docs/         PLAN.md(전체 계획·일정) DATA.md(데이터 출처·제약·�
 
 1. Gemini 무료 키로 실사 메모 실기 확인 → 데모 3지점 프리컴퓨트(`precomputed_memos.json`)
 2. ~~Vercel 배포~~ 완료 → 공유 URL https://grand-site-dc.vercel.app. 환경변수는 `OPENROUTER_API_KEY` +
-   `LLM_MODEL=minimax/minimax-m3:free` (Production·Preview). 재배포는 `cd prototype && vercel --prod`
-   (프로젝트는 `prototype/.vercel/`에 연결됨, 처음이면 `vercel link --project grand-site-dc`). 프리뷰 URL은
-   Vercel 로그인 사용자만 열 수 있다(기본 Deployment Protection).
+   `LLM_MODEL=minimax/minimax-m3:free` (Production·Preview). 배포 자동화는 `.github/workflows/vercel-prod.yml`:
+   이 브랜치의 `prototype/**` 푸시 시 GitHub Actions가 Vercel CLI로 프로덕션 배포 (저장소 시크릿 `VERCEL_TOKEN` 필요).
+   Vercel GitHub 앱 연동은 쓰지 않는다 — Hobby 플랜은 팀 소유자 커밋만 배포하고, 기본 브랜치(팀원)에 `prototype/`가
+   없어 실패 표시가 남는다. 수동 배포는 `cd prototype && vercel --prod` (처음이면 `vercel link --project grand-site-dc`).
+   프리뷰 URL은 Vercel 로그인 사용자만 열 수 있다(기본 Deployment Protection).
 3. P1 확장(선택): VWorld 용도지역 WMS 오버레이·건축HUB 지연 통계·네이버 뉴스 시그널
 4. `docs/DEMO.md` 데모 대본, `ralphathon/` 현장 재빌드 팩(SPEC·TASKS·prompts·fixtures) + 빈 폴더 재빌드 드라이런
 
