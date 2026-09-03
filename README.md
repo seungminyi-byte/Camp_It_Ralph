@@ -48,7 +48,7 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 | **Google Gemini** (무료 티어) | https://aistudio.google.com/apikey | 앱 "LLM 설정" 또는 Vercel 환경변수 `GEMINI_API_KEY` | 실사 메모 생성 (기본 제공자) |
 | OpenRouter (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | 앱 "LLM 설정" 또는 `OPENROUTER_API_KEY` | Gemini 대안 |
 | Anthropic (유료) | https://console.anthropic.com/settings/keys | 앱 "LLM 설정" 또는 `ANTHROPIC_API_KEY` | 품질 우선 시 |
-| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do | `data-pack/scripts/00_geocode_emd.py`(미작성)·용도지역 WMS 오버레이 | P1 확장 |
+| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `data-pack/scripts/00_geocode_emd.py`(미작성)·용도지역 WMS 오버레이(미작성) | P1 확장 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인) | `p05_permits_api.py`(미작성) 시군구별 허가→착공 지연 통계 | P1 확장 |
 | 네이버 검색 API | https://developers.naver.com/apps | `p06_news_api.py`(미작성) 지역별 반대 기사 카운트 | P1 확장 |
 
