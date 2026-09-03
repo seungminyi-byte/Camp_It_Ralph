@@ -55,3 +55,11 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
 4. `ralphathon/` 현장 재빌드 팩: SPEC.md(스키마·수식 전문), TASKS.md(태스크별 완료 정의·검증 커맨드),
    prompts/(00~90 단계), fixtures/(골든 입출력) → 빈 폴더에서 프롬프트만으로 재빌드 드라이런 1회
 5. 선택 확장(P1): VWorld 용도지역 WMS 오버레이, 건축HUB 시군구 8곳 허가→착공 통계, 네이버 뉴스 시그널
+
+## 저장소·계정
+
+- 원격: https://github.com/seungminyi-byte/grand-site-dc (비공개). 작업 브랜치 `prototype/hackathon-2026`, `main`은 동일 내용의 기준선.
+- 이 PC의 gh에는 계정 2개가 있다. 회사 계정 `smy_gsenc`는 엔터프라이즈 관리 계정이라 개인 저장소 생성 불가,
+  조직 `gs-enc-playground`는 SAML SSO 승인이 필요하다. 푸시 전 `gh auth status`로 활성 계정이 `seungminyi-byte`인지 확인
+  (`gh auth switch --user seungminyi-byte`). 조직으로 옮기려면 사용자가 SSO 승인 후 `gh repo transfer` 또는 새 원격에 푸시.
+- 푸시는 사용자가 요청할 때만 한다.
