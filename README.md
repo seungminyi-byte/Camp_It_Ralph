@@ -4,15 +4,15 @@
 ② 인허가 지연 리스크(주거·학교 근접, 용도지역, 지자체 규제, 갈등 사례)를 점수화하고,
 예상 지연 개월을 금융비용(원)으로 환산해 보여준다. GS그룹 해커톤(PLAI CAMP S3) 개발자리그 출품용 프로토타입.
 
-- 저장소: https://github.com/seungminyi-byte/grand-site-dc (브랜치 `prototype/hackathon-2026`)
+- 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph (브랜치 `seungminyi-byte-prototype`)
 - 로컬 실행: http://localhost:5199 (아래 빠른 시작)
 - 계획서: [docs/PLAN.md](docs/PLAN.md) · 데이터 인벤토리: [docs/DATA.md](docs/DATA.md)
 
 ## 빠른 시작 (새 환경)
 
 ```bash
-git clone -b prototype/hackathon-2026 https://github.com/seungminyi-byte/grand-site-dc.git
-cd grand-site-dc/prototype
+git clone -b seungminyi-byte-prototype https://github.com/seungminyi-byte/Camp_It_Ralph.git
+cd Camp_It_Ralph/prototype
 npm install
 npm run dev -- --port 5199
 ```

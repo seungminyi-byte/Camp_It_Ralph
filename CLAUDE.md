@@ -58,7 +58,9 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
 
 ## 저장소·계정
 
-- 원격: https://github.com/seungminyi-byte/grand-site-dc (비공개). 작업 브랜치 `prototype/hackathon-2026`, `main`은 동일 내용의 기준선.
+- 원격: https://github.com/seungminyi-byte/Camp_It_Ralph (비공개 팀 저장소). 팀원별 프로토타입을 각자 브랜치에 둔다
+  (`nanace1228-prototype` = 팀원 Next.js 프로토타입, **`seungminyi-byte-prototype` = 이 프로젝트**). 두 브랜치는 히스토리가 독립이다.
+  최종 출품작 선정 후 병합·정리는 팀 합의로 진행한다.
 - 이 PC의 gh에는 계정 2개가 있다. 회사 계정 `smy_gsenc`는 엔터프라이즈 관리 계정이라 개인 저장소 생성 불가,
   조직 `gs-enc-playground`는 SAML SSO 승인이 필요하다. 푸시 전 `gh auth status`로 활성 계정이 `seungminyi-byte`인지 확인
   (`gh auth switch --user seungminyi-byte`). 조직으로 옮기려면 사용자가 SSO 승인 후 `gh repo transfer` 또는 새 원격에 푸시.
