@@ -50,11 +50,11 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
 ## 남은 작업 (우선순위순)
 
 1. Gemini 키로 메모 생성 실기 → `prototype/public/data/precomputed_memos.json` (시나리오 id → 메모 텍스트) 생성
-2. Vercel 배포 + 환경변수 → 공유 URL을 README에 기록
+2. ~~Vercel 배포 + 환경변수~~ 완료 (URL·재배포 절차는 README)
 3. `docs/DEMO.md` 데모 대본(시나리오 1→2→3, 오프라인 절차)
 4. `ralphathon/` 현장 재빌드 팩: SPEC.md(스키마·수식 전문), TASKS.md(태스크별 완료 정의·검증 커맨드),
    prompts/(00~90 단계), fixtures/(골든 입출력) → 빈 폴더에서 프롬프트만으로 재빌드 드라이런 1회
-5. 선택 확장(P1): VWorld 용도지역 WMS 오버레이, 건축HUB 시군구 8곳 허가→착공 통계, 네이버 뉴스 시그널
+5. 선택 확장(P1): 건축HUB 시군구 8곳 허가→착공 통계, 네이버 뉴스 시그널 (VWorld 용도지역 오버레이는 완료)
 
 ## 저장소·계정
 

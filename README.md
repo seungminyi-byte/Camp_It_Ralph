@@ -38,6 +38,7 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 ```
 
 브라우저에서 시나리오 버튼 3개를 눌러 등급이 **고양 덕이동 C~D / 인천 주거 인접 E(조례상 입지 불가 배지) / 세종 A~B**로 나오면 정상.
+지도 우상단 "용도지역 (VWorld)"를 켜고 줌 12 이상에서 노랑(주거)·분홍(상업)·보라(공업)·연두(녹지) 색이 깔리면 프록시·키가 정상.
 
 ## 직접 발급이 필요한 키 (전부 무료, 본인 계정 필요)
 
@@ -48,7 +49,7 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 | **Google Gemini** (무료 티어) | https://aistudio.google.com/apikey | 앱 "LLM 설정" 또는 Vercel 환경변수 `GEMINI_API_KEY` | 실사 메모 생성 (기본 제공자) |
 | OpenRouter (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | 앱 "LLM 설정" 또는 `OPENROUTER_API_KEY` | Gemini 대안 |
 | Anthropic (유료) | https://console.anthropic.com/settings/keys | 앱 "LLM 설정" 또는 `ANTHROPIC_API_KEY` | 품질 우선 시 |
-| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `data-pack/scripts/00_geocode_emd.py`(미작성)·용도지역 WMS 오버레이(미작성) | P1 확장 |
+| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `prototype/api/wms.ts` 용도지역 WMS 프록시(구현됨) · `data-pack/scripts/00_geocode_emd.py`(미작성) | 용도지역 오버레이 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | Vercel 환경변수 `DATA_GO_KR_API_KEY` (`vercel env add DATA_GO_KR_API_KEY production`·`preview`; data.go.kr 계정 공용 키라 다른 공공데이터 API에도 같은 변수 사용) → `p05_permits_api.py`(미작성) 시군구별 허가→착공 지연 통계 | P1 확장 |
 | 네이버 검색 API | https://developers.naver.com/apps (애플리케이션 등록 → 사용 API "검색", WEB 설정에 https://grand-site-dc.vercel.app) | Vercel 환경변수 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` (`vercel env add <이름> production`·`preview`) → `p06_news_api.py`(미작성) 지역별 반대 기사 카운트 | P1 확장 |
 
@@ -67,13 +68,15 @@ data-pack/
   out/        전처리 산출 JSON (커밋됨)
 prototype/    Vite + React + TS. src/scoring/engine.ts 순수 스코어링 엔진 + engine.test.ts 골든 테스트
   api/generate.ts   Vercel Edge 프록시 (Gemini → OpenRouter → Anthropic 순으로 서버 키 선택)
+  api/wms.ts        Vercel Edge 프록시 (VWorld 용도지역 WMS 타일, 서울 리전 icn1 고정 — 해외 PoP는 VWorld가 차단)
+  vercel.json       Node 함수 리전 icn1 고정 (한국 공공 API 호출용)
 docs/         PLAN.md(전체 계획·일정) DATA.md(데이터 출처·제약·정정사항)
 .claude/      launch.json (Claude Code 브라우저 프리뷰용 dev 서버 정의)
 ```
 
 ## 현재 상태와 다음 단계
 
-완료: 데이터 확보·전처리·검증, 앱(지도·스코어카드·슬라이더·사례 레이어·통계 스트립·GenAI 메모 3모드), 골든 테스트, 프로덕션 빌드, Vercel 배포(2026-09-03).
+완료: 데이터 확보·전처리·검증, 앱(지도·스코어카드·슬라이더·사례 레이어·통계 스트립·GenAI 메모 3모드), 골든 테스트, 프로덕션 빌드, Vercel 배포(2026-09-03), VWorld 용도지역 오버레이(2026-09-04).
 
 남은 일 (PLAN.md P4~P6, 해커톤 9.21~22):
 
@@ -84,7 +87,7 @@ docs/         PLAN.md(전체 계획·일정) DATA.md(데이터 출처·제약·�
    Vercel GitHub 앱 연동은 쓰지 않는다 — Hobby 플랜은 팀 소유자 커밋만 배포하고, 기본 브랜치(팀원)에 `prototype/`가
    없어 실패 표시가 남는다. 수동 배포는 `cd prototype && vercel --prod` (처음이면 `vercel link --project grand-site-dc`).
    프리뷰 URL은 Vercel 로그인 사용자만 열 수 있다(기본 Deployment Protection).
-3. P1 확장(선택): VWorld 용도지역 WMS 오버레이·건축HUB 지연 통계·네이버 뉴스 시그널
+3. P1 확장(선택): 건축HUB 지연 통계·네이버 뉴스 시그널 (VWorld 용도지역 오버레이는 완료 — `api/wms.ts` + 지도 토글·범례)
 4. `docs/DEMO.md` 데모 대본, `ralphathon/` 현장 재빌드 팩(SPEC·TASKS·prompts·fixtures) + 빈 폴더 재빌드 드라이런
 
 ## 데이터 출처 요약

@@ -66,6 +66,9 @@ export function SitePanel({
             </option>
           ))}
         </select>
+        <p className="col-span-2 -mt-1 text-xs text-gray-400">
+          지도의 용도지역 오버레이(VWorld, 줌 12 이상)를 보고 고르세요.
+        </p>
 
         <label className="text-gray-600">총사업비</label>
         <div>

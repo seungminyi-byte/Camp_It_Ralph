@@ -6,6 +6,8 @@ export const config = { runtime: 'edge' };
 // Every provider is called with fetch + SSE parsing: the Edge runtime cannot bundle
 // @anthropic-ai/sdk (it references node:fs / node:path).
 
+declare const process: { env: Record<string, string | undefined> };
+
 function sseToText(
   res: Response,
   extract: (json: unknown) => string | undefined,

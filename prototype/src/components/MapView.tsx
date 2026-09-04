@@ -1,5 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Circle, CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Circle,
+  CircleMarker,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  WMSTileLayer,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import type { AppData, CaseRow } from '../types';
 import type { SiteSelection } from '../App';
@@ -11,6 +21,19 @@ const CASE_COLOR: Record<CaseRow['status'], string> = {
   지연후준공: '#65a30d',
   대응중: '#6b7280',
 };
+
+// VWorld 용도지역 layers: 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역 (WMS allows up to 4 per request).
+const ZONING_LAYERS = ['lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114'].join(',');
+// Scenario flyTo lands on zoom 13; below this zoom the overlay is not requested (quota + readability).
+const ZONING_MIN_ZOOM = 12;
+// Fill colours sampled from VWorld tiles (2026-09); dot/hatch patterns mark sub-categories.
+const ZONING_LEGEND: { label: string; color: string; color2?: string }[] = [
+  { label: '주거', color: '#fdff00', color2: '#fdcb00' },
+  { label: '상업', color: '#fd66cb' },
+  { label: '공업', color: '#cb66ff' },
+  { label: '녹지·관리·농림', color: '#cbfd66' },
+];
+const ZONING_ERROR = '용도지역 타일을 불러오지 못했습니다 (VWorld 응답 없음 또는 서버 VWORLD_API_KEY·등록 도메인 확인)';
 
 function siteIcon(): ReturnType<typeof divIcon> {
   return divIcon({
@@ -27,6 +50,18 @@ function ClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) => vo
       onSelect(e.latlng.lat, e.latlng.lng);
     },
   });
+  return null;
+}
+
+function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
+  const map = useMapEvents({
+    zoomend() {
+      onZoom(map.getZoom());
+    },
+  });
+  useEffect(() => {
+    onZoom(map.getZoom());
+  }, [map, onZoom]);
   return null;
 }
 
@@ -49,6 +84,11 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
   const [showSubs, setShowSubs] = useState(true);
   const [showCases, setShowCases] = useState(true);
   const [showSchools, setShowSchools] = useState(false);
+  const [showZoning, setShowZoning] = useState(true);
+  const [zoom, setZoom] = useState(9);
+  const [zoningError, setZoningError] = useState<string | null>(null);
+  // Per tile-batch counters: warn only when a whole batch failed (a single 504 is just a slow VWorld).
+  const zoningTiles = useRef({ loaded: 0, errored: 0 });
 
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
@@ -62,7 +102,39 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {showZoning && (
+          <WMSTileLayer
+            url="/api/wms"
+            layers={ZONING_LAYERS}
+            styles={ZONING_LAYERS}
+            format="image/png"
+            transparent
+            version="1.3.0"
+            opacity={0.5}
+            minZoom={ZONING_MIN_ZOOM}
+            zIndex={5}
+            updateWhenIdle
+            attribution='용도지역 &copy; <a href="https://www.vworld.kr">VWorld</a>'
+            eventHandlers={{
+              loading: () => {
+                zoningTiles.current = { loaded: 0, errored: 0 };
+              },
+              tileload: () => {
+                zoningTiles.current.loaded += 1;
+                setZoningError(null);
+              },
+              tileerror: () => {
+                zoningTiles.current.errored += 1;
+              },
+              load: () => {
+                const { loaded, errored } = zoningTiles.current;
+                setZoningError(loaded === 0 && errored > 0 ? ZONING_ERROR : null);
+              },
+            }}
+          />
+        )}
         <ClickHandler onSelect={onSelect} />
+        <ZoomWatcher onZoom={setZoom} />
         <FlyTo target={flyTo} />
         {showSubs &&
           named154.map((s, i) => (
@@ -143,6 +215,41 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           />
           학교
         </label>
+        <label className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            checked={showZoning}
+            onChange={(e) => {
+              setShowZoning(e.target.checked);
+              setZoningError(null);
+            }}
+          />
+          용도지역 (VWorld)
+        </label>
+        {showZoning && zoom < ZONING_MIN_ZOOM && (
+          <div className="text-[11px] text-gray-500">줌 {ZONING_MIN_ZOOM} 이상으로 확대하면 표시</div>
+        )}
+        {showZoning && zoningError && (
+          <div className="max-w-[180px] text-[11px] text-red-600">{zoningError}</div>
+        )}
+        {showZoning && zoom >= ZONING_MIN_ZOOM && !zoningError && (
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 border-t border-gray-200 pt-1 text-[11px]">
+            {ZONING_LEGEND.map((z) => (
+              <span key={z.label} className="flex items-center gap-1">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-sm border border-gray-300"
+                  style={{
+                    background: z.color2
+                      ? `linear-gradient(90deg, ${z.color} 50%, ${z.color2} 50%)`
+                      : z.color,
+                  }}
+                />
+                {z.label}
+              </span>
+            ))}
+            <span className="col-span-2 text-gray-400">빗금·점 무늬는 세부 용도·구역</span>
+          </div>
+        )}
       </div>
     </div>
   );
