@@ -2,7 +2,16 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseCsv } from '../lib/csv';
-import type { AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow, Scenario } from '../types';
+import type {
+  AppData,
+  CaseRow,
+  NewsSignalFile,
+  PermitDelayFile,
+  RegulationRow,
+  Scenario,
+  TerrainGridFile,
+} from '../types';
+import { decodeTerrain } from './terrain';
 import { scoreSite } from './engine';
 
 const DATA_DIR = join(__dirname, '..', '..', 'public', 'data');
@@ -26,7 +35,6 @@ function loadData(): AppData {
     popGrid: readJson('pop_grid.json'),
     dcStats: readJson('dc_stats.json'),
     constants: readJson('constants.json'),
-    scenarios: readJson<{ scenarios: Scenario[] }>('scenarios.json').scenarios,
     cases: casesRaw.map((r) => ({
       ...r,
       lat: Number(r.lat),
@@ -39,8 +47,15 @@ function loadData(): AppData {
     })) as unknown as RegulationRow[],
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
     newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
+    terrain: (() => {
+      const f = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
+      return f ? decodeTerrain(f) : null;
+    })(),
   };
 }
+
+/** scenarios.json is a test/precompute fixture only — the app itself no longer loads it. */
+const scenarios = readJson<{ scenarios: Scenario[] }>('scenarios.json').scenarios;
 
 const data = loadData();
 const baseInput = {
@@ -49,7 +64,7 @@ const baseInput = {
 };
 
 function scenario(id: string): Scenario {
-  const sc = data.scenarios.find((s) => s.id === id);
+  const sc = scenarios.find((s) => s.id === id);
   if (!sc) throw new Error(`scenario ${id} missing`);
   return sc;
 }
@@ -62,6 +77,10 @@ describe('scoreSite golden cases', () => {
     expect(sc.expectedGrade).toContain(r.composite.grade);
     expect(r.permit.matchedCases.map((c) => c.name)).toContain('고양 덕이동 데이터센터');
     expect(r.gate.pass).toBe(true);
+    if (data.terrain) {
+      expect(r.site.status).toBe('ok');
+      expect(r.terrain?.deduction ?? 0).toBeLessThanOrEqual(5);
+    }
   });
 
   it('scenario 2: 인천 주거 인접 lands in E with ordinance flag', () => {
@@ -69,6 +88,10 @@ describe('scoreSite golden cases', () => {
     const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
     expect(sc.expectedGrade).toContain(r.composite.grade);
     expect(r.permit.deductions.some((d) => d.label === '조례상 입지 불가')).toBe(true);
+    if (data.terrain) {
+      expect(r.site.status).toBe('ok');
+      expect(r.terrain?.deduction ?? 0).toBeLessThanOrEqual(5);
+    }
   });
 
   it('scenario 3: 세종 대조 lands in A~B with short delay', () => {
@@ -78,6 +101,11 @@ describe('scoreSite golden cases', () => {
     expect(r.gate.pass).toBe(true);
     expect(r.delay.maxMonths).toBeLessThanOrEqual(6);
     expect(r.power.regionScore).toBe(data.constants.scoring.power.regionPrior['default']);
+    if (data.terrain) {
+      expect(r.site.status).toBe('ok');
+      // 세종 반곡동 sits on the 5-degree band edge; a drift past it would cost the B grade.
+      expect(r.terrain?.deduction ?? 0).toBeLessThanOrEqual(5);
+    }
   });
 
   it('gate failure: mid-mountain site is capped at grade D', () => {
@@ -152,5 +180,37 @@ describe('scoreSite golden cases', () => {
     const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
     const expected = (baseInput.capexKrw * baseInput.annualRate / 12) * r.delay.pointMonths;
     expect(r.finance.delayCostKrw).toBeCloseTo(expected, 0);
+  });
+
+  it('terrain: 서해 한복판은 해상으로 판정되고 용도지역·수동 지정으로만 뒤집힌다', () => {
+    if (!data.terrain) return; // signal disabled when data/terrain_grid.json is absent
+    const at = { lat: 37.4, lng: 126.2, landUse: 'unknown' as const, ...baseInput };
+    expect(scoreSite(at, data).site.status).toBe('sea');
+
+    const zoned = scoreSite(
+      { ...at, zoning: { found: true, layer: 'LT_C_UQ111', name: '일반공업지역', landUse: 'industrial', all: [] } },
+      data,
+    );
+    expect(zoned.site.status).toBe('reclaimed');
+
+    expect(scoreSite({ ...at, assumeLand: true }, data).site.status).toBe('reclaimed');
+  });
+
+  it('terrain: 태백산맥 능선은 산지 감점과 부적합 플래그를 받는다', () => {
+    if (!data.terrain) return;
+    const r = scoreSite({ lat: 37.85, lng: 128.45, landUse: 'green', ...baseInput }, data);
+    expect(r.site.status).toBe('ok');
+    expect(r.terrain?.unsuitable).toBe(true);
+    const d = r.permit.deductions.find((x) => x.label === '지형·경사');
+    expect(d?.points).toBeGreaterThanOrEqual(20);
+    expect(d?.evidence).toContain('중앙값 경사');
+  });
+
+  it('terrain: 격자 밖(독도 인근)은 nodata로 빠지고 지형 감점이 없다', () => {
+    if (!data.terrain) return;
+    const r = scoreSite({ lat: 37.24, lng: 131.86, landUse: 'unknown', ...baseInput }, data);
+    expect(r.site.status).toBe('nodata');
+    expect(r.terrain).toBeNull();
+    expect(r.permit.deductions.some((x) => x.label === '지형·경사')).toBe(false);
   });
 });

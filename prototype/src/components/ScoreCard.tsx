@@ -29,8 +29,43 @@ function Gauge({ label, score }: { label: string; score: number }) {
   );
 }
 
-export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData }) {
+export function ScoreCard({
+  result,
+  data,
+  onAssumeLand,
+}: {
+  result: ScoreResult;
+  data: AppData;
+  onAssumeLand: () => void;
+}) {
   const r = result;
+
+  // Open water is not a site: showing a grade for it invites the reader to trust a number that
+  // only looks good because nobody lives there.
+  if (r.site.status === 'sea') {
+    return (
+      <section className="border-b border-gray-200 p-4">
+        <div className="rounded border border-sky-300 bg-sky-50 p-3">
+          <div className="text-sm font-bold text-sky-900">해상·수역 — 평가 대상 아님</div>
+          <p className="mt-1 text-xs text-sky-900">{r.site.detail}</p>
+          <p className="mt-2 text-[11px] text-sky-800">
+            매립·간척으로 조성된 부지라면 아래 버튼으로 평가할 수 있습니다. SRTM은 2000년 촬영
+            기준이라 이후 매립지가 수역으로 남아 있습니다.
+          </p>
+          <button
+            onClick={onAssumeLand}
+            className="mt-2 rounded border border-sky-400 bg-white px-2 py-1 text-xs font-semibold text-sky-900 hover:bg-sky-100"
+          >
+            매립·간척 예정지로 간주하고 평가
+          </button>
+        </div>
+        <div className="mt-2 text-[10px] leading-snug text-gray-400">
+          {data.constants.disclaimer.terrain}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="border-b border-gray-200 p-4">
       <div className="mb-1 flex items-center gap-3">
@@ -72,6 +107,21 @@ export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData
             조례상 입지 불가
           </span>
         )}
+        {r.site.status === 'coastal' && (
+          <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+            연안 — 지형 판정 불확실
+          </span>
+        )}
+        {r.site.status === 'reclaimed' && (
+          <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+            매립지·공유수면 가능성
+          </span>
+        )}
+        {r.terrain?.unsuitable && (
+          <span className="rounded bg-red-600 px-2 py-0.5 font-semibold text-white">
+            급경사 산지 — 입지 부적합 가능
+          </span>
+        )}
       </div>
 
       <div className="mb-3 flex flex-col gap-2">
@@ -90,6 +140,13 @@ export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData
           </div>
         )}
         <div>반경 1km 인구: 약 {r.permit.popNearby.toLocaleString()}명</div>
+        {r.terrain && (
+          <div>
+            지형: 중앙값 경사 {r.terrain.sample.slopeP50Deg}° ·{' '}
+            {data.terrain?.steepThresholdDeg ?? 15}° 이상 {r.terrain.sample.steepPct}% · 표고 약{' '}
+            {r.terrain.sample.elevM}m (1km 격자)
+          </div>
+        )}
         {r.permit.nearestSchool && (
           <div>
             최근접 학교: {r.permit.nearestSchool.name} (
@@ -188,6 +245,7 @@ export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData
       )}
       <div className="mt-2 text-[10px] leading-snug text-gray-400">
         {data.constants.disclaimer.power}
+        {r.terrain && ` ${data.constants.disclaimer.terrain}`}
       </div>
     </section>
   );

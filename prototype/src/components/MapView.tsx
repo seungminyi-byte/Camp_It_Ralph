@@ -11,8 +11,7 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import { divIcon } from 'leaflet';
-import type { AppData, CaseRow } from '../types';
-import type { SiteSelection } from '../App';
+import type { AppData, CaseRow, SiteSelection } from '../types';
 
 const CASE_COLOR: Record<CaseRow['status'], string> = {
   무산: '#dc2626',
@@ -65,18 +64,33 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
   return null;
 }
 
-function FlyTo({ target }: { target: [number, number] | null }) {
+function FlyTo({ target }: { target: FlyToTarget | null }) {
   const map = useMap();
   useEffect(() => {
-    if (target) map.flyTo(target, 13, { duration: 0.8 });
+    if (!target) return;
+    // flyTo interpolates against the container size and yields an NaN centre when the map is
+    // zero-sized (hidden pane, collapsed layout). That throws out of the effect and, with no
+    // error boundary above, unmounts the whole app — so jump straight there instead.
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) {
+      map.setView([target.lat, target.lng], target.zoom, { animate: false });
+      return;
+    }
+    map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.8 });
   }, [map, target]);
   return null;
+}
+
+export interface FlyToTarget {
+  lat: number;
+  lng: number;
+  zoom: number;
 }
 
 interface Props {
   data: AppData;
   site: SiteSelection | null;
-  flyTo: [number, number] | null;
+  flyTo: FlyToTarget | null;
   onSelect: (lat: number, lng: number) => void;
 }
 

@@ -1,86 +1,45 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { haversineKm } from '../scoring/geo';
+import type { LandUse } from '../types';
 
-export type Provider = 'anthropic' | 'gemini' | 'openrouter';
-export type LlmMode = 'proxy' | 'direct' | 'fallback';
+export type LlmMode = 'proxy' | 'fallback';
 
-export interface LlmSettings {
-  provider: Provider;
-  apiKey: string;
+/** A precomputed memo only stands in for the point it was generated for. */
+export const FALLBACK_RADIUS_KM = 0.3;
+
+export interface PrecomputedFile {
+  version: 2;
   model: string;
+  generatedAt: string;
+  memos: Record<string, { lat: number; lng: number; landUse: LandUse; text: string }>;
 }
 
-export const DEFAULT_MODELS: Record<Provider, string> = {
-  anthropic: 'claude-opus-5',
-  gemini: 'gemini-2.5-flash',
-  openrouter: 'deepseek/deepseek-chat-v3-0324:free',
-};
-
-export const PROVIDER_LABEL: Record<Provider, string> = {
-  anthropic: 'Anthropic (유료)',
-  gemini: 'Google Gemini (무료 티어)',
-  openrouter: 'OpenRouter (:free 모델)',
-};
-
-const SETTINGS_KEY = 'dc-screener-llm';
-
-export function loadSettings(): LlmSettings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) {
-      const s = JSON.parse(raw) as Partial<LlmSettings>;
-      const provider: Provider = s.provider ?? 'gemini';
-      return { provider, apiKey: s.apiKey ?? '', model: s.model || DEFAULT_MODELS[provider] };
-    }
-  } catch {
-    // storage unavailable
-  }
-  return { provider: 'gemini', apiKey: '', model: DEFAULT_MODELS.gemini };
+export interface GenerateMeta {
+  model?: string;
+  precomputedId?: string;
+  distanceKm?: number;
 }
 
-export function saveSettings(s: LlmSettings): void {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  } catch {
-    // storage unavailable — direct mode simply stays unavailable
-  }
+export interface GenerateOptions {
+  signal: AbortSignal;
+  onText: (t: string) => void;
+  onMode: (mode: LlmMode, meta?: GenerateMeta) => void;
+  /** Where to look for an offline memo when the proxy is unreachable. */
+  fallbackAt: { lat: number; lng: number } | null;
 }
 
-async function readSse(
-  res: Response,
-  extract: (json: unknown) => string | undefined,
+async function streamViaProxy(
+  prompt: string,
   onText: (t: string) => void,
-): Promise<void> {
-  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-  const reader = res.body.getReader();
-  const dec = new TextDecoder();
-  let buf = '';
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split('\n');
-    buf = lines.pop() ?? '';
-    for (const line of lines) {
-      if (!line.startsWith('data:')) continue;
-      const payload = line.slice(5).trim();
-      if (!payload || payload === '[DONE]') continue;
-      try {
-        const t = extract(JSON.parse(payload));
-        if (t) onText(t);
-      } catch {
-        // partial or non-JSON line — skip
-      }
-    }
-  }
-}
-
-async function streamViaProxy(prompt: string, onText: (t: string) => void): Promise<void> {
+  signal: AbortSignal,
+): Promise<{ model?: string }> {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt }),
+    signal,
   });
   if (!res.ok || !res.body) throw new Error(`proxy ${res.status}`);
+  const model = res.headers.get('X-LLM-Model') ?? undefined;
   const reader = res.body.getReader();
   const dec = new TextDecoder();
   for (;;) {
@@ -88,114 +47,62 @@ async function streamViaProxy(prompt: string, onText: (t: string) => void): Prom
     if (done) break;
     onText(dec.decode(value, { stream: true }));
   }
+  return { model };
 }
 
-async function streamAnthropic(prompt: string, s: LlmSettings, onText: (t: string) => void) {
-  const client = new Anthropic({ apiKey: s.apiKey, dangerouslyAllowBrowser: true });
-  const stream = client.messages.stream({
-    model: s.model,
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }],
-  });
-  stream.on('text', onText);
-  await stream.finalMessage();
-}
-
-async function streamGemini(prompt: string, s: LlmSettings, onText: (t: string) => void) {
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(s.model)}` +
-    `:streamGenerateContent?alt=sse&key=${encodeURIComponent(s.apiKey)}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
-  });
-  await readSse(
-    res,
-    (j) => {
-      const c = j as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-      return c.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('');
-    },
-    onText,
-  );
-}
-
-async function streamOpenRouter(prompt: string, s: LlmSettings, onText: (t: string) => void) {
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${s.apiKey}`,
-      'HTTP-Referer': location.origin,
-      'X-Title': 'The Grand Site DC',
-    },
-    body: JSON.stringify({
-      model: s.model,
-      stream: true,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  await readSse(
-    res,
-    (j) => (j as { choices?: { delta?: { content?: string } }[] }).choices?.[0]?.delta?.content,
-    onText,
-  );
-}
-
-async function streamDirect(prompt: string, s: LlmSettings, onText: (t: string) => void) {
-  if (s.provider === 'anthropic') return streamAnthropic(prompt, s, onText);
-  if (s.provider === 'gemini') return streamGemini(prompt, s, onText);
-  return streamOpenRouter(prompt, s, onText);
-}
-
-async function loadPrecomputed(scenarioId: string | null): Promise<string | null> {
-  if (!scenarioId) return null;
+async function loadPrecomputed(
+  at: { lat: number; lng: number },
+  signal: AbortSignal,
+): Promise<{ id: string; text: string; distanceKm: number } | null> {
   try {
-    const res = await fetch('data/precomputed_memos.json');
+    const res = await fetch('data/precomputed_memos.json', { signal });
     if (!res.ok) return null;
-    const memos = (await res.json()) as Record<string, string>;
-    return memos[scenarioId] ?? null;
+    const file = (await res.json()) as PrecomputedFile;
+    let best: { id: string; text: string; distanceKm: number } | null = null;
+    for (const [id, memo] of Object.entries(file.memos ?? {})) {
+      const distanceKm = haversineKm(at.lat, at.lng, memo.lat, memo.lng);
+      if (distanceKm <= FALLBACK_RADIUS_KM && (!best || distanceKm < best.distanceKm)) {
+        best = { id, text: memo.text, distanceKm };
+      }
+    }
+    return best;
   } catch {
     return null;
   }
 }
 
-export async function generateMemo(
-  prompt: string,
-  scenarioId: string | null,
-  onText: (t: string) => void,
-  onMode: (m: LlmMode) => void,
-): Promise<void> {
-  const errors: string[] = [];
+/**
+ * Server proxy first (Vercel Edge -> OpenRouter), then the precomputed memo bundled for the demo
+ * points. There is no browser-key path: the key lives only in the server environment.
+ */
+export async function generateMemo(prompt: string, opts: GenerateOptions): Promise<void> {
+  const { signal, onText, onMode, fallbackAt } = opts;
+  let proxyError = '';
   try {
     onMode('proxy');
-    await streamViaProxy(prompt, onText);
+    const { model } = await streamViaProxy(prompt, onText, signal);
+    onMode('proxy', { model });
     return;
   } catch (e) {
-    errors.push(`proxy: ${e instanceof Error ? e.message : String(e)}`);
+    if (signal.aborted) throw e;
+    proxyError = e instanceof Error ? e.message : String(e);
   }
-  const settings = loadSettings();
-  if (settings.apiKey) {
-    try {
-      onMode('direct');
-      await streamDirect(prompt, settings, onText);
+
+  if (fallbackAt) {
+    const pre = await loadPrecomputed(fallbackAt, signal);
+    if (pre) {
+      onMode('fallback', { precomputedId: pre.id, distanceKm: pre.distanceKm });
+      for (const chunk of pre.text.match(/[\s\S]{1,40}/g) ?? []) {
+        if (signal.aborted) return;
+        onText(chunk);
+        await new Promise((r) => setTimeout(r, 25));
+      }
       return;
-    } catch (e) {
-      errors.push(`${settings.provider}: ${e instanceof Error ? e.message : String(e)}`);
     }
-  } else {
-    errors.push('API 키 미설정');
   }
-  onMode('fallback');
-  const pre = await loadPrecomputed(scenarioId);
-  if (pre) {
-    for (const chunk of pre.match(/[\s\S]{1,40}/g) ?? []) {
-      onText(chunk);
-      await new Promise((r) => setTimeout(r, 25));
-    }
-    return;
-  }
+
   throw new Error(
-    `GenAI 호출 불가 (${errors.join(' / ')}). 설정에서 무료 Gemini 키 등을 입력하거나 데모 시나리오를 선택하세요.`,
+    `검토 의견 생성 실패 (${proxyError}). 서버 환경변수 OPENROUTER_API_KEY를 확인하세요. ` +
+      `사전 생성 메모는 등록된 지점 반경 ${FALLBACK_RADIUS_KM * 1000}m 이내에서만 제공됩니다.`,
   );
 }

@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import type { AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow } from '../types';
+import type {
+  AppData,
+  CaseRow,
+  NewsSignalFile,
+  PermitDelayFile,
+  RegulationRow,
+  TerrainGrid,
+  TerrainGridFile,
+} from '../types';
+import { decodeTerrain } from '../scoring/terrain';
 import { parseCsv } from '../lib/csv';
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -15,6 +24,17 @@ async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
+    return null;
+  }
+}
+
+/** A corrupt terrain file disables the terrain signal instead of blanking the app. */
+function safeDecodeTerrain(file: TerrainGridFile | null): TerrainGrid | null {
+  if (!file) return null;
+  try {
+    return decodeTerrain(file);
+  } catch (e) {
+    console.warn('terrain_grid.json ignored:', e);
     return null;
   }
 }
@@ -41,11 +61,11 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           popGrid,
           dcStats,
           constants,
-          scenariosFile,
           casesRaw,
           regsRaw,
           permitDelay,
           newsSignal,
+          terrainFile,
         ] = await Promise.all([
           fetchJson<AppData['emdPower']>('data/emd_power.json'),
           fetchJson<AppData['emdCentroids']>('data/emd_centroids.json'),
@@ -54,11 +74,11 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchJson<AppData['popGrid']>('data/pop_grid.json'),
           fetchJson<AppData['dcStats']>('data/dc_stats.json'),
           fetchJson<AppData['constants']>('data/constants.json'),
-          fetchJson<{ scenarios: AppData['scenarios'] }>('data/scenarios.json'),
           fetchCsv('data/cases.csv'),
           fetchCsv('data/regulations.csv'),
           fetchJsonOrNull<PermitDelayFile>('data/permit_delay.json'),
           fetchJsonOrNull<NewsSignalFile>('data/news_signal.json'),
+          fetchJsonOrNull<TerrainGridFile>('data/terrain_grid.json'),
         ]);
         const cases: CaseRow[] = casesRaw.map((r) => ({
           id: r.id,
@@ -93,10 +113,10 @@ export function useAppData(): { data: AppData | null; error: string | null } {
             cases,
             regulations,
             dcStats,
-            scenarios: scenariosFile.scenarios,
             constants,
             permitDelay,
             newsSignal,
+            terrain: safeDecodeTerrain(terrainFile),
           });
         }
       } catch (e) {

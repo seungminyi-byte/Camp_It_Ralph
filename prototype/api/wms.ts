@@ -8,13 +8,14 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // Only whitelisted layers, PNG output and tile-sized images are forwarded; tiles are cached at
 // the edge for a day to stay well inside the 40,000 calls/day quota.
 
+import { fetchVworld, registeredDomain, UPSTREAM_TIMEOUT_MS } from './_vworld';
+
 declare const process: { env: Record<string, string | undefined> };
 
 const UPSTREAM = 'https://api.vworld.kr/req/wms';
 const ALLOWED_LAYERS = new Set(['lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114']);
 const ALLOWED_CRS = new Set(['EPSG:3857', 'EPSG:900913', 'EPSG:4326']);
 const MAX_SIZE = 512;
-const UPSTREAM_TIMEOUT_MS = 12_000; // VWorld occasionally stalls; fail fast so Leaflet can retry on the next pan
 
 function param(q: URLSearchParams, name: string): string {
   return q.get(name) ?? q.get(name.toUpperCase()) ?? q.get(name.toLowerCase()) ?? '';
@@ -34,12 +35,6 @@ function validSize(value: string): number | null {
 function validBbox(value: string): string | null {
   const nums = value.split(',').map(Number);
   return nums.length === 4 && nums.every(Number.isFinite) ? nums.join(',') : null;
-}
-
-function registeredDomain(env: Record<string, string | undefined>): string {
-  if (env.VWORLD_DOMAIN) return env.VWORLD_DOMAIN;
-  if (env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  return 'http://localhost';
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -80,22 +75,17 @@ export default async function handler(req: Request): Promise<Response> {
   set('transparent', transparent);
   set('bgcolor', '0xFFFFFF');
   set('exceptions', 'text/xml');
-  set('key', key);
-  set('domain', domain);
 
-  const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(), UPSTREAM_TIMEOUT_MS);
+  // VWorld occasionally stalls; fail fast so Leaflet can retry on the next pan.
   let res: Response;
   try {
-    res = await fetch(upstream, { headers: { Referer: domain }, signal: abort.signal });
+    res = await fetchVworld(upstream, key, domain, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
-    clearTimeout(timer);
     return new Response(`vworld unreachable: ${e instanceof Error ? e.message : String(e)}`, {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
-  clearTimeout(timer);
   const contentType = res.headers.get('content-type') ?? '';
   if (!res.ok || !contentType.startsWith('image/')) {
     // VWorld reports key/domain problems as XML or HTML with status 200; surface them as 502.

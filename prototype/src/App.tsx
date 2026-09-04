@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
+import { useZoning } from './hooks/useZoning';
 import { scoreSite } from './scoring/engine';
-import type { LandUse, ScoreInput } from './types';
-import { MapView } from './components/MapView';
+import type { LandUse, LandUseSource, ScoreInput, SiteSelection } from './types';
+import { MapView, type FlyToTarget } from './components/MapView';
 import { SitePanel } from './components/SitePanel';
 import { ScoreCard } from './components/ScoreCard';
 import { CompareStrip } from './components/CompareStrip';
@@ -10,20 +11,24 @@ import { CaseDrawer } from './components/CaseDrawer';
 import { MemoPanel } from './components/MemoPanel';
 import { DisclaimerFooter } from './components/DisclaimerFooter';
 
-export interface SiteSelection {
-  lat: number;
-  lng: number;
-  label?: string;
-}
-
 export default function App() {
   const { data, error } = useAppData();
   const [site, setSite] = useState<SiteSelection | null>(null);
-  const [landUse, setLandUse] = useState<LandUse>('unknown');
+  const [manualLandUse, setManualLandUse] = useState<LandUse | null>(null);
+  const [assumeLand, setAssumeLand] = useState(false);
   const [capexKrw, setCapexKrw] = useState<number | null>(null);
   const [annualRate, setAnnualRate] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
+  const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
+
+  const zoning = useZoning(site);
+  const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
+
+  // The dropdown wins once the user touches it; otherwise VWorld fills it in.
+  const auto = zoningLookup?.found ? zoningLookup : null;
+  const landUse: LandUse = manualLandUse ?? auto?.landUse ?? 'unknown';
+  const landUseSource: LandUseSource =
+    manualLandUse !== null ? 'manual' : auto ? 'auto' : 'unknown';
 
   const input: ScoreInput | null = useMemo(() => {
     if (!data || !site) return null;
@@ -33,8 +38,10 @@ export default function App() {
       landUse,
       capexKrw: capexKrw ?? data.constants.scoring.finance.defaultCapexKrw,
       annualRate: annualRate ?? data.constants.scoring.finance.defaultAnnualRate,
+      zoning: zoningLookup,
+      assumeLand,
     };
-  }, [data, site, landUse, capexKrw, annualRate]);
+  }, [data, site, landUse, capexKrw, annualRate, zoningLookup, assumeLand]);
 
   const result = useMemo(
     () => (data && input ? scoreSite(input, data) : null),
@@ -56,16 +63,17 @@ export default function App() {
     );
   }
 
-  const selectScenario = (id: string) => {
-    const sc = data.scenarios.find((s) => s.id === id);
-    if (!sc) return;
-    setSite({ lat: sc.lat, lng: sc.lng, label: sc.name });
-    setLandUse(sc.landUse);
-    setFlyTo([sc.lat, sc.lng]);
+  const selectSite = (selection: SiteSelection, zoom?: number) => {
+    setSite(selection);
+    setManualLandUse(null);
+    setAssumeLand(false);
+    if (zoom !== undefined) setFlyTo({ lat: selection.lat, lng: selection.lng, zoom });
   };
 
+  const siteKey = site ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}` : 'none';
+
   return (
-    <div className="flex h-full flex-col bg-gray-50 text-gray-900">
+    <div className="flex h-full flex-col bg-gray-50 text-gray-900 print:hidden">
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2">
         <div>
           <h1 className="text-lg font-bold">
@@ -89,16 +97,13 @@ export default function App() {
             data={data}
             site={site}
             flyTo={flyTo}
-            onSelect={(lat, lng) => {
-              setSite({ lat, lng });
-              setLandUse('unknown');
-            }}
+            onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })}
           />
           <CaseDrawer
             data={data}
             open={drawerOpen}
             onFly={(c) => {
-              setFlyTo([c.lat, c.lng]);
+              setFlyTo({ lat: c.lat, lng: c.lng, zoom: 13 });
               setDrawerOpen(false);
             }}
           />
@@ -108,17 +113,30 @@ export default function App() {
             data={data}
             site={site}
             landUse={landUse}
+            landUseSource={landUseSource}
+            zoning={zoning}
             capexKrw={capexKrw ?? data.constants.scoring.finance.defaultCapexKrw}
             annualRate={annualRate ?? data.constants.scoring.finance.defaultAnnualRate}
-            onScenario={selectScenario}
-            onLandUse={setLandUse}
+            onPick={selectSite}
+            onLandUse={setManualLandUse}
+            onResetAuto={() => setManualLandUse(null)}
             onCapex={setCapexKrw}
             onRate={setAnnualRate}
           />
-          {result && input && (
+          {result && input && site && (
             <>
-              <ScoreCard result={result} data={data} />
-              <MemoPanel data={data} input={input} result={result} site={site} />
+              <ScoreCard result={result} data={data} onAssumeLand={() => setAssumeLand(true)} />
+              {result.site.status !== 'sea' && (
+                <MemoPanel
+                  key={siteKey}
+                  data={data}
+                  input={input}
+                  result={result}
+                  site={site}
+                  landUseSource={landUseSource}
+                  zoningName={zoningLookup?.found ? zoningLookup.name : null}
+                />
+              )}
             </>
           )}
           <DisclaimerFooter data={data} />

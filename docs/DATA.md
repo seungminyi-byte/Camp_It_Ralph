@@ -21,6 +21,7 @@
 | 4 | 행안부_행정·공공기관 정보시스템 운영시설 현황 | https://www.data.go.kr/data/15080581/fileData.do | CSV/JSON/XML | 61행. 공공 DC(500㎡ 이상) 기관명·시설명·시도-시군구 | 참고 레이어 |
 | 5 | 국가데이터처_SGIS 격자 통계 및 경계 | https://www.data.go.kr/data/15141768/fileData.do | CSV + SHP | 격자 인구. 좌표계 EPSG:5179 추정 — 파일 확인 필요. SGIS OpenAPI(테스트키→상용키 2단계)를 우회하는 정적 대체재 | 반경 500m 인구 → 주거 근접 감점 |
 | 6 | OSM 변전소 좌표 | Overpass API (https://overpass-api.de/api/interpreter), 쿼리 `power=substation` | GeoJSON | 남한 범위 변전소 노드·웨이(중심점화). **공식 데이터 아님 — 참고치 명시 필수** | 최근접 변전소 거리 점수 |
+| 7 | Mapzen/Tilezen Terrain Tiles (skadi) | https://registry.opendata.aws/terrain-tiles/ · `s3.amazonaws.com/elevation-tiles-prod/skadi/N{lat}/N{lat}E{lng}.hgt.gz` | HGT (1" 3601² big-endian int16) | SRTM 30m 육지 표고 + ETOPO1 수심. 한국 30타일 188MB, 익명 접근·키 불필요 | 경사도 감점 · 육지/수역 판정 (`p07_terrain.py`) |
 
 다운로드 파일은 `data-pack/raw/`에 원본 그대로 보존. 공공 CSV 인코딩은 cp949 우선, utf-8-sig 폴백.
 
@@ -28,12 +29,21 @@
 
 | API | 발급처 | 절차·소요 | 쿼터 | 용도 | 우선순위 |
 |---|---|---|---|---|---|
-| VWorld | https://www.vworld.kr → 오픈API → 인증키 발급 | 회원가입 → 이메일 인증 → 즉시 승인 (~15분) | 일 40,000건 | ① 읍면동 센트로이드 일괄 지오코딩(파이프라인 1회성) ② 용도지역 WMS 오버레이(`lt_c_uq111` 등 169종) | P0 (①), P1 (②) |
+| VWorld | https://www.vworld.kr → 오픈API → 인증키 발급 | 회원가입 → 이메일 인증 → 즉시 승인 (~15분) | 일 40,000건 | ① 용도지역 WMS 오버레이(`lt_c_uq111~114`, `api/wms.ts`) ② **2D Data API 점 조회 → 용도지역 자동 판정**(`api/zoning.ts`) ③ **Geocoder → 주소 검색**(`api/geocode.ts`) | P1 |
 | 건축HUB 건축인허가정보 | https://www.data.go.kr/data/15136267/openapi.do → 활용신청 | data.go.kr 계정으로 신청 → **자동승인** | 일 10,000건 | 시군구 9곳(고양·김포·안양·용인·인천·금천·부천·과천 + 세종 대조) 허가일(archPmsDay)→실착공일(realStcnsDay) 지연 통계 → `permit_delay.json` (`p05_permits_api.py`, 구현됨) | P1 완료 |
 | 네이버 검색 API (뉴스) | **NAVER API HUB** https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보] | 네이버 클라우드 계정으로 즉시 생성 (Client ID 10자·Secret 40자) | 일 25,000회, 키당 50 RPS, 월 775,000회까지 무료 (API HUB 문서 확인치) | 지역명+"데이터센터 반대/주민/인허가" 기사 카운트 → 뉴스 갈등 시그널 감점 → `news_signal.json` (`p06_news_api.py`, 구현됨) | P1 완료 |
-| Anthropic API | 기존 키 사용 | — | — | ① 런타임: 부지 실사 메모 생성(스트리밍) ② 빌드타임: 뉴스 갈등단계 분류 | P0(①), P1(②) |
+| OpenRouter (MiniMax `:free`) | https://openrouter.ai/keys | 즉시 발급 | 모델별 무료 한도 | 실사 체크리스트의 AI 검토 의견 (`api/generate.ts`, 서버 키 전용) | P0 |
 
 주의: VWorld는 HTTPS·비브라우저 호출 시 `domain` 파라미터에 등록 도메인 필요. EPSG:4326 BBOX는 (ymin,xmin,ymax,xmax) 순서.
+
+VWorld 2D Data API(용도지역 자동 판정) 확인치: `api.vworld.kr/req/data`에
+`service=data&version=2.0&request=GetFeature&data=LT_C_UQ111&geomFilter=POINT(경도 위도)&crs=EPSG:4326&format=json&errorFormat=json`
+(`geomFilter`·`errorFormat`은 camelCase). 응답은 `response.status`(OK/NOT_FOUND/ERROR)와
+`response.result.featureCollection.features[].properties.uname`(용도지역명, 예 "제1종일반주거지역").
+도시지역 UQ111 / 관리 UQ112 / 농림 UQ113 / 자연환경보전 UQ114를 병렬 조회해 첫 히트를 쓴다.
+**NOT_FOUND(도형 없음)와 ERROR(조회 실패)를 반드시 구분**해야 한다 — 전자만 "수역·비지정" 근거로 쓸 수 있다.
+Geocoder는 `req/address`에 `request=getCoord&type=ROAD|PARCEL`, 응답은 `response.result.point.x`(경도)·`.y`(위도)와
+`response.refined.text`. **약관상 실시간 사용이고 별도 DB 저장이 금지**되어 CDN 캐시는 1시간 이하로 뒀다.
 
 네이버 검색 API는 **개발자센터에서 NAVER API HUB(네이버 클라우드)로 이관**됐다(2026 실측). 기존 키는 2027-06-30까지 유효하지만
 신규 발급은 API HUB에서만 되고 **호출 주소·헤더가 모두 다르다**: `openapi.naver.com/v1/search/news.json` +
@@ -70,7 +80,7 @@
 
 ### 3.1 `cases.csv` — 데이터센터 갈등·지연 사례 12건
 
-금천 독산동(공사중단 1.5개월) / 김포 구래동(허가→착공 4년) / 고양 덕이동(마그나PFV·착공신고 반려) /
+금천 독산동(공사중단 1.5개월) / 김포 구래동(허가→착공 4년) / 고양 덕이동(착공신고 반려) /
 고양 식사동(재심의→조건부 승인) / 안양 호계동(2년 정체→무산) / 용인 죽전(합의 후 준공) /
 용인 공세동(무산→세종 이전) / 인천 청천동(공사중지→합의 준공 120MW) / 부천 삼정동(도로심의 3회 부결) /
 시흥(240MW 좌초 위기) / 과천 주암(이격 조례 2회 부결) / 영등포 문래(규제 대응 단계)
@@ -102,6 +112,31 @@
   (기술 60 + 비기술 40). 계통관리지역 고시 미제정 — 사실상 전국 대상 예정
 - 지연 실측 앵커: 1.5개월(금천)~48개월(김포), 무산 3건(안양·용인 공세·사실상 시흥)
 
+### 3.4 지형·해상 판정 (`terrain_grid.json`, p07_terrain.py)
+
+Terrain Tiles의 skadi HGT를 3″로 서브샘플해 중앙차분으로 경사를 구하고, **0.01° 격자**(lat0 33.0 / lng0 125.5,
+570×420 = 239,400셀, 셀당 144표본)로 집계한다. 산출은 base64 uint8 4 plane(255 = nodata, 약 1.3MB):
+`landPct`(표고>0 비율) · `slopeP50Deg`(중앙값 경사) · `steepPct`(15° 이상 비율) · `elevMean10m`(10m 단위 표고).
+
+**중앙값과 15° 비율을 쓰는 이유**: 1km 셀 안의 언덕 한 조각이 평균·최댓값을 끌어올린다. 실측 —
+팔당호 인근은 최댓값 29.2°인데 중앙값은 2.5°, 세종 반곡동은 평균 5.7°인데 중앙값 4.9°다.
+
+실측값(0.01° 셀): 고양 덕이동 육지 100%·중앙값 2°·표고 20m / 인천 청천동 100%·4°·60m /
+세종 반곡동 100%·5°·40m / 태백산맥(37.85,128.45) 100%·28°·15°이상 91%·900m /
+서해(37.4,126.2) 육지 0% / 송도(37.38,126.65) 22% / 새만금 0%.
+
+경사 감점 밴드(`constants.scoring.terrain.slopeDeduction`, 중앙값 기준): ≤5° 0 / ≤10° 5 / ≤15° 10 / ≤25° 20 / 초과 30점.
+근거는 산지관리법 시행령 [별표4] 산지전용허가 **평균경사도 25° 이하**와 개발행위허가 조례(화성·성남 15° 미만, 용인 처인 20°).
+중앙값 25° 이상이거나 15° 이상 비율 70% 이상이면 "입지 부적합 가능" 플래그.
+
+**한계 (disclaimer.terrain에 표기)**
+- SRTM은 2000-02 촬영이고 수역은 SWBD 마스크로 지워져 ETOPO1 수심이 드러난다 → **2000년 이후 매립지는 수역으로 나온다**
+  (송도 −3m, 새만금 −4~−10m, 시화호·송산 −1m). 그래서 `sea` 판정은 ① 수동 등재 `reclaimedOverrides` bbox 8곳
+  ② VWorld 용도지역 폴리곤 존재 ③ 사용자의 "매립 예정지로 간주" 중 어느 하나로도 뒤집히게 했다.
+- 반대로 내륙 호수(팔당·소양·충주호)는 주변 지형으로 메워져 **육지로 나온다** — 지형만으로는 못 거른다.
+- 1km 셀 참고치이고 평지에서도 SRTM 수직오차 때문에 2~3° 잡음이 낀다. 부지 확정 전 현장 측량 필요.
+- 커버리지는 lat 33~38.7 / lng 125.5~129.7. 울릉·독도·백령 등 원거리 도서는 격자 밖(`nodata`)이다.
+
 ## 4. 조사했으나 채택 불가 (이유 기록 — 심사 질의 대비)
 
 | 소스 | 불채택 사유 |
@@ -118,9 +153,12 @@
 - 전력계통영향평가 실무 소요기간(90일/5개월설)은 벤더 페이지 기반 참고치 — 1차 출처 미확인, 인용 시 "업계 추정" 표기
 - 네이버 API 일 쿼터 25,000회는 API HUB 공식 문서에서 확인됨(키당 50 RPS, 월 775,000회 무료). 2026-09-04 수집은 158회 사용
 - 김포시·고양시의 "데이터센터 전용 조례"는 미확인(대응이 개별 인허가 처분 형태) — 조례 있다고 쓰지 말 것
-- 아이디어 문서의 "안양 관양동" 사례는 미확인 — 호계동(효성 에버쇼)으로 정정
+- 아이디어 문서의 "안양 관양동" 사례는 미확인 — 호계동으로 정정
 - 통계 736건(전체)과 1.9%(수도권 절단면)는 같은 데이터셋 — 병렬 제시 시 이중 계산 주의
 - 발표 전 통계 재확인 권장: 기사 기준이라 심사 시점(9.21)에 갱신됐을 수 있음
+- VWorld 미확인 항목(방어적 파싱으로 흡수): NOT_FOUND 응답에 `result` 키가 있는지, ERROR 객체의 정확한 키명,
+  UQ114의 속성명이 `uname`인지(없으면 레이어명으로 대체), `point.x/y`가 문자열인지(→ `Number()` 변환)
+- 지형 격자는 SRTM 2000년 촬영본 기반 — 매립지·호수 한계는 3.4절 참조
 
 ## 6. 출처 원문 목록
 
@@ -128,13 +166,12 @@
 - KHARN 2026.7.14 (CBRE코리아 『한국 데이터센터 투자』 인용) https://www.kharn.kr/news/article.html?no=31267
 - 비즈워치 2026.7.1 「건설사 입맛 다시는 데이터센터, 암초는 주민 반대」 https://news.bizwatch.co.kr/article/real_estate/2026/07/01/0041
 - 경향 2026.2.20 (금천 독산) https://www.khan.co.kr/article/202602200600081
-- 시사저널e (고양 덕이·마그나PFV) https://www.sisajournal-e.com/news/articleView.html?idxno=406457
+- 시사저널e (고양 덕이동 DC 착공신고 반려) https://www.sisajournal-e.com/news/articleView.html?idxno=406457
 - 인천in 2024.9 (인천 조례) https://www.incheonin.com/news/articleView.html?idxno=103837
 - 아주경제 2026.8.28 (과천 부결) https://www.ajunews.com/view/20260828150356071
 - 아시아경제 2024.12.4 (부천 도로심의) https://www.asiae.co.kr/article/2024120416031054363
 - 중소기업신문 2024.10.30 (국토부 33곳 중 17곳) https://www.smedaily.co.kr/news/articleView.html?idxno=307821
-- 한경 2024.1.24 (에포크 안양 준공) https://www.hankyung.com/article/2024012474706
+- 한경 2024.1.24 (안양 소재 DC 준공 — MW당 사업비 추정 근거) https://www.hankyung.com/article/2024012474706
 - inews24 (디씨브릿지 설립) https://www.inews24.com/view/1413246
-- CEO스코어데일리 2024.5.29 (GS건설·자이C&A 준공 건수 1위) https://www.ceoscoredaily.com/page/view/2024052915564544795
 - Sterling Infrastructure e-Infrastructure https://www.strlco.com/what-we-do/e-infrastructure-solutions/ · FY2025 10-K (SEC EDGAR strl-20251231)
 - 갈등 사례 12건 개별 출처: cases.csv의 source_url 컬럼

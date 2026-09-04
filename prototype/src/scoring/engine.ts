@@ -3,6 +3,7 @@ import type {
   CaseRow,
   Deduction,
   LandUse,
+  TerrainSample,
   NewsSignalFile,
   NewsSignalRow,
   PermitDelayFile,
@@ -11,8 +12,9 @@ import type {
   ScoreResult,
 } from '../types';
 import { haversineKm, nearest, sumWithinKm } from './geo';
+import { classifySite, findReclaimedOverride, lookupTerrain, slopeDeduction } from './terrain';
 
-const LAND_USE_LABEL: Record<LandUse, string> = {
+export const LAND_USE_LABEL: Record<LandUse, string> = {
   industrial: '공업지역',
   semiIndustrial: '준공업지역',
   commercial: '상업지역',
@@ -78,6 +80,16 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         distanceKm: emdMatch.distanceKm,
       }
     : null;
+
+  const terrainCfg = scoring.terrain;
+  const terrainSample: TerrainSample | null = data.terrain
+    ? lookupTerrain(data.terrain, lat, lng)
+    : null;
+  const reclaimed = findReclaimedOverride(terrainCfg.reclaimedOverrides, lat, lng);
+  const site = classifySite(terrainSample, reclaimed, terrainCfg, {
+    zoningFound: input.zoning ? input.zoning.found : null,
+    assumeLand: input.assumeLand ?? false,
+  });
 
   let emdPower = emdInfo
     ? data.emdPower.find(
@@ -157,6 +169,33 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
           ? '용도지역 미확인 (VWorld 오버레이 또는 토지이음에서 확인 필요)'
           : '데이터센터는 공업·준공업 입지가 인허가 마찰 최소',
     });
+  }
+
+  // Reclaimed cells are flat by construction; their real risk is soft ground, not slope.
+  let terrain: ScoreResult['terrain'] = null;
+  if (terrainSample && (site.status === 'ok' || site.status === 'coastal')) {
+    const slope = slopeDeduction(terrainSample, terrainCfg);
+    terrain = {
+      sample: terrainSample,
+      deduction: slope.points,
+      band: slope.band,
+      unsuitable: slope.unsuitable,
+    };
+    if (slope.points > 0) {
+      deductions.push({
+        label: '지형·경사',
+        points: slope.points,
+        evidence:
+          `1km 격자 중앙값 경사 ${terrainSample.slopeP50Deg}°, ` +
+          `${data.terrain?.steepThresholdDeg ?? 15}° 이상 비율 ${terrainSample.steepPct}%, ` +
+          `표고 약 ${terrainSample.elevM}m — ${slope.band} (SRTM 30m·Terrain Tiles)`,
+        anchor:
+          '산지관리법 시행령 별표4: 산지전용허가 평균경사도 25° 이하 · 화성·성남 개발행위허가 조례 15° 미만',
+      });
+    }
+  } else if (terrainSample) {
+    const slope = slopeDeduction(terrainSample, terrainCfg);
+    terrain = { sample: terrainSample, deduction: 0, band: slope.band, unsuitable: false };
   }
 
   const matchedRegulations = emdInfo
@@ -353,6 +392,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       delayStat,
       newsSignal,
     },
+    site,
+    terrain,
     composite: { score: compositeScore, grade, gradeCapped },
     delay: {
       minMonths: delay.minMonths,

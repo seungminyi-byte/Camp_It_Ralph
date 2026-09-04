@@ -68,8 +68,20 @@ export interface Scenario {
   landUse: LandUse;
   expectedGrade: string[];
   story: string;
-  role: string;
 }
+
+/** How the user picked the current point; shown on the report header. */
+export type SiteSource = 'map' | 'emd' | 'geocode' | 'coords';
+
+export interface SiteSelection {
+  lat: number;
+  lng: number;
+  label?: string;
+  source: SiteSource;
+}
+
+/** Whether `ScoreInput.landUse` came from the VWorld lookup or from the dropdown. */
+export type LandUseSource = 'unknown' | 'auto' | 'manual';
 
 export type LandUse =
   | 'industrial'
@@ -143,6 +155,78 @@ export interface NewsSignalFile {
   rows: NewsSignalRow[];
 }
 
+/** Raw terrain_grid.json as served; planes are base64 uint8, 255 = nodata. */
+export interface TerrainGridFile {
+  source: string;
+  sourceUrl?: string;
+  attribution: string;
+  fetchedAt: string;
+  method: { sampleArcsec: number; slope: string; samplesPerCell: number; steepThresholdDeg: number };
+  grid: {
+    lat0: number;
+    lng0: number;
+    step: number;
+    rows: number;
+    cols: number;
+    origin: 'sw';
+    order?: string;
+  };
+  encoding: { type: 'base64-uint8'; nodata: number };
+  planes: { landPct: string; slopeP50Deg: string; steepPct: string; elevMean10m: string };
+  tiles?: { requested: number; loaded: number; missing: string[] };
+  stats?: Record<string, number>;
+}
+
+/** Decoded once in useAppData; scoreSite runs on every slider move. */
+export interface TerrainGrid {
+  lat0: number;
+  lng0: number;
+  step: number;
+  rows: number;
+  cols: number;
+  nodata: number;
+  steepThresholdDeg: number;
+  source: string;
+  attribution: string;
+  landPct: Uint8Array;
+  slopeP50Deg: Uint8Array;
+  steepPct: Uint8Array;
+  elevMean10m: Uint8Array;
+}
+
+export interface TerrainSample {
+  /** share of 30m samples in the 1km cell above sea level, 0~100 */
+  landPct: number;
+  /** median slope of the cell in degrees */
+  slopeP50Deg: number;
+  /** share of samples at or above the steep threshold (15 deg), 0~100 */
+  steepPct: number;
+  elevM: number;
+  row: number;
+  col: number;
+}
+
+export type SiteStatus = 'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata';
+
+/** Manually curated boxes for post-2000 reclamation that SRTM still reads as water. */
+export interface ReclaimedOverride {
+  name: string;
+  /** [minLat, minLng, maxLat, maxLng] */
+  bbox: [number, number, number, number];
+  note?: string;
+}
+
+/** VWorld 용도지역 point lookup (api/zoning.ts). */
+export interface ZoningLookup {
+  found: boolean;
+  layer: string | null;
+  name: string | null;
+  landUse: LandUse;
+  sido?: string;
+  sigungu?: string;
+  all: { layer: string; name: string }[];
+}
+
 export interface Constants {
   stats: Record<string, { value?: number; label: string; source?: string; sourceUrl?: string }>;
   scoring: {
@@ -179,6 +263,13 @@ export interface Constants {
         cap: number;
       };
     };
+    terrain: {
+      seaMaxLandPct: number;
+      coastalMaxLandPct: number;
+      slopeDeduction: { maxP50Deg: number; deduction: number; label: string }[];
+      unsuitable: { minP50Deg: number; minSteepPct: number };
+      reclaimedOverrides: ReclaimedOverride[];
+    };
     composite: {
       weightPower: number;
       weightPermit: number;
@@ -210,12 +301,13 @@ export interface AppData {
   cases: CaseRow[];
   regulations: RegulationRow[];
   dcStats: DcStat[];
-  scenarios: Scenario[];
   constants: Constants;
   /** 건축HUB 허가→착공 통계 (P1); null when data/permit_delay.json is absent */
   permitDelay: PermitDelayFile | null;
   /** 네이버 뉴스 갈등 시그널 (P1); null when data/news_signal.json is absent */
   newsSignal: NewsSignalFile | null;
+  /** 지형 격자 (p07_terrain.py); null when data/terrain_grid.json is absent or undecodable */
+  terrain: TerrainGrid | null;
 }
 
 export interface Deduction {
@@ -231,6 +323,10 @@ export interface ScoreInput {
   landUse: LandUse;
   capexKrw: number;
   annualRate: number;
+  /** VWorld lookup for this point; lets the engine tell reclaimed land from open water. */
+  zoning?: ZoningLookup | null;
+  /** User override: treat a water cell as buildable land. */
+  assumeLand?: boolean;
 }
 
 export interface ScoreResult {
@@ -269,6 +365,8 @@ export interface ScoreResult {
       deduction: number;
     } | null;
   };
+  site: { status: SiteStatus; label: string; detail: string; override: string | null };
+  terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;
   composite: { score: number; grade: string; gradeCapped: boolean };
   delay: { minMonths: number; maxMonths: number; pointMonths: number; anchor: string };
   finance: { delayCostKrw: number; monthlyCostKrw: number };

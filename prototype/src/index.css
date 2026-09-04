@@ -25,3 +25,67 @@ body,
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
+
+/* Print: the report is rendered into #print-root, a direct child of <body>, because #root uses
+   height:100% with scrolling panes and would clip the printout to a single page. */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 14mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff;
+  }
+
+  #root {
+    display: none !important;
+  }
+
+  #print-root {
+    display: block !important;
+  }
+
+  .report {
+    color: #111;
+    line-height: 1.45;
+  }
+
+  .report thead {
+    display: table-header-group;
+  }
+
+  .report tr,
+  .report .avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report h1,
+  .report h2 {
+    break-after: avoid;
+  }
+
+  .report th,
+  .report td {
+    word-break: keep-all;
+  }
+
+  /* Verdicts read as glyph + word, so they survive "background graphics: off". */
+  .report .verdict {
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  .report a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .report .sources li {
+    word-break: break-all;
+  }
+}

@@ -1,157 +1,196 @@
-import { useRef, useState } from 'react';
-import type { AppData, ScoreInput, ScoreResult } from '../types';
-import type { SiteSelection } from '../App';
+import { useMemo, useRef, useState } from 'react';
+import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
+import { buildChecklist, type ChecklistRow } from '../report/checklist';
 import { buildMemoPrompt } from '../genai/prompts';
-import {
-  DEFAULT_MODELS,
-  PROVIDER_LABEL,
-  generateMemo,
-  loadSettings,
-  saveSettings,
-  type LlmMode,
-  type LlmSettings,
-  type Provider,
-} from '../genai/llmClient';
+import { parseMemo, type ParsedMemo } from '../genai/memoFormat';
+import { generateMemo, type GenerateMeta, type LlmMode } from '../genai/llmClient';
+import { printWithTitle, reportFileTitle } from '../lib/print';
+import { ChecklistReport } from './ChecklistReport';
+import { PrintPortal } from './PrintPortal';
 
-const MODE_LABEL: Record<LlmMode, string> = {
-  proxy: '서버 프록시',
-  direct: '브라우저 직접 호출',
-  fallback: '사전 생성 메모',
-};
+interface Snapshot {
+  input: ScoreInput;
+  result: ScoreResult;
+  rows: ChecklistRow[];
+  landUseSource: LandUseSource;
+  zoningName: string | null;
+  site: SiteSelection;
+}
 
-const KEY_HINT: Record<Provider, string> = {
-  gemini: '무료 키: aistudio.google.com/apikey',
-  openrouter: '무료 키: openrouter.ai/keys · 모델은 :free 접미사',
-  anthropic: '키: console.anthropic.com',
-};
+interface Run {
+  snapshot: Snapshot;
+  raw: string;
+  parsed: ParsedMemo;
+  mode: LlmMode | null;
+  meta: GenerateMeta;
+  status: 'streaming' | 'done' | 'error';
+  error?: string;
+  at: Date;
+}
 
 interface Props {
   data: AppData;
   input: ScoreInput;
   result: ScoreResult;
-  site: SiteSelection | null;
+  site: SiteSelection;
+  landUseSource: LandUseSource;
+  zoningName: string | null;
 }
 
-export function MemoPanel({ data, input, result, site }: Props) {
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<LlmMode | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [draft, setDraft] = useState<LlmSettings>(loadSettings());
-  const runId = useRef(0);
+function sameInput(a: ScoreInput, b: ScoreInput): boolean {
+  return (
+    a.lat === b.lat &&
+    a.lng === b.lng &&
+    a.landUse === b.landUse &&
+    a.capexKrw === b.capexKrw &&
+    a.annualRate === b.annualRate &&
+    (a.assumeLand ?? false) === (b.assumeLand ?? false)
+  );
+}
 
-  const scenarioId =
-    data.scenarios.find((sc) => sc.name === site?.label)?.id ?? null;
+/** The panel is keyed on the site in App, so a new point remounts it with a clean slate. */
+export function MemoPanel({ data, input, result, site, landUseSource, zoningName }: Props) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
+  const ctrl = useRef<AbortController | null>(null);
 
-  const run = async () => {
-    const id = ++runId.current;
-    setBusy(true);
-    setText('');
-    setError(null);
-    const prompt = buildMemoPrompt(data, input, result, site);
+  const rows = useMemo(
+    () => buildChecklist(result, data, { input, landUseSource, zoningName }),
+    [result, data, input, landUseSource, zoningName],
+  );
+
+  const busy = run?.status === 'streaming';
+  const stale = run !== null && !sameInput(run.snapshot.input, input);
+  const shown = run?.snapshot ?? { input, result, rows, landUseSource, zoningName, site };
+  const generatedBy =
+    run && run.mode
+      ? run.mode === 'proxy'
+        ? `서버 프록시${run.meta.model ? ` · ${run.meta.model}` : ''}`
+        : `사전 생성 메모 (오프라인${run.meta.distanceKm !== undefined ? `, ${Math.round(run.meta.distanceKm * 1000)}m` : ''})`
+      : null;
+
+  const start = async () => {
+    ctrl.current?.abort();
+    const c = new AbortController();
+    ctrl.current = c;
+    const snapshot: Snapshot = { input, result, rows, landUseSource, zoningName, site };
+    const prompt = buildMemoPrompt(data, input, result, rows, { site, landUseSource, zoningName });
+
+    setRun({
+      snapshot,
+      raw: '',
+      parsed: parseMemo(''),
+      mode: null,
+      meta: {},
+      status: 'streaming',
+      at: new Date(),
+    });
+
     try {
-      await generateMemo(
-        prompt,
-        scenarioId,
-        (t) => {
-          if (runId.current === id) setText((prev) => prev + t);
-        },
-        (m) => {
-          if (runId.current === id) setMode(m);
-        },
-      );
+      await generateMemo(prompt, {
+        signal: c.signal,
+        fallbackAt: { lat: input.lat, lng: input.lng },
+        onText: (t) =>
+          setRun((prev) => {
+            if (!prev || c.signal.aborted) return prev;
+            const raw = prev.raw + t;
+            return { ...prev, raw, parsed: parseMemo(raw) };
+          }),
+        onMode: (mode, meta) =>
+          setRun((prev) =>
+            prev && !c.signal.aborted ? { ...prev, mode, meta: { ...prev.meta, ...meta } } : prev,
+          ),
+      });
+      if (!c.signal.aborted) setRun((prev) => (prev ? { ...prev, status: 'done' } : prev));
     } catch (e) {
-      if (runId.current === id) setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      if (runId.current === id) setBusy(false);
+      if (c.signal.aborted) return;
+      const message = e instanceof Error ? e.message : String(e);
+      setRun((prev) => (prev ? { ...prev, status: 'error', error: message } : prev));
     }
   };
 
-  const onProvider = (p: Provider) =>
-    setDraft((d) => ({ ...d, provider: p, model: DEFAULT_MODELS[p] }));
+  const stop = () => {
+    ctrl.current?.abort();
+    setRun((prev) => (prev ? { ...prev, status: 'done' } : prev));
+  };
+
+  const areaLabel = result.emd ? `${result.emd.sigungu}${result.emd.emd}` : null;
 
   return (
     <section className="border-b border-gray-200 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-bold text-gray-700">실사 메모 (GenAI)</h2>
-        <div className="flex items-center gap-2">
-          {mode && (
-            <span className="text-[10px] text-gray-400">
-              {MODE_LABEL[mode]}
-              {mode === 'direct' && ` · ${draft.provider}`}
-            </span>
-          )}
-          <button
-            className="text-[11px] text-gray-400 underline"
-            onClick={() => setShowSettings((v) => !v)}
-          >
-            LLM 설정
-          </button>
-        </div>
+        <h2 className="text-sm font-bold text-gray-700">실사 체크리스트</h2>
+        {generatedBy && <span className="text-[10px] text-gray-400">{generatedBy}</span>}
       </div>
-      {showSettings && (
-        <div className="mb-2 flex flex-col gap-1 rounded border border-gray-200 bg-gray-50 p-2 text-xs">
-          <select
-            value={draft.provider}
-            onChange={(e) => onProvider(e.target.value as Provider)}
-            className="rounded border border-gray-300 px-2 py-1"
-          >
-            {(Object.keys(PROVIDER_LABEL) as Provider[]).map((p) => (
-              <option key={p} value={p}>
-                {PROVIDER_LABEL[p]}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={draft.model}
-            onChange={(e) => setDraft((d) => ({ ...d, model: e.target.value }))}
-            placeholder="모델 ID"
-            className="rounded border border-gray-300 px-2 py-1"
-          />
-          <input
-            type="password"
-            value={draft.apiKey}
-            onChange={(e) => setDraft((d) => ({ ...d, apiKey: e.target.value }))}
-            placeholder="API 키 (이 브라우저의 localStorage에만 저장)"
-            className="rounded border border-gray-300 px-2 py-1"
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-500">{KEY_HINT[draft.provider]}</span>
-            <button
-              className="rounded border border-gray-300 bg-white px-2 py-1 hover:bg-gray-100"
-              onClick={() => {
-                saveSettings({ ...draft, apiKey: draft.apiKey.trim() });
-                setShowSettings(false);
-              }}
-            >
-              저장
-            </button>
-          </div>
-        </div>
+
+      <div className="flex gap-1">
+        <button
+          onClick={busy ? stop : () => void start()}
+          className="flex-1 rounded bg-blue-600 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          {busy ? '중지' : run ? 'AI 검토 의견 다시 생성' : 'AI 검토 의견 생성'}
+        </button>
+        <button
+          onClick={() => printWithTitle(reportFileTitle(areaLabel, new Date()))}
+          className="rounded border border-gray-300 px-2 py-1.5 text-sm hover:bg-gray-100"
+        >
+          PDF로 저장
+        </button>
+      </div>
+
+      {stale && (
+        <p className="mt-2 rounded bg-amber-50 p-1.5 text-xs text-amber-900">
+          입력이 변경되었습니다. 아래 보고서는 생성 시점 기준이니 다시 생성하세요.
+        </p>
       )}
-      <button
-        onClick={run}
-        disabled={busy}
-        className="w-full rounded bg-blue-600 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-      >
-        {busy ? '생성 중…' : '이 부지의 실사 메모 생성'}
-      </button>
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
-      {text && (
-        <div className="mt-2">
-          <pre className="max-h-80 overflow-y-auto whitespace-pre-wrap rounded bg-gray-50 p-2 text-xs leading-relaxed">
-            {text}
+      {run?.status === 'error' && <p className="mt-2 text-xs text-red-600">{run.error}</p>}
+
+      <div className="mt-3 max-h-[32rem] overflow-y-auto rounded border border-gray-200 p-2">
+        <ChecklistReport
+          data={data}
+          input={shown.input}
+          result={shown.result}
+          rows={shown.rows}
+          site={shown.site}
+          landUseSource={shown.landUseSource}
+          zoningName={shown.zoningName}
+          memo={run?.parsed ?? null}
+          generatedBy={generatedBy}
+          generatedAt={run?.at ?? null}
+          variant="screen"
+        />
+      </div>
+
+      {run && run.raw.length > 0 && (
+        <details className="mt-2" open={showRaw} onToggle={(e) => setShowRaw(e.currentTarget.open)}>
+          <summary className="cursor-pointer text-[11px] text-gray-500">원문 보기</summary>
+          <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap rounded bg-gray-50 p-2 text-[11px]">
+            {run.parsed.visible}
           </pre>
           <button
             className="mt-1 text-[11px] text-gray-500 underline"
-            onClick={() => navigator.clipboard.writeText(text)}
+            onClick={() => void navigator.clipboard.writeText(run.parsed.visible)}
           >
             복사
           </button>
-        </div>
+        </details>
       )}
+
+      <PrintPortal>
+        <ChecklistReport
+          data={data}
+          input={shown.input}
+          result={shown.result}
+          rows={shown.rows}
+          site={shown.site}
+          landUseSource={shown.landUseSource}
+          zoningName={shown.zoningName}
+          memo={run?.parsed ?? null}
+          generatedBy={generatedBy}
+          generatedAt={run?.at ?? null}
+          variant="print"
+        />
+      </PrintPortal>
     </section>
   );
 }

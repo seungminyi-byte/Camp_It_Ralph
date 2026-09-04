@@ -18,6 +18,8 @@ PIPELINE = [
     "p04_centroids_enrich.py",
     "p05_permits_api.py",
     "p06_news_api.py",
+    # p07 downloads ~188MB of terrain tiles on the first run (cached in raw/terrain, stdlib only).
+    "p07_terrain.py",
 ]
 
 

@@ -1,4 +1,5 @@
 """Validate pipeline outputs: schema, coordinate ranges, row minimums, demo spot checks."""
+import base64
 import json
 import math
 import sys
@@ -29,6 +30,16 @@ def nearest_centroid(cents: list[dict], lat: float, lng: float) -> tuple[dict, f
             best, best_d = c, d
     assert best is not None
     return best, best_d * 111
+
+
+def terrain_cell(grid, planes, lat, lng):
+    """Same indexing as lookupTerrain() in prototype/src/scoring/terrain.ts."""
+    r = math.floor((lat - grid["lat0"]) / grid["step"] + 1e-9)
+    c = math.floor((lng - grid["lng0"]) / grid["step"] + 1e-9)
+    if r < 0 or r >= grid["rows"] or c < 0 or c >= grid["cols"]:
+        return None
+    i = r * grid["cols"] + c
+    return {k: v[i] for k, v in planes.items()}
 
 
 def main() -> int:
@@ -112,6 +123,60 @@ def main() -> int:
         )
     else:
         print("SKIP news_signal.json not present (P1 signal disabled)")
+
+    terrain_path = OUT / "terrain_grid.json"
+    if terrain_path.exists():
+        terrain = json.loads(terrain_path.read_text(encoding="utf-8"))
+        grid = terrain["grid"]
+        size = grid["rows"] * grid["cols"]
+        planes = {k: base64.b64decode(v) for k, v in terrain["planes"].items()}
+        check(
+            set(planes) == {"landPct", "slopeP50Deg", "steepPct", "elevMean10m"},
+            "terrain has the four expected planes",
+        )
+        check(
+            all(len(v) == size for v in planes.values()),
+            "terrain plane lengths == rows*cols ({})".format(size),
+        )
+        check(terrain["tiles"]["missing"] == [], "terrain tiles all loaded (no partial grid)")
+        nodata = terrain["stats"]["nodataCells"]
+        check(nodata / size < 0.02, "terrain nodata share {:.2%} < 2%".format(nodata / size))
+
+        for sc in scenarios:
+            cell = terrain_cell(grid, planes, sc["lat"], sc["lng"])
+            ok = cell is not None and cell["landPct"] >= 60 and cell["slopeP50Deg"] < 15
+            check(ok, "terrain {}: land/slope {}".format(sc["id"], cell))
+
+        for name, lat, lng, want_land in [("서해", 37.4, 126.2, False), ("서해남부", 35.5, 126.2, False)]:
+            cell = terrain_cell(grid, planes, lat, lng)
+            check(
+                cell is not None and cell["landPct"] < 20,
+                "terrain {} reads as water: {}".format(name, cell),
+            )
+
+        ridge = terrain_cell(grid, planes, 37.85, 128.45)
+        check(
+            ridge is not None and ridge["slopeP50Deg"] >= 15 and ridge["steepPct"] >= 50,
+            "terrain 태백산맥 reads as steep: {}".format(ridge),
+        )
+
+        cfg = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"]["terrain"]
+        bands = [b["maxP50Deg"] for b in cfg["slopeDeduction"]]
+        check(bands == sorted(bands) and bands[-1] >= 999, "terrain slope bands ascend to a catch-all")
+        check(
+            all(
+                b[0] < b[2] and b[1] < b[3] and in_korea(b[0], b[1]) and in_korea(b[2], b[3])
+                for b in (o["bbox"] for o in cfg["reclaimedOverrides"])
+            ),
+            "reclaimedOverrides bboxes are ordered and inside Korea",
+        )
+        songdo = [
+            o["name"] for o in cfg["reclaimedOverrides"]
+            if o["bbox"][0] <= 37.40 <= o["bbox"][2] and o["bbox"][1] <= 126.62 <= o["bbox"][3]
+        ]
+        check(bool(songdo), "송도 6·8공구 covered by a reclaimed override: {}".format(songdo))
+    else:
+        print("SKIP terrain_grid.json not present (terrain signal disabled)")
 
     print()
     if ERRORS:
