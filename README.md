@@ -49,7 +49,7 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 | OpenRouter (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | 앱 "LLM 설정" 또는 `OPENROUTER_API_KEY` | Gemini 대안 |
 | Anthropic (유료) | https://console.anthropic.com/settings/keys | 앱 "LLM 설정" 또는 `ANTHROPIC_API_KEY` | 품질 우선 시 |
 | VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `data-pack/scripts/00_geocode_emd.py`(미작성)·용도지역 WMS 오버레이(미작성) | P1 확장 |
-| 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인) | `p05_permits_api.py`(미작성) 시군구별 허가→착공 지연 통계 | P1 확장 |
+| 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | Vercel 환경변수 `DATA_GO_KR_API_KEY` (`vercel env add DATA_GO_KR_API_KEY production`·`preview`; data.go.kr 계정 공용 키라 다른 공공데이터 API에도 같은 변수 사용) → `p05_permits_api.py`(미작성) 시군구별 허가→착공 지연 통계 | P1 확장 |
 | 네이버 검색 API | https://developers.naver.com/apps (애플리케이션 등록 → 사용 API "검색", WEB 설정에 https://grand-site-dc.vercel.app) | Vercel 환경변수 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` (`vercel env add <이름> production`·`preview`) → `p06_news_api.py`(미작성) 지역별 반대 기사 카운트 | P1 확장 |
 
 LLM 키 우선순위: Gemini 무료 티어면 충분하다. 브라우저 "LLM 설정"에 넣으면 그 브라우저의 localStorage에만 저장되고
