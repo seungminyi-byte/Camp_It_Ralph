@@ -160,22 +160,27 @@
    "caseSameSigunguCap": 25,
    "caseNearbyKm": 5,
    "caseNearbyDeduction": 5,
+   "newsLevelWeight": {
+    "sigungu": 1,
+    "city": 0.8,
+    "sido": 0.5
+   },
    "newsDeduction": [
     {
-     "maxCount": 0,
+     "maxCount": 2,
      "deduction": 0
     },
     {
-     "maxCount": 3,
-     "deduction": 5
+     "maxCount": 9,
+     "deduction": 4
     },
     {
-     "maxCount": 10,
-     "deduction": 10
+     "maxCount": 29,
+     "deduction": 8
     },
     {
      "maxCount": 999999,
-     "deduction": 15
+     "deduction": 12
     }
    ],
    "delayStat": {
@@ -284,6 +289,7 @@
   "power": "한전이 공개하는 여유용량 정보는 발전접속(신재생 계통연계) 기준으로, 데이터센터의 수전(부하) 가능량과 다릅니다. 읍면동별 공급가능 변전소 정보는 비식별 처리된 참고 자료입니다.",
   "substation": "변전소 위치는 국가보안시설로 공식 좌표가 공개되지 않아 OpenStreetMap 참고치를 사용합니다.",
   "stats": "인용 통계는 2026.9.1 기준 언론 보도 확인치로, 발표 시점에는 갱신되었을 수 있습니다.",
-  "permits": "허가→착공 통계는 건축HUB 건축인허가 기본개요의 연면적 3,000㎡ 이상 신축 표본(시군구 전체 용도)으로, 데이터센터 전용 통계가 아닙니다."
+  "permits": "허가→착공 통계는 건축HUB 건축인허가 기본개요의 연면적 3,000㎡ 이상 신축 표본(시군구 전체 용도)으로, 데이터센터 전용 통계가 아닙니다.",
+  "news": "뉴스 갈등 시그널은 네이버 뉴스 검색 결과를 지역명·데이터센터 언급과 반대 키워드 규칙으로 집계한 값입니다. 기사 수가 곧 사업 무산 가능성을 뜻하지 않으며, 동명 지역·중복 전재 기사가 포함될 수 있습니다."
  }
 }

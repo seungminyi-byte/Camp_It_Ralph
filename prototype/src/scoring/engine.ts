@@ -3,6 +3,8 @@ import type {
   CaseRow,
   Deduction,
   LandUse,
+  NewsSignalFile,
+  NewsSignalRow,
   PermitDelayFile,
   PermitDelayRow,
   ScoreInput,
@@ -42,6 +44,22 @@ function findPermitRow(
     rows.find((r) => r.sigungu === '*'),
   ].filter((r): r is PermitDelayRow => r !== undefined);
   return candidates.find((r) => r.n >= minPermits && r.medianMonths !== null) ?? candidates[0] ?? null;
+}
+
+/** Same fallback chain for the news rows: exact sigungu → city roll-up (prefix) → sido-wide ('*'). */
+function findNewsRow(
+  file: NewsSignalFile | null,
+  sido: string,
+  sigungu: string,
+): NewsSignalRow | null {
+  if (!file) return null;
+  const rows = file.rows.filter((r) => r.sido === sido);
+  return (
+    rows.find((r) => r.level === 'sigungu' && r.sigungu === sigungu) ??
+    rows.find((r) => r.level === 'city' && sigungu.startsWith(r.sigungu)) ??
+    rows.find((r) => r.sigungu === '*') ??
+    null
+  );
 }
 
 export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
@@ -201,6 +219,33 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     });
   }
 
+  let newsSignal: ScoreResult['permit']['newsSignal'] = null;
+  const newsRow = emdInfo ? findNewsRow(data.newsSignal, emdInfo.sido, emdInfo.sigungu) : null;
+  if (newsRow && data.newsSignal) {
+    const count = newsRow.conflictArticles;
+    const band = q.newsDeduction.find((b) => count <= b.maxCount)?.deduction ?? 0;
+    const levelWeight = q.newsLevelWeight[newsRow.level] ?? 1;
+    const points = Math.round(band * levelWeight);
+    const areaLabel = newsRow.sigungu === '*' ? newsRow.sido : newsRow.sigungu;
+    newsSignal = { row: newsRow, areaLabel, deduction: points };
+    if (points > 0) {
+      const w = data.newsSignal.window;
+      const head = newsRow.top[0];
+      deductions.push({
+        label: '뉴스 갈등 시그널',
+        points,
+        evidence:
+          `${areaLabel} 데이터센터 반대·갈등 기사 ${count}건` +
+          `(전체 ${newsRow.articles}건, 최근 ${w.months}개월 ${w.from}~${w.to}, 네이버 뉴스 검색)` +
+          (levelWeight < 1
+            ? ` · ${areaLabel} 전체 단위 검색이라 부지 특정성을 감안해 ${Math.round(levelWeight * 100)}%만 반영`
+            : '') +
+          (head ? ` · 대표 기사: "${head.title}" (${head.date})` : ''),
+        anchor: '안양 호계동: 주민 반대 여론 속 2년 정체 끝에 사업 무산',
+      });
+    }
+  }
+
   let delayStat: ScoreResult['permit']['delayStat'] = null;
   const permitRow = emdInfo
     ? findPermitRow(data.permitDelay, emdInfo.sido, emdInfo.sigungu, q.delayStat.minPermits)
@@ -306,6 +351,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       matchedCases,
       matchedRegulations,
       delayStat,
+      newsSignal,
     },
     composite: { score: compositeScore, grade, gradeCapped },
     delay: {

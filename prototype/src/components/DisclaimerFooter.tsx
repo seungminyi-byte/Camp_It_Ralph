@@ -8,6 +8,7 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
       <p>{d.substation}</p>
       <p>{d.stats}</p>
       {d.permits && data.permitDelay && <p>{d.permits}</p>}
+      {d.news && data.newsSignal && <p>{d.news}</p>}
     </footer>
   );
 }

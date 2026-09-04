@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AppData, CaseRow, PermitDelayFile, RegulationRow } from '../types';
+import type { AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow } from '../types';
 import { parseCsv } from '../lib/csv';
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -45,6 +45,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           casesRaw,
           regsRaw,
           permitDelay,
+          newsSignal,
         ] = await Promise.all([
           fetchJson<AppData['emdPower']>('data/emd_power.json'),
           fetchJson<AppData['emdCentroids']>('data/emd_centroids.json'),
@@ -57,6 +58,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchCsv('data/cases.csv'),
           fetchCsv('data/regulations.csv'),
           fetchJsonOrNull<PermitDelayFile>('data/permit_delay.json'),
+          fetchJsonOrNull<NewsSignalFile>('data/news_signal.json'),
         ]);
         const cases: CaseRow[] = casesRaw.map((r) => ({
           id: r.id,
@@ -94,6 +96,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
             scenarios: scenariosFile.scenarios,
             constants,
             permitDelay,
+            newsSignal,
           });
         }
       } catch (e) {

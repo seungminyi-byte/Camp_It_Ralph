@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseCsv } from '../lib/csv';
-import type { AppData, CaseRow, PermitDelayFile, RegulationRow, Scenario } from '../types';
+import type { AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow, Scenario } from '../types';
 import { scoreSite } from './engine';
 
 const DATA_DIR = join(__dirname, '..', '..', 'public', 'data');
@@ -38,6 +38,7 @@ function loadData(): AppData {
       deduction: Number(r.deduction),
     })) as unknown as RegulationRow[],
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
+    newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
   };
 }
 
@@ -118,6 +119,32 @@ describe('scoreSite golden cases', () => {
     const d = r.permit.deductions.find((x) => x.label === '허가→착공 지연 통계');
     expect(d?.points).toBeGreaterThanOrEqual(6);
     expect(d?.evidence).toContain('금천구');
+  });
+
+  it('news signal: 고양시는 시 단위 행으로 감점되고도 기대 등급(C~D)에 머문다', () => {
+    if (!data.newsSignal) return; // signal disabled when data/news_signal.json is absent
+    const sc = scenario('goyang-deogi');
+    const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+    expect(r.permit.newsSignal?.areaLabel).toBe('고양시');
+    expect(r.permit.newsSignal?.row.level).toBe('city');
+    const d = r.permit.deductions.find((x) => x.label === '뉴스 갈등 시그널');
+    expect(d?.points).toBeGreaterThanOrEqual(8);
+    expect(d?.evidence).toContain('고양시');
+    expect(sc.expectedGrade).toContain(r.composite.grade);
+  });
+
+  it('news signal: 세종은 시도 단위 행이라 감점이 축소되고 등급·지연이 유지된다', () => {
+    if (!data.newsSignal) return;
+    const sc = scenario('sejong-contrast');
+    const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+    const cfg = data.constants.scoring.permit;
+    const row = r.permit.newsSignal?.row;
+    expect(row?.level).toBe('sido');
+    const band =
+      cfg.newsDeduction.find((b) => (row?.conflictArticles ?? 0) <= b.maxCount)?.deduction ?? 0;
+    expect(r.permit.newsSignal?.deduction).toBe(Math.round(band * cfg.newsLevelWeight.sido));
+    expect(sc.expectedGrade).toContain(r.composite.grade);
+    expect(r.delay.maxMonths).toBeLessThanOrEqual(6);
   });
 
   it('finance scales with delay point months', () => {

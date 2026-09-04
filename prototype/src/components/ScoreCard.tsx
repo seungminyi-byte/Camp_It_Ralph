@@ -96,6 +96,27 @@ export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData
             {(r.permit.nearestSchool.distanceKm * 1000).toFixed(0)}m)
           </div>
         )}
+        {r.permit.newsSignal && (
+          <div>
+            뉴스 갈등 시그널: {r.permit.newsSignal.areaLabel} 최근{' '}
+            {data.newsSignal?.window.months ?? 24}개월 반대·갈등 기사{' '}
+            <b>{r.permit.newsSignal.row.conflictArticles}건</b> (데이터센터 기사 전체{' '}
+            {r.permit.newsSignal.row.articles}건)
+            {r.permit.newsSignal.row.top[0] && (
+              <>
+                {' · '}
+                <a
+                  className="underline hover:text-blue-600"
+                  href={r.permit.newsSignal.row.top[0].link}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {r.permit.newsSignal.row.top[0].title}
+                </a>
+              </>
+            )}
+          </div>
+        )}
         {r.permit.delayStat && (
           <div>
             허가→착공 실적: {r.permit.delayStat.areaLabel} 대형 신축 {r.permit.delayStat.row.n}건

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { parseCsv } from '../src/lib/csv';
 import { scoreSite } from '../src/scoring/engine';
 import { buildMemoPrompt } from '../src/genai/prompts';
-import type { AppData, CaseRow, PermitDelayFile, RegulationRow, Scenario } from '../src/types';
+import type { AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow, Scenario } from '../src/types';
 
 const ROOT = join(import.meta.dirname, '..');
 const DATA_DIR = join(ROOT, 'public', 'data');
@@ -41,6 +41,7 @@ function loadData(): AppData {
     })) as unknown as CaseRow[],
     regulations: regsRaw.map((r) => ({ ...r, deduction: Number(r.deduction) })) as unknown as RegulationRow[],
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
+    newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
   };
 }
 

@@ -92,6 +92,27 @@ def main() -> int:
     else:
         print("SKIP permit_delay.json not present (P1 signal disabled)")
 
+    news_path = OUT / "news_signal.json"
+    if news_path.exists():
+        news = json.loads(news_path.read_text(encoding="utf-8"))
+        rows = news.get("rows", [])
+        check(len(rows) >= 10, f"news_signal rows {len(rows)} >= 10")
+        check(
+            all(0 <= r["conflictArticles"] <= r["articles"] for r in rows),
+            "news_signal conflict counts within article counts",
+        )
+        keys = {(r["sido"], r["sigungu"]) for r in rows}
+        for need in [("경기도", "고양시"), ("인천광역시", "부평구"), ("세종특별자치시", "*")]:
+            check(need in keys, f"news_signal has row for {need[0]} {need[1]}")
+        check(all(len(r["top"]) <= 3 for r in rows), "news_signal top lists capped at 3 articles")
+        check((news.get("window") or {}).get("months", 0) >= 12, "news_signal window >= 12 months")
+        check(
+            all(r["level"] in ("sigungu", "city", "sido") for r in rows),
+            "news_signal levels are sigungu/city/sido",
+        )
+    else:
+        print("SKIP news_signal.json not present (P1 signal disabled)")
+
     print()
     if ERRORS:
         print(f"VALIDATION FAILED: {len(ERRORS)} error(s)")

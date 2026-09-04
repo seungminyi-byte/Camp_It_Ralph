@@ -1,0 +1,448 @@
+{
+ "source": "네이버 검색 API (뉴스), openapi.naver.com/v1/search/news.json",
+ "fetchedAt": "2026-09-04",
+ "window": {
+  "months": 24,
+  "from": "2024-09-04",
+  "to": "2026-09-04"
+ },
+ "queries": [
+  "{} 데이터센터 반대",
+  "{} 데이터센터 주민",
+  "{} 데이터센터 인허가"
+ ],
+ "conflictKeywords": [
+  "반대",
+  "반발",
+  "집회",
+  "시위",
+  "규탄",
+  "항의",
+  "농성",
+  "저지",
+  "철회",
+  "백지화",
+  "무산",
+  "부결",
+  "반려",
+  "불허",
+  "중단",
+  "취소",
+  "소송",
+  "행정심판",
+  "청원",
+  "대책위",
+  "비상대책",
+  "서명",
+  "제동",
+  "좌초",
+  "갈등",
+  "논란",
+  "진통",
+  "민원"
+ ],
+ "note": "행은 검색 지역 단위다(합산 아님): level=city 는 시 전체 검색, level=sido 는 시도 전체 검색으로 구별 행이 없을 때의 폴백이다. 감점은 conflictArticles 기준.",
+ "baseline": {
+  "areas": 21,
+  "articles": 525,
+  "conflictArticles": 172,
+  "medianConflict": 2,
+  "maxConflict": 50
+ },
+ "rows": [
+  {
+   "sido": "경기도",
+   "sigungu": "고양시",
+   "level": "city",
+   "query": "고양",
+   "articles": 189,
+   "conflictArticles": 50,
+   "top": [
+    {
+     "title": "고양시의회, 데이터센터 논란…인허가 과정 집중 점검",
+     "link": "http://www.bizwnews.com/news/articleView.html?idxno=130607",
+     "date": "2026-03-24"
+    },
+    {
+     "title": "고양시 데이터센터 갈등 확산…지방선거 현안 부상",
+     "link": "https://www.kmib.co.kr/article/view.asp?arcid=0029540961&code=61122013&cp=nv",
+     "date": "2026-03-17"
+    },
+    {
+     "title": "민경선 고양시장 예비후보 “데이터센터 건립저지·교통혁신 이뤄낼 것...",
+     "link": "https://m.skyedaily.com/news_view.html?ID=300359",
+     "date": "2026-03-16"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "김포시",
+   "level": "sigungu",
+   "query": "김포",
+   "articles": 18,
+   "conflictArticles": 12,
+   "top": [
+    {
+     "title": "김포 구래동에 또 데이터센터… 주민 반대 ‘불보듯’",
+     "link": "https://www.kyeongin.com/article/1750256",
+     "date": "2025-08-27"
+    },
+    {
+     "title": "주민 반발에 반려된 김포데이터센터, 행정심판 후 재추진",
+     "link": "https://www.kgnews.co.kr/news/article.html?no=817852",
+     "date": "2024-11-18"
+    },
+    {
+     "title": "주민 반발에 중단된 김포 데이터센터, 행정심판 거쳐 재추진",
+     "link": "https://www.yna.co.kr/view/AKR20241115094000065?input=1195m",
+     "date": "2024-11-17"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "안양시",
+   "level": "city",
+   "query": "안양",
+   "articles": 2,
+   "conflictArticles": 1,
+   "top": [
+    {
+     "title": "안양, 박달 준공업지역에 데이터센터 추진 논란 (B tv abc뉴스)",
+     "link": "https://news.skbroadband.com/news/articleView.html?idxno=178499",
+     "date": "2025-02-25"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "용인시",
+   "level": "city",
+   "query": "용인",
+   "articles": 9,
+   "conflictArticles": 2,
+   "top": [
+    {
+     "title": "임현수 용인시의원, 데이터센터 난개발 제동…도시계획조례 개정 공식화",
+     "link": "https://www.etoday.co.kr/news/view/2546476",
+     "date": "2026-01-16"
+    },
+    {
+     "title": "임현수 용인시의원, 데이터센터 논란 속 도시계획 조례 개정 논의",
+     "link": "http://www.bizwnews.com/news/articleView.html?idxno=121735",
+     "date": "2026-01-16"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시",
+   "level": "city",
+   "query": "부천",
+   "articles": 11,
+   "conflictArticles": 0,
+   "top": [
+    {
+     "title": "동양, 부천 AI 데이터센터 MEP 구축공사 365억 규모 수주",
+     "link": "https://www.fntoday.co.kr/news/articleView.html?idxno=386309",
+     "date": "2026-06-16"
+    },
+    {
+     "title": "[주목 e-AI] AI 데이터센터 건설 붐 … \"원주·장성·안산·포항·부천까...",
+     "link": "http://www.economytalk.kr/news/articleView.html?idxno=421923",
+     "date": "2026-06-12"
+    },
+    {
+     "title": "유진기업 계열 동양, '부천삼정 AI 허브센터' 착공…데이터센터 사업 가...",
+     "link": "https://www.newspost.kr/news/articleView.html?idxno=223093",
+     "date": "2026-05-21"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "과천시",
+   "level": "sigungu",
+   "query": "과천",
+   "articles": 42,
+   "conflictArticles": 24,
+   "top": [
+    {
+     "title": "서초구의회, “LH, 과천주암지구 데이터센터 건립 철회하라” 촉구 결의...",
+     "link": "https://www.siminilbo.co.kr/news/newsview.php?ncode=1160279447483732",
+     "date": "2026-09-03"
+    },
+    {
+     "title": "서초구의회 \"과천주암 데이터센터 건립 철회하라\"…결의안 채택",
+     "link": "https://view.asiae.co.kr/article/2026090106284038606",
+     "date": "2026-09-01"
+    },
+    {
+     "title": "서초구의회, 과천주암지구 데이터센터 건립 반대 결의안 채택",
+     "link": "https://www.munhwa.com/article/11613426?ref=naver",
+     "date": "2026-08-31"
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "시흥시",
+   "level": "sigungu",
+   "query": "시흥시",
+   "articles": 5,
+   "conflictArticles": 5,
+   "top": [
+    {
+     "title": "이건섭 시흥시의회 의원, 장현지구 데이터센터 건립 전면 백지화 촉구",
+     "link": "https://www.newscj.com/news/articleView.html?idxno=3284445",
+     "date": "2025-06-22"
+    },
+    {
+     "title": "시흥시의회, 장현지구 데이터센터 건립 전면 백지화 결의 촉구",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363695935",
+     "date": "2025-06-22"
+    },
+    {
+     "title": "시흥시의회, 장현지구 데이터센터 건립 전면 '백지화' 촉구",
+     "link": "https://www.kyeonggi.com/article/20250621580023",
+     "date": "2025-06-21"
+    }
+   ]
+  },
+  {
+   "sido": "서울특별시",
+   "sigungu": "금천구",
+   "level": "sigungu",
+   "query": "금천구",
+   "articles": 65,
+   "conflictArticles": 18,
+   "top": [
+    {
+     "title": "독산동 AI데이터센터 갈등…법원 “업무방해 아냐” 주민 손 들어줘",
+     "link": "https://www.joongang.co.kr/article/25455690",
+     "date": "2026-08-24"
+    },
+    {
+     "title": "독산동 AI데이터센터 건립 갈등…법원 \"업무방해 아냐\" 주민 손 들어줘",
+     "link": "https://www.news1.kr/society/court-prosecution/6267188",
+     "date": "2026-08-24"
+    },
+    {
+     "title": "\"제2 가습기 살균제 아니냐\"…금천구 주민들 5개월째 집회 [AIDC 시대의 ...",
+     "link": "https://view.asiae.co.kr/article/2026081907495340945",
+     "date": "2026-08-20"
+    }
+   ]
+  },
+  {
+   "sido": "서울특별시",
+   "sigungu": "영등포구",
+   "level": "sigungu",
+   "query": "영등포",
+   "articles": 35,
+   "conflictArticles": 9,
+   "top": [
+    {
+     "title": "영등포구, 데이터센터 난립에 제동…\"주거지역 건립 제한해야\"",
+     "link": "https://www.fntoday.co.kr/news/articleView.html?idxno=390498",
+     "date": "2026-08-13"
+    },
+    {
+     "title": "영등포구, 데이터센터 난립 제동…\"주거지역 건립 제한해야\"",
+     "link": "https://www.hankyung.com/article/202608139453i",
+     "date": "2026-08-13"
+    },
+    {
+     "title": "영등포구, 주거지역 데이터센터 '제동' 추진…건축심의 의무화·입지 제...",
+     "link": "https://www.job-post.co.kr/news/articleView.html?idxno=223949",
+     "date": "2026-08-13"
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "부평구",
+   "level": "sigungu",
+   "query": "부평",
+   "articles": 5,
+   "conflictArticles": 1,
+   "top": [
+    {
+     "title": "부평 SK에코플랜트 데이터센터 가동… 한전-주민 갈등에 HVDC 변환소 건설...",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363688416",
+     "date": "2025-03-30"
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "서구",
+   "level": "sigungu",
+   "query": "인천 서구",
+   "articles": 17,
+   "conflictArticles": 4,
+   "top": [
+    {
+     "title": "'데이터센터 논란' 아마존, 인천 서구 주민설명회 요청에 '모르쇠'",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363698141",
+     "date": "2025-07-15"
+    },
+    {
+     "title": "인천 서구 주거지 관통하는 '데이터센터' 특고압선… 집단민원 예고",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363695325",
+     "date": "2025-06-15"
+    },
+    {
+     "title": "한승일 인천 서구의원 \"가좌동 데이터센터 건립 반대\" 1인 시위",
+     "link": "http://www.incheontoday.com/news/articleView.html?idxno=262340",
+     "date": "2025-02-09"
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "남동구",
+   "level": "sigungu",
+   "query": "인천 남동구",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "연수구",
+   "level": "sigungu",
+   "query": "인천 연수구",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "계양구",
+   "level": "sigungu",
+   "query": "인천 계양구",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "미추홀구",
+   "level": "sigungu",
+   "query": "인천 미추홀구",
+   "articles": 17,
+   "conflictArticles": 8,
+   "top": [
+    {
+     "title": "미추홀구 도화데이터센터 민관협의체 첫 회의···찬반 주민갈등 지속",
+     "link": "https://www.incheontoday.com/news/articleView.html?idxno=322006",
+     "date": "2026-08-06"
+    },
+    {
+     "title": "'도화 데이터센터 갈등' 해법 찾나…미추홀구청장 인수위 \"주민협의체 ...",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363730175",
+     "date": "2026-06-30"
+    },
+    {
+     "title": "미추홀구 도화동 주민 \"건강권 크게 위협… 데이터센터 건립 백지화해야...",
+     "link": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1254812",
+     "date": "2026-05-10"
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "검단구",
+   "level": "sigungu",
+   "query": "인천 검단",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "영종구",
+   "level": "sigungu",
+   "query": "인천 영종",
+   "articles": 1,
+   "conflictArticles": 0,
+   "top": [
+    {
+     "title": "\"영종도에 데이터센터·반도체 단지 유치…SMR 도입해 전력난 돌파\"",
+     "link": "https://www.newsworks.co.kr/news/articleView.html?idxno=837485",
+     "date": "2026-04-13"
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "제물포구",
+   "level": "sigungu",
+   "query": "인천 제물포",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "서해구",
+   "level": "sigungu",
+   "query": "인천 서해구",
+   "articles": 0,
+   "conflictArticles": 0,
+   "top": []
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "*",
+   "level": "sido",
+   "query": "인천",
+   "articles": 54,
+   "conflictArticles": 12,
+   "top": [
+    {
+     "title": "인천연구원 \"AI 데이터센터 주민 갈등, 사전협의 체계로 풀어야\"",
+     "link": "https://www.incheontoday.com/news/articleView.html?idxno=321852",
+     "date": "2026-08-03"
+    },
+    {
+     "title": "인천 도화 데이터센터 갈등 '협의체 테이블'로…8월 첫 회의",
+     "link": "https://news.ifm.kr/news/articleView.html?idxno=475751",
+     "date": "2026-07-24"
+    },
+    {
+     "title": "인천 도화 데이터센터 갈등 지속…고압선 굴착 심의 결과 주목",
+     "link": "https://www.joongboo.com/news/articleView.html?idxno=363726198",
+     "date": "2026-05-19"
+    }
+   ]
+  },
+  {
+   "sido": "세종특별자치시",
+   "sigungu": "*",
+   "level": "sido",
+   "query": "세종시",
+   "articles": 55,
+   "conflictArticles": 26,
+   "top": [
+    {
+     "title": "300명 일자리 데이터센터 무산, 세종보 해체?…세종의 잇딴 ‘굴욕’",
+     "link": "https://www.joongang.co.kr/article/25415900",
+     "date": "2026-03-30"
+    },
+    {
+     "title": "\"주민 반발 속 결국 무산\"…세종 어진동 데이터센터 백지화",
+     "link": "https://www.ilyoseoul.co.kr/news/articleView.html?idxno=514632",
+     "date": "2026-03-24"
+    },
+    {
+     "title": "세종 어진동 데이터센터 입주, 없던 일로… \"사업 취소\"",
+     "link": "https://www.the-today.com/news/articleView.html?idxno=84759",
+     "date": "2026-03-22"
+    }
+   ]
+  }
+ ]
+}

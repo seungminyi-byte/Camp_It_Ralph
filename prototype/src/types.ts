@@ -107,6 +107,42 @@ export interface PermitDelayFile {
   rows: PermitDelayRow[];
 }
 
+export interface NewsArticle {
+  title: string;
+  link: string;
+  /** YYYY-MM-DD (KST) */
+  date: string;
+}
+
+export interface NewsSignalRow {
+  sido: string;
+  /** sigungu as written in emd_power/emd_centroids; '*' = whole sido */
+  sigungu: string;
+  level: 'sigungu' | 'city' | 'sido';
+  /** 네이버 검색어 앞부분 (예: '고양') */
+  query: string;
+  articles: number;
+  conflictArticles: number;
+  top: NewsArticle[];
+}
+
+export interface NewsSignalFile {
+  source: string;
+  fetchedAt: string;
+  window: { months: number; from: string; to: string };
+  queries: string[];
+  conflictKeywords: string[];
+  note: string;
+  baseline: {
+    areas: number;
+    articles: number;
+    conflictArticles: number;
+    medianConflict: number;
+    maxConflict: number;
+  };
+  rows: NewsSignalRow[];
+}
+
 export interface Constants {
   stats: Record<string, { value?: number; label: string; source?: string; sourceUrl?: string }>;
   scoring: {
@@ -132,6 +168,8 @@ export interface Constants {
       caseNearbyKm: number;
       caseNearbyDeduction: number;
       newsDeduction: { maxCount: number; deduction: number }[];
+      /** 넓은 지역 행일수록 부지 특정성이 낮아 감점을 비율로 축소한다 */
+      newsLevelWeight: Record<NewsSignalRow['level'], number>;
       delayStat: {
         minPermits: number;
         /** ratio = 시군구 중앙값 / 조사 시군구 전체 중앙값 */
@@ -176,6 +214,8 @@ export interface AppData {
   constants: Constants;
   /** 건축HUB 허가→착공 통계 (P1); null when data/permit_delay.json is absent */
   permitDelay: PermitDelayFile | null;
+  /** 네이버 뉴스 갈등 시그널 (P1); null when data/news_signal.json is absent */
+  newsSignal: NewsSignalFile | null;
 }
 
 export interface Deduction {
@@ -221,6 +261,12 @@ export interface ScoreResult {
       baselineMedianMonths: number | null;
       baselineStalledShare: number | null;
       ratio: number | null;
+    } | null;
+    /** 네이버 뉴스 갈등 기사 매칭 결과 (없으면 null) */
+    newsSignal: {
+      row: NewsSignalRow;
+      areaLabel: string;
+      deduction: number;
     } | null;
   };
   composite: { score: number; grade: string; gradeCapped: boolean };
