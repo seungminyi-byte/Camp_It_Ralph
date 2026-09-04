@@ -1,7 +1,8 @@
 import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
-import { LAND_USE_LABEL } from '../scoring/engine';
+import { CONFLICT_LEVEL_LABEL, LAND_USE_LABEL } from '../scoring/engine';
 import { VERDICT_GLYPH, VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
 import type { ParsedMemo } from '../genai/memoFormat';
+import { fmtKrw } from '../lib/format';
 
 const SOURCE_LABEL: Record<SiteSelection['source'], string> = {
   map: '지도 클릭',
@@ -9,12 +10,6 @@ const SOURCE_LABEL: Record<SiteSelection['source'], string> = {
   geocode: '주소 검색',
   coords: '좌표 입력',
 };
-
-function fmtKrw(n: number): string {
-  if (n >= 1e12) return `${(n / 1e12).toFixed(1)}조원`;
-  if (n >= 1e8) return `${Math.round(n / 1e8).toLocaleString()}억원`;
-  return `${Math.round(n / 1e4).toLocaleString()}만원`;
-}
 
 function landUseText(input: ScoreInput, source: LandUseSource, zoningName: string | null): string {
   const label = LAND_USE_LABEL[input.landUse];
@@ -97,6 +92,11 @@ export function ChecklistReport(props: ReportProps) {
         </p>
         <p className={`mt-0.5 ${small}`}>
           공급가능 변전소 {result.gate.substationCount}곳 · 확보 전력 추정 {result.power.capacityBand}
+        </p>
+        <p className={`mt-0.5 ${small}`}>
+          주민 갈등 가능성 <b>{CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]}</b> · 갈등 사례·뉴스
+          감점 합 −{result.permit.conflictRisk.points} (사례 {result.permit.matchedCases.length}건 · 기사{' '}
+          {result.permit.newsSignal?.row.conflictArticles ?? 0}건)
         </p>
         <p className="mt-1">
           예상 인허가 지연 <b>{result.delay.minMonths}~{result.delay.maxMonths}개월</b> (점추정{' '}

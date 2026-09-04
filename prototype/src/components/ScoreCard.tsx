@@ -1,18 +1,13 @@
-import type { AppData, ScoreResult } from '../types';
+import type { AppData, ConflictLevel, ScoreResult } from '../types';
+import { GRADE_COLOR, fmtKrw } from '../lib/format';
+import { CONFLICT_LEVEL_LABEL } from '../scoring/engine';
 
-const GRADE_COLOR: Record<string, string> = {
-  A: 'bg-green-600',
-  B: 'bg-green-500',
-  C: 'bg-yellow-500',
-  D: 'bg-orange-500',
-  E: 'bg-red-600',
+// Soft tints only: solid red stays reserved for hard blockers (조례상 입지 불가, 급경사 산지).
+const CONFLICT_BADGE: Record<ConflictLevel, string> = {
+  low: 'bg-green-100 text-green-800',
+  medium: 'bg-amber-100 text-amber-800',
+  high: 'bg-red-100 text-red-800',
 };
-
-function fmtKrw(n: number): string {
-  if (n >= 1e12) return `${(n / 1e12).toFixed(1)}조원`;
-  if (n >= 1e8) return `${Math.round(n / 1e8).toLocaleString()}억원`;
-  return `${Math.round(n / 1e4).toLocaleString()}만원`;
-}
 
 function Gauge({ label, score }: { label: string; score: number }) {
   const color = score >= 70 ? 'bg-green-500' : score >= 45 ? 'bg-yellow-500' : 'bg-red-500';
@@ -33,10 +28,13 @@ export function ScoreCard({
   result,
   data,
   onAssumeLand,
+  onFlyTo,
 }: {
   result: ScoreResult;
   data: AppData;
   onAssumeLand: () => void;
+  /** pan the map to a related case — the drawer used to do this */
+  onFlyTo?: (lat: number, lng: number) => void;
 }) {
   const r = result;
 
@@ -107,6 +105,12 @@ export function ScoreCard({
             조례상 입지 불가
           </span>
         )}
+        <span
+          className={`rounded px-2 py-0.5 font-semibold ${CONFLICT_BADGE[r.permit.conflictRisk.level]}`}
+          title={`사례 −${r.permit.conflictRisk.casePoints} · 인근 −${r.permit.conflictRisk.nearbyPoints} · 기사 −${r.permit.conflictRisk.newsPoints}`}
+        >
+          주민 갈등 가능성 {CONFLICT_LEVEL_LABEL[r.permit.conflictRisk.level]}
+        </span>
         {r.site.status === 'coastal' && (
           <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
             연안 — 지형 판정 불확실
@@ -174,6 +178,10 @@ export function ScoreCard({
             )}
           </div>
         )}
+        <div>
+          주민 갈등 신호: 동일·인근 시군구 사례 {r.permit.matchedCases.length}건 · 반대·갈등 기사{' '}
+          {r.permit.newsSignal?.row.conflictArticles ?? 0}건 → 감점 합 −{r.permit.conflictRisk.points}
+        </div>
         {r.permit.delayStat && (
           <div>
             허가→착공 실적: {r.permit.delayStat.areaLabel} 대형 신축 {r.permit.delayStat.row.n}건
@@ -239,6 +247,16 @@ export function ScoreCard({
               >
                 {c.name}
               </a>
+              {onFlyTo && (
+                <button
+                  type="button"
+                  onClick={() => onFlyTo(c.lat, c.lng)}
+                  className="ml-0.5 rounded border border-gray-300 px-1 text-[10px] text-gray-500 hover:bg-gray-100"
+                  title="지도에서 보기"
+                >
+                  지도
+                </button>
+              )}
             </span>
           ))}
         </div>

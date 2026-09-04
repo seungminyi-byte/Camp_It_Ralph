@@ -1,8 +1,9 @@
-# CLAUDE.md — The Grand Site DC (해커톤 프로토타입)
+# CLAUDE.md — 여기 DC 돼요? (가칭, 내부 코드명 The Grand Site DC · 해커톤 프로토타입)
 
 ## 프로젝트
 
 데이터센터 후보 부지의 전력 수전 가능성·인허가 지연 리스크를 점수화하고 지연을 금융비용으로 환산하는 지도 웹앱.
+화면 서비스명은 **"여기 DC 돼요?"(가칭)** — Vercel 프로젝트명 `grand-site-dc`·`X-Title` 헤더는 배포가 걸려 있어 그대로 둔다.
 GS그룹 해커톤 PLAI CAMP S3 **개발자리그(9.21~22, 현장 1박2일 AI 에이전트 빌드)** 출품.
 전체 계획·일정·스코어링 설계는 `docs/PLAN.md`, 데이터 출처·제약·정정사항은 `docs/DATA.md`, 실행 절차는 `README.md`.
 
@@ -18,7 +19,8 @@ GS그룹 해커톤 PLAI CAMP S3 **개발자리그(9.21~22, 현장 1박2일 AI �
 
 - 대화·문서는 한국어, 코드 식별자·주석은 영어, 커밋 메시지는 한국어.
 - TypeScript strict, 2-space indent, 함수형 컴포넌트 + Hooks. 상태관리·라우터·차트 라이브러리 추가 금지.
-- 스코어링 로직은 `prototype/src/scoring/engine.ts`에만 두고 UI와 분리 유지. 가중치·임계값·통계는
+- 스코어링 로직은 `prototype/src/scoring/engine.ts`에만 두고 UI와 분리 유지. 비교 트레이도 예외가 아니다 —
+  칩의 등급·비용은 `scoreSite()` 재호출 결과만 표시하고, 차액은 그 결과값끼리의 뺄셈만 한다(`src/compare/pins.ts`). 가중치·임계값·통계는
   `data-pack/curated/constants.json` 한 곳에서만 바꾼다(앱 복사본은 `build_all.py`가 동기화).
 - 엔진을 바꾸면 `engine.test.ts` 골든 테스트를 먼저 갱신하고 통과시킨다.
 - 런타임 외부 API 의존을 늘리지 않는다(지도 타일·LLM 호출만 온라인). 새 데이터는 빌드타임 JSON으로 번들.
@@ -59,6 +61,10 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
   `developers.naver.com`·`X-Naver-Client-*` 조합은 신규 키에서 401. 뉴스 갈등 기사(24개월): 고양 50 · 세종 26 ·
   과천 24 · 금천 18 · 김포 12건. **세종 어진동 DC는 2026.3 주민 반발로 백지화** — 비수도권도 무갈등이 아니다.
 - 데모 3지점 현재 등급(회귀 감시용, 시나리오 좌표 기준): 고양 덕이동 D 45 / 인천 청천동 E 32 / 세종 반곡동 B 75.
+  주민 갈등 가능성(`permit.conflictRisk`, 임계값 `constants.scoring.permit.conflictRisk` = mediumMin 5 / highMin 15):
+  고양 높음(30) / 인천 주의(6) / 세종 낮음(4). 지연 금융비용(기본 5,000억·5.5%): 688억 / 688억 / 103억.
+  **세종 4점은 mediumMin 5 경계에 붙어 있다** — 뉴스를 재수집해 세종 갈등 기사가 30건을 넘으면 '주의'로 넘어간다
+  (지형 중앙값 경사 5°와 같은 성격의 경계, 골든 테스트가 감시).
   세종 반곡동은 지형 중앙값 경사 5°로 감점 밴드 경계(≤5° 0점)에 붙어 있다 — 지형 파이프라인을 바꾸면 등급이 흔들릴 수 있어
   골든 테스트가 `terrain.deduction <= 5`로 감시한다.
 

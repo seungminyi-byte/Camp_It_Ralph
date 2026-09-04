@@ -44,6 +44,9 @@ export interface CaseRow {
 
 export type CaseStatus = '무산' | '중단후재개' | '지연후준공' | '진행중분쟁' | '대응중';
 
+/** Banded sum of the conflict-related permit deductions (cases + nearby case + news). */
+export type ConflictLevel = 'low' | 'medium' | 'high';
+
 export interface RegulationRow {
   sido: string;
   sigungu: string;
@@ -252,6 +255,8 @@ export interface Constants {
       caseNearbyKm: number;
       caseNearbyDeduction: number;
       newsDeduction: { maxCount: number; deduction: number }[];
+      /** thresholds on the summed conflict deductions; below mediumMin is 'low' */
+      conflictRisk: { mediumMin: number; highMin: number };
       /** 넓은 지역 행일수록 부지 특정성이 낮아 감점을 비율로 축소한다 */
       newsLevelWeight: Record<NewsSignalRow['level'], number>;
       delayStat: {
@@ -364,6 +369,20 @@ export interface ScoreResult {
       areaLabel: string;
       deduction: number;
     } | null;
+    /**
+     * 갈등 사례·인근 사례·뉴스 시그널 감점의 합을 등급화한 파생 지표. 점수 자체는 바꾸지 않는다.
+     * Component points are exposed so the UI never re-derives them from deduction labels.
+     */
+    conflictRisk: {
+      level: ConflictLevel;
+      points: number;
+      /** '동일 시군구 갈등 사례' after caseSameSigunguCap */
+      casePoints: number;
+      /** '인근 갈등 사례' */
+      nearbyPoints: number;
+      /** '뉴스 갈등 시그널' after level weighting */
+      newsPoints: number;
+    };
   };
   site: { status: SiteStatus; label: string; detail: string; override: string | null };
   terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;

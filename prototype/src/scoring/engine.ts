@@ -1,6 +1,7 @@
 import type {
   AppData,
   CaseRow,
+  ConflictLevel,
   Deduction,
   LandUse,
   TerrainSample,
@@ -21,6 +22,12 @@ export const LAND_USE_LABEL: Record<LandUse, string> = {
   green: '녹지·관리지역',
   residential: '주거지역',
   unknown: '미확인',
+};
+
+export const CONFLICT_LEVEL_LABEL: Record<ConflictLevel, string> = {
+  low: '낮음',
+  medium: '주의',
+  high: '높음',
 };
 
 function fmtKm(km: number): string {
@@ -285,6 +292,17 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     }
   }
 
+  // Named roll-up of the three conflict signals already deducted above; the score is unchanged.
+  const nearbyPoints = nearbyCase ? q.caseNearbyDeduction : 0;
+  const newsPoints = newsSignal?.deduction ?? 0;
+  const conflictPoints = caseDedSum + nearbyPoints + newsPoints;
+  const conflictLevel: ConflictLevel =
+    conflictPoints >= q.conflictRisk.highMin
+      ? 'high'
+      : conflictPoints >= q.conflictRisk.mediumMin
+        ? 'medium'
+        : 'low';
+
   let delayStat: ScoreResult['permit']['delayStat'] = null;
   const permitRow = emdInfo
     ? findPermitRow(data.permitDelay, emdInfo.sido, emdInfo.sigungu, q.delayStat.minPermits)
@@ -391,6 +409,13 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       matchedRegulations,
       delayStat,
       newsSignal,
+      conflictRisk: {
+        level: conflictLevel,
+        points: conflictPoints,
+        casePoints: caseDedSum,
+        nearbyPoints,
+        newsPoints,
+      },
     },
     site,
     terrain,

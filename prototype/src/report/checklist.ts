@@ -206,7 +206,7 @@ export function buildChecklist(
     })(),
 
     'permit.cases': (() => {
-      const points = dedPoints(result, '동일 시군구 갈등 사례', '인근 갈등 사례');
+      const points = result.permit.conflictRisk.casePoints + result.permit.conflictRisk.nearbyPoints;
       const cases = result.permit.matchedCases;
       return {
         verdict: verdictFromPoints(points),

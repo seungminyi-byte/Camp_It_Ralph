@@ -213,4 +213,53 @@ describe('scoreSite golden cases', () => {
     expect(r.terrain).toBeNull();
     expect(r.permit.deductions.some((x) => x.label === '지형·경사')).toBe(false);
   });
+
+  describe('conflictRisk (named roll-up of the three conflict deductions)', () => {
+    const CONFLICT_LABELS = new Set(['동일 시군구 갈등 사례', '인근 갈등 사례', '뉴스 갈등 시그널']);
+    const sumConflict = (r: ReturnType<typeof scoreSite>) =>
+      r.permit.deductions.filter((d) => CONFLICT_LABELS.has(d.label)).reduce((s, d) => s + d.points, 0);
+    const expectedLevel = (points: number) => {
+      const cfg = data.constants.scoring.permit.conflictRisk;
+      return points >= cfg.highMin ? 'high' : points >= cfg.mediumMin ? 'medium' : 'low';
+    };
+
+    it('equals the sum of its components and of the matching deductions, for every demo point', () => {
+      for (const sc of scenarios) {
+        const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+        const c = r.permit.conflictRisk;
+        expect(c.points).toBe(c.casePoints + c.nearbyPoints + c.newsPoints);
+        expect(c.points).toBe(sumConflict(r));
+        expect(c.level).toBe(expectedLevel(c.points));
+      }
+    });
+
+    it('고양 덕이동: two same-district cases plus city-level news make it high', () => {
+      const sc = scenario('goyang-deogi');
+      const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+      expect(r.permit.conflictRisk.casePoints).toBe(20);
+      if (data.newsSignal) expect(r.permit.conflictRisk.newsPoints).toBeGreaterThanOrEqual(8);
+      expect(r.permit.conflictRisk.level).toBe('high');
+    });
+
+    it('인천 청천동: one resolved case and no news keeps it at medium', () => {
+      const sc = scenario('incheon-residential');
+      const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+      expect(r.permit.conflictRisk.casePoints).toBe(6);
+      expect(r.permit.conflictRisk.nearbyPoints).toBe(0); // 부천 삼정동 sits just past caseNearbyKm
+      expect(r.permit.conflictRisk.newsPoints).toBe(0);
+      expect(r.permit.conflictRisk.level).toBe('medium');
+    });
+
+    it('세종 반곡동: sido-level news only, halved by newsLevelWeight, stays low', () => {
+      if (!data.newsSignal) return;
+      const sc = scenario('sejong-contrast');
+      const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+      const cfg = data.constants.scoring.permit;
+      expect(r.permit.conflictRisk.casePoints).toBe(0);
+      expect(r.permit.conflictRisk.newsPoints).toBe(r.permit.newsSignal?.deduction ?? -1);
+      // 4 points sits one below mediumMin (5): ~30+ conflict articles in 세종 would tip it to medium.
+      expect(r.permit.conflictRisk.points).toBeLessThan(cfg.conflictRisk.mediumMin);
+      expect(r.permit.conflictRisk.level).toBe('low');
+    });
+  });
 });

@@ -1,4 +1,7 @@
-# The Grand Site DC — 데이터센터 부지 전력·인허가 리스크 스크리닝
+# 여기 DC 돼요? — 데이터센터 부지 전력·인허가 리스크 스크리닝
+
+서비스명 "여기 DC 돼요?"는 **가칭**이다. 내부 코드명 The Grand Site DC와 Vercel 프로젝트명 `grand-site-dc`,
+OpenRouter `X-Title` 헤더는 그대로 둔다(배포·환경변수가 걸려 있다).
 
 데이터센터 후보 부지를 지도에서 찍거나 주소·읍면동으로 검색하면 ① 전력 수전 가능성(읍면동 공급가능 변전소·변전소 거리·지역 승인률)
 ② 인허가 지연 리스크(주거·학교 근접, 용도지역, 지자체 규제, 갈등 사례) ③ 부지 지형(경사도·육지/수역 판정)을 점수화하고,
@@ -40,13 +43,16 @@ cp data-pack/out/terrain_grid.json prototype/public/data/      # build_all을 �
 ```bash
 cd prototype && npm run typecheck                # 타입 검사 (src + api + scripts)
 cd prototype && npm run lint                     # oxlint
-node node_modules/vitest/vitest.mjs run          # 테스트 51건 (엔진 골든 13 · 지형 12 · 검색 11 · 체크리스트 7 · 메모 파서 8)
+node node_modules/vitest/vitest.mjs run          # 테스트 62건 (엔진 골든 17 · 지형 12 · 검색 11 · 체크리스트 7 · 메모 파서 8 · 비교 핀 7)
 python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·커버리지·지형·시나리오 스팟체크
 ```
 
 브라우저 확인(검색창에 입력 → Enter):
-- `덕이동` → 고양 덕이동 D등급, `인천 청천동` + 주거지역 선택 → E등급(조례상 입지 불가 배지), `세종 반곡동` + 공업지역 → B등급.
+- `덕이동` → 고양 덕이동 D등급 + "주민 갈등 가능성 높음" 배지, `인천 청천동` + 주거지역 선택 → E등급(조례상 입지 불가),
+  `세종 반곡동` + 공업지역 → 비수도권 대조군.
   (골든 테스트는 시나리오 좌표 기준으로 **D 45 / E 32 / B 75**. 검색은 읍면동 중심점이라 점수가 조금 다를 수 있다.)
+- 헤더 아래 **비교 트레이**: "현재 지점 담기"로 최대 4곳을 담으면 같은 사업 가정(총사업비·금리 슬라이더 공통 적용)으로
+  등급·예상 지연·지연 금융비용이 나란히 뜨고, 우측에 최대 차액이 표시된다. 칩을 누르면 그 지점으로 돌아간다.
 - `37.4, 126.2` → "해상·수역 — 평가 대상 아님" 카드 + "매립·간척 예정지로 간주" 버튼.
 - `37.85, 128.45` → 지형 감점 −30, "급경사 산지" 배지, 중앙값 경사 28°.
 - "AI 검토 의견 생성" → 12행 체크리스트가 순서대로 채워지고 "PDF로 저장"으로 A4 보고서 인쇄.
@@ -88,6 +94,8 @@ prototype/    Vite + React + TS. src/scoring/engine.ts 순수 스코어링 엔�
   src/scoring/terrain.ts   지형 격자 디코딩·육지/수역 판정·경사 감점 (순수 함수)
   src/search/emdSearch.ts  오프라인 읍면동 검색 (번들 센트로이드 5,471건)
   src/report/checklist.ts  ScoreResult → 실사 체크리스트 12행
+  src/compare/pins.ts      비교 트레이 순수 로직(핀 추가·제거·상한·차액). 점수는 scoreSite 재호출로만 얻는다
+  src/lib/format.ts        fmtKrw·등급 색·행정구역 라벨 공용
   src/genai/memoFormat.ts  LLM "## 섹션" 응답 파서 (스트리밍 중에도 부분 파싱)
   api/_vworld.ts    VWorld 공통 헬퍼 (라우트 아님 — Vercel은 `_` 접두 파일을 배포하지 않는다)
   api/generate.ts   Vercel Edge 프록시 (OpenRouter 단일, 기본 모델 minimax/minimax-m3:free)
@@ -109,6 +117,8 @@ Vercel 배포(2026-09-03), VWorld 용도지역 오버레이·건축HUB 허가→
 2026-09-04 개편: 데모 시나리오 버튼 제거 + **주소·읍면동·좌표 검색**, **용도지역 자동 판정**(VWorld Data API),
 **지형 경사도 감점·해상 수역 판정**(SRTM 기반 0.01° 격자), 실사 메모를 **고정 서식 체크리스트 보고서 + PDF 인쇄**로 교체,
 LLM 설정 UI 삭제(서버 프록시 OpenRouter·MiniMax 단일 경로).
+2026-09-05 개편: 헤더에 서비스명, 시장 통계 스트립 → **부지 비교 트레이**, 갈등 사례 드로어 → **주민 갈등 가능성 지표**
+(`permit.conflictRisk` — 기존 갈등 감점 3종의 합을 낮음/주의/높음으로 등급화, 점수는 불변).
 
 남은 일 (PLAN.md P4~P6, 해커톤 9.21~22):
 

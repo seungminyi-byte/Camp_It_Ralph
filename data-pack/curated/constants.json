@@ -183,6 +183,10 @@
      "deduction": 12
     }
    ],
+   "conflictRisk": {
+    "mediumMin": 5,
+    "highMin": 15
+   },
    "delayStat": {
     "minPermits": 20,
     "relativeBands": [

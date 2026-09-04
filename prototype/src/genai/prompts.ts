@@ -1,5 +1,5 @@
 import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
-import { LAND_USE_LABEL } from '../scoring/engine';
+import { CONFLICT_LEVEL_LABEL, LAND_USE_LABEL } from '../scoring/engine';
 import { VERDICT_GLYPH, VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
 
 export interface MemoContext {
@@ -61,6 +61,7 @@ ${terrainLine}
 [스크리닝 결과]
 - 종합 등급: ${result.composite.grade} (${result.composite.score}점)${result.composite.gradeCapped ? ' · 전력 게이트로 등급 상한 적용' : ''}
 - 전력 축 ${result.power.score}점 · 인허가 축 ${result.permit.score}점
+- 주민 갈등 가능성: ${CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]} (갈등 사례·인근 사례·뉴스 감점 합 ${result.permit.conflictRisk.points}점)
 - 예상 인허가 지연: ${result.delay.minMonths}~${result.delay.maxMonths}개월 (점추정 ${result.delay.pointMonths}개월, 앵커: ${result.delay.anchor})
 - 지연 금융비용 추정: 월 ${Math.round(result.finance.monthlyCostKrw / 1e8)}억원, 총 약 ${Math.round(result.finance.delayCostKrw / 1e8)}억원
 
