@@ -119,7 +119,10 @@ export function ChecklistReport(props: ReportProps) {
 
       <section className="mt-3">
         <h2 className="text-sm font-bold">점검 항목</h2>
-        <table className={`mt-1 w-full border-collapse ${small}`}>
+        <div className={variant === 'screen' ? 'mt-1 overflow-x-auto' : ''}>
+        <table
+          className={`w-full border-collapse ${small} ${variant === 'screen' ? 'min-w-[560px]' : 'mt-1'}`}
+        >
           <colgroup>
             <col style={{ width: '5%' }} />
             <col style={{ width: '8%' }} />
@@ -165,6 +168,7 @@ export function ChecklistReport(props: ReportProps) {
             })}
           </tbody>
         </table>
+        </div>
       </section>
 
       {(memo?.actions.length ?? 0) > 0 && (

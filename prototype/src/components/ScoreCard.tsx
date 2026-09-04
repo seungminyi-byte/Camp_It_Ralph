@@ -90,7 +90,7 @@ export function ScoreCard({
         </div>
       </div>
 
-      <div className="mb-2 flex items-center gap-2 text-xs">
+      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
         {r.gate.pass ? (
           <span className="rounded bg-green-100 px-2 py-0.5 font-semibold text-green-800">
             공급가능 변전소 {r.gate.substationCount}곳 (읍면동 기준)

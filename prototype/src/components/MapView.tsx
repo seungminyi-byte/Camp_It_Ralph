@@ -100,6 +100,8 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
   const [showSchools, setShowSchools] = useState(false);
   const [showZoning, setShowZoning] = useState(true);
   const [zoom, setZoom] = useState(9);
+  // On phones the layer panel would cover the map, so it collapses behind a button under lg.
+  const [layersOpen, setLayersOpen] = useState(false);
   const [zoningError, setZoningError] = useState<string | null>(null);
   // Per tile-batch counters: warn only when a whole batch failed (a single 504 is just a slow VWorld).
   const zoningTiles = useRef({ loaded: 0, errored: 0 });
@@ -212,7 +214,17 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           </>
         )}
       </MapContainer>
-      <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-1 rounded bg-white/95 p-2 text-xs shadow">
+      <div className="absolute right-2 top-2 z-[1000] max-w-[60%] rounded bg-white/95 p-2 text-xs shadow sm:right-3 sm:top-3 sm:max-w-none">
+        <button
+          type="button"
+          onClick={() => setLayersOpen((v) => !v)}
+          aria-expanded={layersOpen}
+          className="flex w-full items-center justify-between gap-2 font-semibold lg:hidden"
+        >
+          레이어
+          <span aria-hidden>{layersOpen ? '▲' : '▼'}</span>
+        </button>
+        <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1 lg:flex`}>
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} />
           변전소 (OSM)
@@ -264,6 +276,7 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
             <span className="col-span-2 text-gray-400">빗금·점 무늬는 세부 용도·구역</span>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

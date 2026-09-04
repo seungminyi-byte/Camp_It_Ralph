@@ -24,7 +24,7 @@ export function CompareTray(props: Props) {
   const summary = compareSummary(entries);
 
   return (
-    <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-1.5 text-xs">
+    <div className="flex flex-none flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-200 bg-white px-3 py-1.5 text-xs sm:px-4">
       <button
         type="button"
         onClick={props.onPinCurrent}
@@ -41,6 +41,7 @@ export function CompareTray(props: Props) {
         </span>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+          {/* chips scroll horizontally rather than squeezing the tray */}
           {entries.map(({ pin, result }) => (
             <div
               key={pin.id}
@@ -77,7 +78,7 @@ export function CompareTray(props: Props) {
         </div>
       )}
 
-      <div className="flex flex-none flex-col items-end text-right">
+      <div className="flex w-full flex-none flex-col items-start text-left lg:w-auto lg:items-end lg:text-right">
         {summary && (
           <span className="font-semibold text-amber-900">
             {summary.diffKrw > 0 ? (

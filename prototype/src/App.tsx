@@ -113,10 +113,12 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col bg-gray-50 text-gray-900 print:hidden">
-      <header className="border-b border-gray-200 bg-white px-4 py-2">
-        <h1 className="text-lg font-bold">
+      <header className="flex-none border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
+        <h1 className="text-base font-bold sm:text-lg">
           여기 DC 돼요?
-          <span className="ml-2 text-sm font-normal text-gray-500">데이터센터 부지 리스크 스크리닝</span>
+          <span className="ml-2 hidden text-sm font-normal text-gray-500 sm:inline">
+            데이터센터 부지 리스크 스크리닝
+          </span>
         </h1>
       </header>
       <CompareTray
@@ -133,8 +135,9 @@ export default function App() {
         onOpen={openPin}
         onRemove={(id) => setPins((p) => removePin(p, id))}
       />
-      <div className="flex min-h-0 flex-1">
-        <div className="relative min-w-0 flex-[7]">
+      {/* Under lg the map sits on top at a fixed height and the panel scrolls beneath it. */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="relative h-[42vh] min-h-[200px] w-full flex-none lg:h-auto lg:min-h-0 lg:w-auto lg:min-w-0 lg:flex-[7]">
           <MapView
             data={data}
             site={site}
@@ -142,7 +145,7 @@ export default function App() {
             onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })}
           />
         </div>
-        <aside className="flex w-[420px] flex-none flex-col overflow-y-auto border-l border-gray-200 bg-white">
+        <aside className="flex w-full min-h-0 flex-1 flex-col overflow-y-auto border-t border-gray-200 bg-white lg:w-[420px] lg:flex-none lg:border-l lg:border-t-0">
           <SitePanel
             data={data}
             site={site}
