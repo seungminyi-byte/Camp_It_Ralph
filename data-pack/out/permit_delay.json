@@ -1,0 +1,937 @@
+{
+ "source": "국토교통부_건축HUB_건축인허가정보 서비스 (data.go.kr 15136267, getApBasisOulnInfo)",
+ "fetchedAt": "2026-09-04",
+ "window": {
+  "from": "20210101",
+  "to": "20251231"
+ },
+ "sample": {
+  "archGb": "신축",
+  "minTotAreaM2": 3000.0,
+  "stallMonths": 12
+ },
+ "baseline": {
+  "n": 1781,
+  "started": 1295,
+  "medianMonths": 3.7,
+  "p75Months": 7.4,
+  "stalled12mN": 448,
+  "eligible12mN": 1706,
+  "stalled12mShare": 0.263,
+  "topPurposes": [
+   {
+    "purpose": "업무시설",
+    "n": 475
+   },
+   {
+    "purpose": "공장",
+    "n": 363
+   },
+   {
+    "purpose": "제1종근린생활시설",
+    "n": 169
+   }
+  ]
+ },
+ "rows": [
+  {
+   "sido": "경기도",
+   "sigungu": "고양시일산서구",
+   "level": "sigungu",
+   "codes": [
+    "41287"
+   ],
+   "n": 14,
+   "started": 12,
+   "medianMonths": 4.3,
+   "p75Months": 11.4,
+   "stalled12mN": 2,
+   "eligible12mN": 14,
+   "stalled12mShare": 0.143,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 3
+    },
+    {
+     "purpose": "자동차관련시설",
+     "n": 2
+    },
+    {
+     "purpose": "노유자시설",
+     "n": 1
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "부평구",
+   "level": "sigungu",
+   "codes": [
+    "28237"
+   ],
+   "n": 58,
+   "started": 47,
+   "medianMonths": 4.0,
+   "p75Months": 6.8,
+   "stalled12mN": 11,
+   "eligible12mN": 56,
+   "stalled12mShare": 0.196,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 21
+    },
+    {
+     "purpose": "공장",
+     "n": 10
+    },
+    {
+     "purpose": "공동주택",
+     "n": 6
+    }
+   ]
+  },
+  {
+   "sido": "세종특별자치시",
+   "sigungu": "*",
+   "level": "sigungu",
+   "codes": [
+    "36110"
+   ],
+   "n": 137,
+   "started": 93,
+   "medianMonths": 3.3,
+   "p75Months": 6.9,
+   "stalled12mN": 40,
+   "eligible12mN": 130,
+   "stalled12mShare": 0.308,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 40
+    },
+    {
+     "purpose": "업무시설",
+     "n": 18
+    },
+    {
+     "purpose": "교육연구시설",
+     "n": 13
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "고양시덕양구",
+   "level": "sigungu",
+   "codes": [
+    "41281"
+   ],
+   "n": 98,
+   "started": 84,
+   "medianMonths": 3.6,
+   "p75Months": 7.3,
+   "stalled12mN": 14,
+   "eligible12mN": 96,
+   "stalled12mShare": 0.146,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 23
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 21
+    },
+    {
+     "purpose": "공장",
+     "n": 14
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "고양시일산동구",
+   "level": "sigungu",
+   "codes": [
+    "41285"
+   ],
+   "n": 39,
+   "started": 33,
+   "medianMonths": 3.6,
+   "p75Months": 5.7,
+   "stalled12mN": 6,
+   "eligible12mN": 39,
+   "stalled12mShare": 0.154,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 11
+    },
+    {
+     "purpose": "판매시설",
+     "n": 5
+    },
+    {
+     "purpose": "창고시설",
+     "n": 5
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "김포시",
+   "level": "sigungu",
+   "codes": [
+    "41570"
+   ],
+   "n": 174,
+   "started": 134,
+   "medianMonths": 2.5,
+   "p75Months": 5.6,
+   "stalled12mN": 36,
+   "eligible12mN": 169,
+   "stalled12mShare": 0.213,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 76
+    },
+    {
+     "purpose": "업무시설",
+     "n": 24
+    },
+    {
+     "purpose": "자동차관련시설",
+     "n": 10
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "안양시만안구",
+   "level": "sigungu",
+   "codes": [
+    "41171"
+   ],
+   "n": 61,
+   "started": 43,
+   "medianMonths": 5.1,
+   "p75Months": 8.5,
+   "stalled12mN": 14,
+   "eligible12mN": 54,
+   "stalled12mShare": 0.259,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 44
+    },
+    {
+     "purpose": "공장",
+     "n": 6
+    },
+    {
+     "purpose": "공동주택",
+     "n": 4
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "안양시동안구",
+   "level": "sigungu",
+   "codes": [
+    "41173"
+   ],
+   "n": 57,
+   "started": 48,
+   "medianMonths": 5.0,
+   "p75Months": 8.2,
+   "stalled12mN": 9,
+   "eligible12mN": 56,
+   "stalled12mShare": 0.161,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 18
+    },
+    {
+     "purpose": "업무시설",
+     "n": 15
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 5
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "용인시처인구",
+   "level": "sigungu",
+   "codes": [
+    "41461"
+   ],
+   "n": 203,
+   "started": 119,
+   "medianMonths": 3.8,
+   "p75Months": 10.2,
+   "stalled12mN": 77,
+   "eligible12mN": 192,
+   "stalled12mShare": 0.401,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 47
+    },
+    {
+     "purpose": "창고시설",
+     "n": 31
+    },
+    {
+     "purpose": "공동주택",
+     "n": 20
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "용인시기흥구",
+   "level": "sigungu",
+   "codes": [
+    "41463"
+   ],
+   "n": 83,
+   "started": 52,
+   "medianMonths": 6.0,
+   "p75Months": 9.9,
+   "stalled12mN": 29,
+   "eligible12mN": 79,
+   "stalled12mShare": 0.367,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 17
+    },
+    {
+     "purpose": "자동차관련시설",
+     "n": 13
+    },
+    {
+     "purpose": "공동주택",
+     "n": 8
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "용인시수지구",
+   "level": "sigungu",
+   "codes": [
+    "41465"
+   ],
+   "n": 38,
+   "started": 24,
+   "medianMonths": 4.5,
+   "p75Months": 5.6,
+   "stalled12mN": 14,
+   "eligible12mN": 38,
+   "stalled12mShare": 0.368,
+   "topPurposes": [
+    {
+     "purpose": "공동주택",
+     "n": 7
+    },
+    {
+     "purpose": "업무시설",
+     "n": 6
+    },
+    {
+     "purpose": "교육연구시설",
+     "n": 6
+    }
+   ]
+  },
+  {
+   "sido": "서울특별시",
+   "sigungu": "금천구",
+   "level": "sigungu",
+   "codes": [
+    "11545"
+   ],
+   "n": 68,
+   "started": 46,
+   "medianMonths": 6.8,
+   "p75Months": 9.1,
+   "stalled12mN": 19,
+   "eligible12mN": 65,
+   "stalled12mShare": 0.292,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 30
+    },
+    {
+     "purpose": "공장",
+     "n": 16
+    },
+    {
+     "purpose": "공동주택",
+     "n": 8
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시원미구",
+   "level": "sigungu",
+   "codes": [
+    "41192"
+   ],
+   "n": 56,
+   "started": 44,
+   "medianMonths": 3.3,
+   "p75Months": 9.8,
+   "stalled12mN": 12,
+   "eligible12mN": 55,
+   "stalled12mShare": 0.218,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 30
+    },
+    {
+     "purpose": "공장",
+     "n": 9
+    },
+    {
+     "purpose": "공동주택",
+     "n": 6
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시소사구",
+   "level": "sigungu",
+   "codes": [
+    "41194"
+   ],
+   "n": 38,
+   "started": 29,
+   "medianMonths": 3.5,
+   "p75Months": 6.0,
+   "stalled12mN": 9,
+   "eligible12mN": 38,
+   "stalled12mShare": 0.237,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 20
+    },
+    {
+     "purpose": "공동주택",
+     "n": 12
+    },
+    {
+     "purpose": "운동시설",
+     "n": 2
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시오정구",
+   "level": "sigungu",
+   "codes": [
+    "41196"
+   ],
+   "n": 37,
+   "started": 25,
+   "medianMonths": 4.3,
+   "p75Months": 6.2,
+   "stalled12mN": 12,
+   "eligible12mN": 35,
+   "stalled12mShare": 0.343,
+   "topPurposes": [
+    {
+     "purpose": "공동주택",
+     "n": 14
+    },
+    {
+     "purpose": "공장",
+     "n": 7
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 5
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시",
+   "level": "sigungu",
+   "codes": [
+    "41190"
+   ],
+   "n": 0,
+   "started": 0,
+   "medianMonths": null,
+   "p75Months": null,
+   "stalled12mN": 0,
+   "eligible12mN": 0,
+   "stalled12mShare": null,
+   "topPurposes": []
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "과천시",
+   "level": "sigungu",
+   "codes": [
+    "41290"
+   ],
+   "n": 45,
+   "started": 33,
+   "medianMonths": 4.1,
+   "p75Months": 5.3,
+   "stalled12mN": 11,
+   "eligible12mN": 44,
+   "stalled12mShare": 0.25,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 15
+    },
+    {
+     "purpose": "공장",
+     "n": 10
+    },
+    {
+     "purpose": "제2종근린생활시설",
+     "n": 6
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "서구",
+   "level": "sigungu",
+   "codes": [
+    "28260"
+   ],
+   "n": 2,
+   "started": 2,
+   "medianMonths": 6.6,
+   "p75Months": 10.0,
+   "stalled12mN": 0,
+   "eligible12mN": 2,
+   "stalled12mShare": 0.0,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 1
+    },
+    {
+     "purpose": "업무시설",
+     "n": 1
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "남동구",
+   "level": "sigungu",
+   "codes": [
+    "28200"
+   ],
+   "n": 97,
+   "started": 70,
+   "medianMonths": 3.0,
+   "p75Months": 5.8,
+   "stalled12mN": 25,
+   "eligible12mN": 92,
+   "stalled12mShare": 0.272,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 35
+    },
+    {
+     "purpose": "업무시설",
+     "n": 33
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 10
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "연수구",
+   "level": "sigungu",
+   "codes": [
+    "28185"
+   ],
+   "n": 66,
+   "started": 50,
+   "medianMonths": 4.5,
+   "p75Months": 7.1,
+   "stalled12mN": 11,
+   "eligible12mN": 57,
+   "stalled12mShare": 0.193,
+   "topPurposes": [
+    {
+     "purpose": "교육연구시설",
+     "n": 13
+    },
+    {
+     "purpose": "공동주택",
+     "n": 11
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 9
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "계양구",
+   "level": "sigungu",
+   "codes": [
+    "28245"
+   ],
+   "n": 28,
+   "started": 22,
+   "medianMonths": 4.1,
+   "p75Months": 6.7,
+   "stalled12mN": 6,
+   "eligible12mN": 26,
+   "stalled12mShare": 0.231,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 16
+    },
+    {
+     "purpose": "노유자시설",
+     "n": 3
+    },
+    {
+     "purpose": "제2종근린생활시설",
+     "n": 2
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "미추홀구",
+   "level": "sigungu",
+   "codes": [
+    "28177"
+   ],
+   "n": 77,
+   "started": 53,
+   "medianMonths": 3.2,
+   "p75Months": 4.8,
+   "stalled12mN": 23,
+   "eligible12mN": 74,
+   "stalled12mShare": 0.311,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 40
+    },
+    {
+     "purpose": "공동주택",
+     "n": 10
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 8
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "검단구",
+   "level": "sigungu",
+   "codes": [
+    "28290"
+   ],
+   "n": 104,
+   "started": 86,
+   "medianMonths": 2.6,
+   "p75Months": 6.0,
+   "stalled12mN": 16,
+   "eligible12mN": 100,
+   "stalled12mShare": 0.16,
+   "topPurposes": [
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 42
+    },
+    {
+     "purpose": "업무시설",
+     "n": 15
+    },
+    {
+     "purpose": "공장",
+     "n": 12
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "서해구",
+   "level": "sigungu",
+   "codes": [
+    "28275"
+   ],
+   "n": 122,
+   "started": 98,
+   "medianMonths": 3.0,
+   "p75Months": 6.4,
+   "stalled12mN": 22,
+   "eligible12mN": 119,
+   "stalled12mShare": 0.185,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 38
+    },
+    {
+     "purpose": "공장",
+     "n": 31
+    },
+    {
+     "purpose": "창고시설",
+     "n": 11
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "제물포구",
+   "level": "sigungu",
+   "codes": [
+    "28125"
+   ],
+   "n": 37,
+   "started": 28,
+   "medianMonths": 4.5,
+   "p75Months": 5.7,
+   "stalled12mN": 9,
+   "eligible12mN": 36,
+   "stalled12mShare": 0.25,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 18
+    },
+    {
+     "purpose": "자동차관련시설",
+     "n": 6
+    },
+    {
+     "purpose": "종교시설",
+     "n": 2
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "영종구",
+   "level": "sigungu",
+   "codes": [
+    "28155"
+   ],
+   "n": 42,
+   "started": 20,
+   "medianMonths": 3.5,
+   "p75Months": 5.8,
+   "stalled12mN": 21,
+   "eligible12mN": 40,
+   "stalled12mShare": 0.525,
+   "topPurposes": [
+    {
+     "purpose": "제2종근린생활시설",
+     "n": 11
+    },
+    {
+     "purpose": "업무시설",
+     "n": 11
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 5
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "고양시",
+   "level": "city",
+   "codes": [
+    "41287",
+    "41281",
+    "41285"
+   ],
+   "n": 151,
+   "started": 129,
+   "medianMonths": 3.8,
+   "p75Months": 7.3,
+   "stalled12mN": 22,
+   "eligible12mN": 149,
+   "stalled12mShare": 0.148,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 37
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 25
+    },
+    {
+     "purpose": "공장",
+     "n": 16
+    }
+   ]
+  },
+  {
+   "sido": "인천광역시",
+   "sigungu": "인천광역시",
+   "level": "city",
+   "codes": [
+    "28237",
+    "28260",
+    "28200",
+    "28185",
+    "28245",
+    "28177",
+    "28290",
+    "28275",
+    "28125",
+    "28155"
+   ],
+   "n": 633,
+   "started": 476,
+   "medianMonths": 3.4,
+   "p75Months": 6.5,
+   "stalled12mN": 144,
+   "eligible12mN": 602,
+   "stalled12mShare": 0.239,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 200
+    },
+    {
+     "purpose": "공장",
+     "n": 105
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 90
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "안양시",
+   "level": "city",
+   "codes": [
+    "41171",
+    "41173"
+   ],
+   "n": 118,
+   "started": 91,
+   "medianMonths": 5.0,
+   "p75Months": 8.4,
+   "stalled12mN": 23,
+   "eligible12mN": 110,
+   "stalled12mShare": 0.209,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 59
+    },
+    {
+     "purpose": "공장",
+     "n": 24
+    },
+    {
+     "purpose": "제1종근린생활시설",
+     "n": 7
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "용인시",
+   "level": "city",
+   "codes": [
+    "41461",
+    "41463",
+    "41465"
+   ],
+   "n": 324,
+   "started": 195,
+   "medianMonths": 4.0,
+   "p75Months": 9.9,
+   "stalled12mN": 120,
+   "eligible12mN": 309,
+   "stalled12mShare": 0.388,
+   "topPurposes": [
+    {
+     "purpose": "공장",
+     "n": 58
+    },
+    {
+     "purpose": "업무시설",
+     "n": 42
+    },
+    {
+     "purpose": "공동주택",
+     "n": 35
+    }
+   ]
+  },
+  {
+   "sido": "경기도",
+   "sigungu": "부천시",
+   "level": "city",
+   "codes": [
+    "41192",
+    "41194",
+    "41196",
+    "41190"
+   ],
+   "n": 131,
+   "started": 98,
+   "medianMonths": 3.7,
+   "p75Months": 8.3,
+   "stalled12mN": 33,
+   "eligible12mN": 128,
+   "stalled12mShare": 0.258,
+   "topPurposes": [
+    {
+     "purpose": "업무시설",
+     "n": 50
+    },
+    {
+     "purpose": "공동주택",
+     "n": 32
+    },
+    {
+     "purpose": "공장",
+     "n": 18
+    }
+   ]
+  }
+ ]
+}

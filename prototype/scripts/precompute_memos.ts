@@ -2,12 +2,12 @@
 // Usage (key never touches the repo):
 //   $env:OPENROUTER_API_KEY="sk-or-..."; node node_modules/tsx/dist/cli.mjs scripts/precompute_memos.ts
 // Optional: OPENROUTER_MODEL (default minimax/minimax-m3:free), GEMINI_API_KEY instead of OpenRouter.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseCsv } from '../src/lib/csv';
 import { scoreSite } from '../src/scoring/engine';
 import { buildMemoPrompt } from '../src/genai/prompts';
-import type { AppData, CaseRow, RegulationRow, Scenario } from '../src/types';
+import type { AppData, CaseRow, PermitDelayFile, RegulationRow, Scenario } from '../src/types';
 
 const ROOT = join(import.meta.dirname, '..');
 const DATA_DIR = join(ROOT, 'public', 'data');
@@ -18,6 +18,10 @@ const OUT_FILES = [
 
 function readJson<T>(name: string): T {
   return JSON.parse(readFileSync(join(DATA_DIR, name), 'utf-8')) as T;
+}
+
+function readJsonOrNull<T>(name: string): T | null {
+  return existsSync(join(DATA_DIR, name)) ? readJson<T>(name) : null;
 }
 
 function loadData(): AppData {
@@ -36,6 +40,7 @@ function loadData(): AppData {
       ...r, lat: Number(r.lat), lng: Number(r.lng), delay_months: Number(r.delay_months),
     })) as unknown as CaseRow[],
     regulations: regsRaw.map((r) => ({ ...r, deduction: Number(r.deduction) })) as unknown as RegulationRow[],
+    permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
   };
 }
 

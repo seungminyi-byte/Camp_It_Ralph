@@ -3,6 +3,8 @@ import type {
   CaseRow,
   Deduction,
   LandUse,
+  PermitDelayFile,
+  PermitDelayRow,
   ScoreInput,
   ScoreResult,
 } from '../types';
@@ -19,6 +21,27 @@ const LAND_USE_LABEL: Record<LandUse, string> = {
 
 function fmtKm(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
+
+/**
+ * Match a permit-delay row: exact sigungu → city roll-up (prefix) → sido-wide ('*').
+ * The first candidate with at least `minPermits` samples wins; if none is large enough the most
+ * specific candidate is returned so the card can still say "표본 부족".
+ */
+function findPermitRow(
+  file: PermitDelayFile | null,
+  sido: string,
+  sigungu: string,
+  minPermits: number,
+): PermitDelayRow | null {
+  if (!file) return null;
+  const rows = file.rows.filter((r) => r.sido === sido);
+  const candidates = [
+    rows.find((r) => r.level === 'sigungu' && r.sigungu === sigungu),
+    rows.find((r) => r.level === 'city' && sigungu.startsWith(r.sigungu)),
+    rows.find((r) => r.sigungu === '*'),
+  ].filter((r): r is PermitDelayRow => r !== undefined);
+  return candidates.find((r) => r.n >= minPermits && r.medianMonths !== null) ?? candidates[0] ?? null;
 }
 
 export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
@@ -178,6 +201,60 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     });
   }
 
+  let delayStat: ScoreResult['permit']['delayStat'] = null;
+  const permitRow = emdInfo
+    ? findPermitRow(data.permitDelay, emdInfo.sido, emdInfo.sigungu, q.delayStat.minPermits)
+    : null;
+  if (permitRow && data.permitDelay) {
+    const cfg = q.delayStat;
+    const base = data.permitDelay.baseline;
+    const enough = permitRow.n >= cfg.minPermits && permitRow.medianMonths !== null;
+    const ratio =
+      permitRow.medianMonths !== null && base.medianMonths
+        ? permitRow.medianMonths / base.medianMonths
+        : null;
+    let points = 0;
+    if (enough && ratio !== null) {
+      points = cfg.relativeBands.find((b) => ratio <= b.maxRatio)?.deduction ?? 0;
+      if (
+        permitRow.stalled12mShare !== null &&
+        base.stalled12mShare !== null &&
+        permitRow.eligible12mN >= cfg.minPermits &&
+        permitRow.stalled12mShare - base.stalled12mShare >= cfg.stalledExtra.minExcessShare
+      ) {
+        points += cfg.stalledExtra.deduction;
+      }
+      points = Math.min(points, cfg.cap);
+    }
+    const areaLabel = permitRow.sigungu === '*' ? permitRow.sido : permitRow.sigungu;
+    delayStat = {
+      row: permitRow,
+      areaLabel,
+      enough,
+      deduction: points,
+      baselineMedianMonths: base.medianMonths,
+      baselineStalledShare: base.stalled12mShare,
+      ratio,
+    };
+    if (points > 0 && ratio !== null) {
+      const w = data.permitDelay.window;
+      const stalledTxt =
+        permitRow.stalled12mShare !== null
+          ? `, 12개월+ 미착공 ${Math.round(permitRow.stalled12mShare * 100)}%` +
+            (base.stalled12mShare !== null ? `(전체 ${Math.round(base.stalled12mShare * 100)}%)` : '')
+          : '';
+      deductions.push({
+        label: '허가→착공 지연 통계',
+        points,
+        evidence:
+          `${areaLabel} 대형 신축(연면적 ${data.permitDelay.sample.minTotAreaM2.toLocaleString()}㎡↑) 허가 ${permitRow.n}건` +
+          `(${w.from.slice(0, 4)}~${w.to.slice(0, 4)}): 허가→착공 중앙값 ${permitRow.medianMonths}개월` +
+          ` = 조사 시군구 전체 ${base.medianMonths}개월의 ${ratio.toFixed(1)}배${stalledTxt}`,
+        anchor: '국토부: 수도권 건축허가 DC 33곳 중 17곳(51.5%) 지연·차질',
+      });
+    }
+  }
+
   const permitScore = Math.max(
     0,
     Math.round(100 - deductions.reduce((s, d) => s + d.points, 0)),
@@ -228,6 +305,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         : null,
       matchedCases,
       matchedRegulations,
+      delayStat,
     },
     composite: { score: compositeScore, grade, gradeCapped },
     delay: {

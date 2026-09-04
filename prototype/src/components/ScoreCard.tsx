@@ -96,6 +96,24 @@ export function ScoreCard({ result, data }: { result: ScoreResult; data: AppData
             {(r.permit.nearestSchool.distanceKm * 1000).toFixed(0)}m)
           </div>
         )}
+        {r.permit.delayStat && (
+          <div>
+            허가→착공 실적: {r.permit.delayStat.areaLabel} 대형 신축 {r.permit.delayStat.row.n}건
+            {r.permit.delayStat.enough ? (
+              <>
+                , 허가→착공 중앙값 <b>{r.permit.delayStat.row.medianMonths}개월</b>
+                {r.permit.delayStat.baselineMedianMonths !== null &&
+                  ` (조사 시군구 전체 ${r.permit.delayStat.baselineMedianMonths}개월${
+                    r.permit.delayStat.ratio !== null ? `, ${r.permit.delayStat.ratio.toFixed(1)}배` : ''
+                  })`}
+                {r.permit.delayStat.row.stalled12mShare !== null &&
+                  ` · 12개월+ 미착공 ${Math.round(r.permit.delayStat.row.stalled12mShare * 100)}%`}
+              </>
+            ) : (
+              ' — 표본 부족으로 감점 미적용'
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-2">

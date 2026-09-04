@@ -11,7 +11,7 @@ OUT = ROOT / "out"
 CURATED = ROOT / "curated"
 APP_DATA = ROOT.parent / "prototype" / "public" / "data"
 
-PIPELINE = ["p01_power.py", "p02_schools.py", "p03_population.py", "p04_centroids_enrich.py"]
+PIPELINE = ["p01_power.py", "p02_schools.py", "p03_population.py", "p04_centroids_enrich.py", "p05_permits_api.py"]
 
 
 def main() -> int:

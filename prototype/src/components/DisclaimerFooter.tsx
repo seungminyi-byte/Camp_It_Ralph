@@ -7,6 +7,7 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
       <p className="font-semibold">{d.main}</p>
       <p>{d.substation}</p>
       <p>{d.stats}</p>
+      {d.permits && data.permitDelay && <p>{d.permits}</p>}
     </footer>
   );
 }

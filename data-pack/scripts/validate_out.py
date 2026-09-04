@@ -76,6 +76,22 @@ def main() -> int:
             has_power = len(by_sido_emd) == 1
         check(has_power, f"scenario {sc['id']}: emd_power entry resolvable")
 
+    permits_path = OUT / "permit_delay.json"
+    if permits_path.exists():
+        permits = json.loads(permits_path.read_text(encoding="utf-8"))
+        rows = permits.get("rows", [])
+        check(len(rows) >= 10, f"permit_delay rows {len(rows)} >= 10")
+        check((permits.get("baseline") or {}).get("n", 0) >= 100, "permit_delay baseline sample >= 100 permits")
+        keys = {(r["sido"], r["sigungu"]) for r in rows}
+        for need in [("경기도", "고양시일산서구"), ("인천광역시", "부평구"), ("세종특별자치시", "*")]:
+            check(need in keys, f"permit_delay has row for {need[0]} {need[1]}")
+        check(
+            all(r.get("medianMonths") is None or 0 <= r["medianMonths"] <= 120 for r in rows),
+            "permit_delay medians within 0~120 months",
+        )
+    else:
+        print("SKIP permit_delay.json not present (P1 signal disabled)")
+
     print()
     if ERRORS:
         print(f"VALIDATION FAILED: {len(ERRORS)} error(s)")

@@ -79,6 +79,34 @@ export type LandUse =
   | 'residential'
   | 'unknown';
 
+export interface PermitDelayStat {
+  n: number;
+  started: number;
+  medianMonths: number | null;
+  p75Months: number | null;
+  stalled12mN: number;
+  eligible12mN: number;
+  stalled12mShare: number | null;
+  topPurposes: { purpose: string; n: number }[];
+}
+
+export interface PermitDelayRow extends PermitDelayStat {
+  sido: string;
+  /** sigungu as written in emd_power/emd_centroids; '*' = whole sido */
+  sigungu: string;
+  level: 'sigungu' | 'city';
+  codes: string[];
+}
+
+export interface PermitDelayFile {
+  source: string;
+  fetchedAt: string;
+  window: { from: string; to: string };
+  sample: { archGb: string; minTotAreaM2: number; stallMonths: number };
+  baseline: PermitDelayStat;
+  rows: PermitDelayRow[];
+}
+
 export interface Constants {
   stats: Record<string, { value?: number; label: string; source?: string; sourceUrl?: string }>;
   scoring: {
@@ -104,6 +132,14 @@ export interface Constants {
       caseNearbyKm: number;
       caseNearbyDeduction: number;
       newsDeduction: { maxCount: number; deduction: number }[];
+      delayStat: {
+        minPermits: number;
+        /** ratio = 시군구 중앙값 / 조사 시군구 전체 중앙값 */
+        relativeBands: { maxRatio: number; deduction: number }[];
+        /** 12개월+ 미착공 비율이 전체보다 minExcessShare 이상 높으면 가산 */
+        stalledExtra: { minExcessShare: number; deduction: number };
+        cap: number;
+      };
     };
     composite: {
       weightPower: number;
@@ -138,6 +174,8 @@ export interface AppData {
   dcStats: DcStat[];
   scenarios: Scenario[];
   constants: Constants;
+  /** 건축HUB 허가→착공 통계 (P1); null when data/permit_delay.json is absent */
+  permitDelay: PermitDelayFile | null;
 }
 
 export interface Deduction {
@@ -174,6 +212,16 @@ export interface ScoreResult {
     nearestSchool: { name: string; distanceKm: number } | null;
     matchedCases: CaseRow[];
     matchedRegulations: RegulationRow[];
+    /** 건축HUB 허가→착공 통계 매칭 결과 (없으면 null) */
+    delayStat: {
+      row: PermitDelayRow;
+      areaLabel: string;
+      enough: boolean;
+      deduction: number;
+      baselineMedianMonths: number | null;
+      baselineStalledShare: number | null;
+      ratio: number | null;
+    } | null;
   };
   composite: { score: number; grade: string; gradeCapped: boolean };
   delay: { minMonths: number; maxMonths: number; pointMonths: number; anchor: string };

@@ -12,6 +12,7 @@ prototype/dist/
 prototype/.vite/
 prototype/.env
 prototype/.env.*
+data-pack/.env
 .vercel/
 
 # os / editor
