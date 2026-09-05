@@ -209,7 +209,8 @@ export interface TerrainSample {
   col: number;
 }
 
-export type SiteStatus = 'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata';
+/** 'outside' = beyond the bundled South Korean data (north of the MDL, Japan, far islands): 판독 불가. */
+export type SiteStatus = 'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata' | 'outside';
 
 /** Manually curated boxes for post-2000 reclamation that SRTM still reads as water. */
 export interface ReclaimedOverride {
@@ -233,6 +234,15 @@ export interface ZoningLookup {
 export interface Constants {
   stats: Record<string, { value?: number; label: string; source?: string; sourceUrl?: string }>;
   scoring: {
+    /** Where the bundled data can speak at all; anything else is reported as 판독 불가. */
+    coverage: {
+      /** [minLat, minLng, maxLat, maxLng] */
+      bbox: [number, number, number, number];
+      /** [lat, lng] vertices west→east along the MDL/NLL; a point north of the interpolated line is outside */
+      northernBoundary: [number, number][];
+      /** a nearest 읍면동 centroid farther than this means no land data (대마도, 독도, open sea) */
+      emdOutsideKm: number;
+    };
     power: {
       weightSupply: number;
       weightRegion: number;
@@ -288,6 +298,8 @@ export interface Constants {
     finance: {
       defaultCapexKrw: number;
       capexLabel: string;
+      /** display-only 환산: 총사업비 ÷ 이 값 ≈ MW 규모 */
+      capexPerMwKrw: number;
       defaultAnnualRate: number;
       rateLabel: string;
       capexRangeKrw: [number, number];

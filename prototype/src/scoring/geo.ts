@@ -60,3 +60,30 @@ export function sumWithinKm<T>(
   }
   return sum;
 }
+
+/** [minLat, minLng, maxLat, maxLng] */
+export function inBbox(lat: number, lng: number, bbox: [number, number, number, number]): boolean {
+  const [minLat, minLng, maxLat, maxLng] = bbox;
+  return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+}
+
+/**
+ * Latitude of a west→east polyline at `lng`: linear between vertices, held flat beyond either end.
+ * The MDL/NLL line is stored this way; a point whose latitude exceeds it lies north of the border.
+ */
+export function polylineLatAt(line: [number, number][], lng: number): number {
+  if (line.length === 0) return Number.NaN;
+  if (lng <= line[0][1]) return line[0][0];
+  for (let i = 1; i < line.length; i += 1) {
+    const [lat0, lng0] = line[i - 1];
+    const [lat1, lng1] = line[i];
+    if (lng <= lng1) {
+      return lng1 === lng0 ? lat1 : lat0 + ((lat1 - lat0) * (lng - lng0)) / (lng1 - lng0);
+    }
+  }
+  return line[line.length - 1][0];
+}
+
+export function isNorthOfBoundary(lat: number, lng: number, line: [number, number][]): boolean {
+  return lat > polylineLatAt(line, lng);
+}

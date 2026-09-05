@@ -60,6 +60,34 @@ def main() -> int:
     check(all(in_korea(s[2], s[3]) for s in schools), "school coords in Korea bbox")
     check(all(in_korea(r[0], r[1]) for r in pop), "pop grid coords in Korea bbox")
 
+    # constants.scoring.coverage decides 판독 불가 in the app; a rebuilt centroid set must stay inside it.
+    coverage = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"].get("coverage")
+    check(coverage is not None, "constants.scoring.coverage present")
+    if coverage:
+        line = coverage["northernBoundary"]
+
+        def line_lat(lng: float) -> float:
+            # Same interpolation as polylineLatAt() in prototype/src/scoring/geo.ts.
+            if lng <= line[0][1]:
+                return line[0][0]
+            for (lat0, lng0), (lat1, lng1) in zip(line, line[1:]):
+                if lng <= lng1:
+                    return lat0 + (lat1 - lat0) * (lng - lng0) / (lng1 - lng0)
+            return line[-1][0]
+
+        lngs = [p[1] for p in line]
+        check(lngs == sorted(lngs), "coverage northernBoundary vertices ascend by longitude")
+        b = coverage["bbox"]
+        outside_box = [c for c in cents if not (b[0] <= c["lat"] <= b[2] and b[1] <= c["lng"] <= b[3])]
+        check(not outside_box, f"all centroids inside coverage bbox ({len(outside_box)} outside)")
+        north = [c for c in cents if c["lat"] > line_lat(c["lng"])]
+        check(
+            not north,
+            "no centroid north of the MDL/NLL line ({} found: {})".format(
+                len(north), [f"{c['sigungu']} {c['emd']}" for c in north[:5]]
+            ),
+        )
+
     pk = {(p["sido"], p["sigungu"], p["emd"]) for p in emd_power}
     ck = {(c["sido"], c["sigungu"], c["emd"]) for c in cents}
     cov = len(pk & ck) / len(pk)

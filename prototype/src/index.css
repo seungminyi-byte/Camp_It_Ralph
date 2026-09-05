@@ -96,3 +96,10 @@ body,
     word-break: break-all;
   }
 }
+
+/* Side panel width is user-resizable at lg+ (PanelResizer); below that it stacks full-width. */
+@media (min-width: 64rem) {
+  .site-panel {
+    width: var(--panel-w, 420px);
+  }
+}

@@ -15,7 +15,7 @@ export function fmtKrw(n: number): string {
 }
 
 /** "고양시일산서구 덕이동" — 세종 rows repeat the 시도 as 시군구, so show it once. */
-export function areaLabel(result: ScoreResult, fallback = '행정구역 미매칭'): string {
+export function areaLabel(result: ScoreResult, fallback = '행정구역 미확인'): string {
   const e = result.emd;
   if (!e) return fallback;
   return e.sigungu === e.sido ? `${e.sido} ${e.emd}` : `${e.sigungu} ${e.emd}`;

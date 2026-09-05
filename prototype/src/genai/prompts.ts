@@ -59,10 +59,10 @@ ${terrainLine}
 - 총사업비 가정: ${(input.capexKrw / 1e8).toLocaleString()}억원, 연 금리 ${(input.annualRate * 100).toFixed(1)}%
 
 [스크리닝 결과]
-- 종합 등급: ${result.composite.grade} (${result.composite.score}점)${result.composite.gradeCapped ? ' · 전력 게이트로 등급 상한 적용' : ''}
-- 전력 축 ${result.power.score}점 · 인허가 축 ${result.permit.score}점
+- 종합 등급: ${result.composite.grade} (${result.composite.score}점)${result.composite.gradeCapped ? ` · 공급가능 변전소 미확인으로 ${data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한` : ''}
+- 전력 수전 가능성 ${result.power.score}점 · 인허가 여건 ${result.permit.score}점
 - 주민 갈등 가능성: ${CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]} (갈등 사례·인근 사례·뉴스 감점 합 ${result.permit.conflictRisk.points}점)
-- 예상 인허가 지연: ${result.delay.minMonths}~${result.delay.maxMonths}개월 (점추정 ${result.delay.pointMonths}개월, 앵커: ${result.delay.anchor})
+- 예상 인허가 지연: ${result.delay.minMonths}~${result.delay.maxMonths}개월 (대표값 ${result.delay.pointMonths}개월, 참조 사례: ${result.delay.anchor})
 - 지연 금융비용 추정: 월 ${Math.round(result.finance.monthlyCostKrw / 1e8)}억원, 총 약 ${Math.round(result.finance.delayCostKrw / 1e8)}억원
 
 [체크리스트 — 판정과 근거 (확정값, 변경 금지)]
@@ -82,7 +82,7 @@ ${cases || '- 동일·인근 시군구 사례 없음'}
 '## '로 시작하는 헤더 줄을 순서와 표기 그대로 모두 출력하고, 각 헤더 바로 아래에 내용을 쓴다. 헤더 외의 제목·머리말·맺음말·코드펜스·표·JSON은 쓰지 않는다. 사고 과정은 출력하지 않는다.
 
 ## OVERALL
-(종합 의견 3~5문장: 등급의 의미, 가장 큰 리스크 2가지, 추진 관점의 결론)
+(종합 의견 3~5문장: 등급의 의미, 가장 큰 위험 요인 2가지, 추진 관점의 결론)
 ${itemSections}
 ## ACTIONS
 - (실사 단계 조치 3~5개, 각 1문장, 확인처가 드러나게: 예 "한국전력 지역본부에 전력공급 가능 검토 신청")

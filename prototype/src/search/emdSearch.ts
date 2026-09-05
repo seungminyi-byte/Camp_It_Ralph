@@ -98,9 +98,16 @@ export function searchEmd(index: EmdIndexEntry[], query: string, limit = 8): Emd
   return kept;
 }
 
+const LAT_LNG_RE = /^([+-]?\d{1,3}(?:\.\d+)?)\s*[,\s/]\s*([+-]?\d{1,3}(?:\.\d+)?)$/;
+
+/** Shaped like a coordinate pair, inside Korea or not — lets the UI explain an out-of-range pair. */
+export function looksLikeLatLng(query: string): boolean {
+  return LAT_LNG_RE.test(query.trim());
+}
+
 /** "37.68, 126.74" — also accepts the two swapped, since both orders are common. */
 export function parseLatLng(query: string): { lat: number; lng: number } | null {
-  const m = query.trim().match(/^([+-]?\d{1,3}(?:\.\d+)?)\s*[,\s/]\s*([+-]?\d{1,3}(?:\.\d+)?)$/);
+  const m = query.trim().match(LAT_LNG_RE);
   if (!m) return null;
   const a = Number(m[1]);
   const b = Number(m[2]);

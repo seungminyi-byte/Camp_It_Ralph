@@ -38,6 +38,23 @@ export function ScoreCard({
 }) {
   const r = result;
 
+  // Outside the bundled South Korean data every number would be borrowed from the nearest 읍면동
+  // across the border or the sea, so say so instead of grading.
+  if (r.site.status === 'outside') {
+    return (
+      <section className="border-b border-gray-200 p-4">
+        <div className="rounded border border-gray-300 bg-gray-100 p-3">
+          <div className="text-sm font-bold text-gray-800">판독 불가 — 남한 자료 범위 밖</div>
+          <p className="mt-1 text-xs text-gray-700">{r.site.detail}</p>
+          <p className="mt-2 text-[11px] text-gray-600">
+            전력·인허가·지형 자료가 남한 육상 기준이라 이 지점은 평가하지 않습니다. 남한 내 지점을
+            클릭하거나 읍면동·주소로 검색하세요.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   // Open water is not a site: showing a grade for it invites the reader to trust a number that
   // only looks good because nobody lives there.
   if (r.site.status === 'sea') {
@@ -76,13 +93,15 @@ export function ScoreCard({
           <div className="text-sm font-bold">
             종합 {r.composite.score}점
             {r.composite.gradeCapped && (
-              <span className="ml-1 text-xs font-normal text-red-600">(전력 게이트로 등급 상한)</span>
+              <span className="ml-1 text-xs font-normal text-red-600">
+                (공급가능 변전소 미확인으로 {data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한)
+              </span>
             )}
           </div>
           <div className="text-xs text-gray-500">
             {r.emd
               ? `${r.emd.sido} ${r.emd.sigungu === r.emd.sido ? '' : r.emd.sigungu} ${r.emd.emd} 기준`.replace(/\s+/g, ' ')
-              : '행정구역 매칭 실패'}
+              : '행정구역 미확인'}
             {r.emdUncertain && (
               <span className="ml-1 rounded bg-gray-200 px-1 text-gray-600">판정 불확실</span>
             )}
@@ -129,8 +148,8 @@ export function ScoreCard({
       </div>
 
       <div className="mb-3 flex flex-col gap-2">
-        <Gauge label="전력 축" score={r.power.score} />
-        <Gauge label="인허가 축" score={r.permit.score} />
+        <Gauge label="전력 수전 가능성" score={r.power.score} />
+        <Gauge label="인허가 여건" score={r.permit.score} />
       </div>
 
       <div className="mb-3 rounded bg-gray-50 p-2 text-xs text-gray-700">
@@ -159,7 +178,7 @@ export function ScoreCard({
         )}
         {r.permit.newsSignal && (
           <div>
-            뉴스 갈등 시그널: {r.permit.newsSignal.areaLabel} 최근{' '}
+            뉴스 갈등 보도: {r.permit.newsSignal.areaLabel} 최근{' '}
             {data.newsSignal?.window.months ?? 24}개월 반대·갈등 기사{' '}
             <b>{r.permit.newsSignal.row.conflictArticles}건</b> (데이터센터 기사 전체{' '}
             {r.permit.newsSignal.row.articles}건)
@@ -193,7 +212,7 @@ export function ScoreCard({
                     r.permit.delayStat.ratio !== null ? `, ${r.permit.delayStat.ratio.toFixed(1)}배` : ''
                   })`}
                 {r.permit.delayStat.row.stalled12mShare !== null &&
-                  ` · 12개월+ 미착공 ${Math.round(r.permit.delayStat.row.stalled12mShare * 100)}%`}
+                  ` · 12개월 이상 미착공 ${Math.round(r.permit.delayStat.row.stalled12mShare * 100)}%`}
               </>
             ) : (
               ' — 표본 부족으로 감점 미적용'
@@ -204,14 +223,14 @@ export function ScoreCard({
 
       <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-2">
         <div className="text-xs text-amber-900">
-          예상 인허가 지연 <b>{r.delay.minMonths}~{r.delay.maxMonths}개월</b> (점추정{' '}
+          예상 인허가 지연 <b>{r.delay.minMonths}~{r.delay.maxMonths}개월</b> (대표값{' '}
           {r.delay.pointMonths}개월)
         </div>
         <div className="text-lg font-bold text-amber-900">
           지연 금융비용 약 {fmtKrw(r.finance.delayCostKrw)}
         </div>
         <div className="text-[11px] text-amber-800">
-          월 {fmtKrw(r.finance.monthlyCostKrw)} × {r.delay.pointMonths}개월 · 앵커: {r.delay.anchor}
+          월 {fmtKrw(r.finance.monthlyCostKrw)} × {r.delay.pointMonths}개월 · 참조 사례: {r.delay.anchor}
         </div>
       </div>
 
@@ -261,10 +280,6 @@ export function ScoreCard({
           ))}
         </div>
       )}
-      <div className="mt-2 text-[10px] leading-snug text-gray-400">
-        {data.constants.disclaimer.power}
-        {r.terrain && ` ${data.constants.disclaimer.terrain}`}
-      </div>
     </section>
   );
 }

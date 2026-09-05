@@ -65,8 +65,8 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
   const generatedBy =
     run && run.mode
       ? run.mode === 'proxy'
-        ? `서버 프록시${run.meta.model ? ` · ${run.meta.model}` : ''}`
-        : `사전 생성 메모 (오프라인${run.meta.distanceKm !== undefined ? `, ${Math.round(run.meta.distanceKm * 1000)}m` : ''})`
+        ? `AI 생성${run.meta.model ? ` · ${run.meta.model}` : ''}`
+        : `사전 생성 의견 (오프라인${run.meta.distanceKm !== undefined ? ` · 등록 지점에서 ${Math.round(run.meta.distanceKm * 1000)}m` : ''})`
       : null;
 
   const start = async () => {

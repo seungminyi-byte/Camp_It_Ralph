@@ -155,7 +155,7 @@ describe('scoreSite golden cases', () => {
     const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
     expect(r.permit.newsSignal?.areaLabel).toBe('고양시');
     expect(r.permit.newsSignal?.row.level).toBe('city');
-    const d = r.permit.deductions.find((x) => x.label === '뉴스 갈등 시그널');
+    const d = r.permit.deductions.find((x) => x.label === '뉴스 갈등 보도');
     expect(d?.points).toBeGreaterThanOrEqual(8);
     expect(d?.evidence).toContain('고양시');
     expect(sc.expectedGrade).toContain(r.composite.grade);
@@ -206,16 +206,27 @@ describe('scoreSite golden cases', () => {
     expect(d?.evidence).toContain('중앙값 경사');
   });
 
-  it('terrain: 격자 밖(독도 인근)은 nodata로 빠지고 지형 감점이 없다', () => {
-    if (!data.terrain) return;
+  it('coverage: 독도 인근(울릉읍 중심점 89km)은 판독 불가로 빠지고 지형 감점이 없다', () => {
     const r = scoreSite({ lat: 37.24, lng: 131.86, landUse: 'unknown', ...baseInput }, data);
-    expect(r.site.status).toBe('nodata');
+    expect(r.site.status).toBe('outside');
+    expect(r.site.label).toBe('판독 불가');
     expect(r.terrain).toBeNull();
     expect(r.permit.deductions.some((x) => x.label === '지형·경사')).toBe(false);
   });
 
+  it('coverage: 개성·대마도는 판독 불가, 데모 3지점은 남한 자료 범위 안이다', () => {
+    const at = (lat: number, lng: number) =>
+      scoreSite({ lat, lng, landUse: 'unknown', ...baseInput }, data).site;
+    expect(at(37.97, 126.55).status).toBe('outside'); // 개성 — 휴전선 이북
+    expect(at(37.97, 126.55).detail).toContain('이북');
+    expect(at(34.4, 129.3).status).toBe('outside'); // 대마도 — 거제 남부면 중심점에서 71km
+    for (const sc of scenarios) {
+      expect(at(sc.lat, sc.lng).status, sc.id).not.toBe('outside');
+    }
+  });
+
   describe('conflictRisk (named roll-up of the three conflict deductions)', () => {
-    const CONFLICT_LABELS = new Set(['동일 시군구 갈등 사례', '인근 갈등 사례', '뉴스 갈등 시그널']);
+    const CONFLICT_LABELS = new Set(['동일 시군구 갈등 사례', '인근 갈등 사례', '뉴스 갈등 보도']);
     const sumConflict = (r: ReturnType<typeof scoreSite>) =>
       r.permit.deductions.filter((d) => CONFLICT_LABELS.has(d.label)).reduce((s, d) => s + d.points, 0);
     const expectedLevel = (points: number) => {

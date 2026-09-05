@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import type { EmdCentroid, SiteSelection } from '../types';
-import { buildEmdIndex, parseLatLng, searchEmd, type EmdHit } from '../search/emdSearch';
+import { buildEmdIndex, looksLikeLatLng, parseLatLng, searchEmd, type EmdHit } from '../search/emdSearch';
 import { GEOCODE_NOT_FOUND, geocodeAddress } from '../lib/geocode';
 
 const ZOOM = { emd: 13, coords: 15, address: 16 };
@@ -45,6 +45,13 @@ export function SiteSearch({ centroids, onPick }: Props) {
         { ...coords, label: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`, source: 'coords' },
         ZOOM.coords,
       );
+      return;
+    }
+    if (looksLikeLatLng(q)) {
+      // A pair outside Korea would otherwise fall through to geocoding and read as "address not
+      // found", which hides the real reason.
+      setOpen(false);
+      setMessage('남한 범위 밖 좌표입니다 — 판독할 수 없습니다 (위도 33~39°, 경도 124~132° 안에서 입력하세요).');
       return;
     }
     if (highlight >= 0 && results[highlight]) return pickEmd(results[highlight]);

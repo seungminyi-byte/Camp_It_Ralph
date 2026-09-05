@@ -38,7 +38,7 @@ export function ChecklistReport(props: ReportProps) {
   const d = data.constants.disclaimer;
   const area = result.emd
     ? `${result.emd.sido} ${result.emd.sigungu === result.emd.sido ? '' : result.emd.sigungu} ${result.emd.emd}`.replace(/\s+/g, ' ')
-    : '행정구역 매칭 실패';
+    : '행정구역 미확인';
   const today = props.generatedAt ?? new Date();
 
   const caveats = [
@@ -87,8 +87,9 @@ export function ChecklistReport(props: ReportProps) {
         <h2 className="text-sm font-bold">종합 판정</h2>
         <p className="mt-1">
           <b className="text-base">{result.composite.grade}</b> 등급 · {result.composite.score}점
-          {result.composite.gradeCapped && ' (전력 게이트로 등급 상한 적용)'} · 전력 축{' '}
-          {result.power.score}점 · 인허가 축 {result.permit.score}점
+          {result.composite.gradeCapped &&
+            ` (공급가능 변전소 미확인으로 ${data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한)`}
+          {' · '}전력 수전 가능성 {result.power.score}점 · 인허가 여건 {result.permit.score}점
         </p>
         <p className={`mt-0.5 ${small}`}>
           공급가능 변전소 {result.gate.substationCount}곳 · 확보 전력 추정 {result.power.capacityBand}
@@ -99,11 +100,11 @@ export function ChecklistReport(props: ReportProps) {
           {result.permit.newsSignal?.row.conflictArticles ?? 0}건)
         </p>
         <p className="mt-1">
-          예상 인허가 지연 <b>{result.delay.minMonths}~{result.delay.maxMonths}개월</b> (점추정{' '}
+          예상 인허가 지연 <b>{result.delay.minMonths}~{result.delay.maxMonths}개월</b> (대표값{' '}
           {result.delay.pointMonths}개월) · 지연 금융비용 약{' '}
           <b>{fmtKrw(result.finance.delayCostKrw)}</b> (월 {fmtKrw(result.finance.monthlyCostKrw)})
         </p>
-        <p className={`mt-0.5 text-gray-500 ${small}`}>앵커 사례: {result.delay.anchor}</p>
+        <p className={`mt-0.5 text-gray-500 ${small}`}>참조 사례: {result.delay.anchor}</p>
       </section>
 
       {memo?.error && (

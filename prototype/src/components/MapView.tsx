@@ -64,6 +64,18 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
   return null;
 }
 
+/** Leaflet only watches window resizes; the resizable side panel changes the map's width without one. */
+function SizeWatcher() {
+  const map = useMap();
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => map.invalidateSize({ animate: false }));
+    ro.observe(map.getContainer());
+    return () => ro.disconnect();
+  }, [map]);
+  return null;
+}
+
 function FlyTo({ target }: { target: FlyToTarget | null }) {
   const map = useMap();
   useEffect(() => {
@@ -151,6 +163,7 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
         )}
         <ClickHandler onSelect={onSelect} />
         <ZoomWatcher onZoom={setZoom} />
+        <SizeWatcher />
         <FlyTo target={flyTo} />
         {showSubs &&
           named154.map((s, i) => (
@@ -221,7 +234,7 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           aria-expanded={layersOpen}
           className="flex w-full items-center justify-between gap-2 font-semibold lg:hidden"
         >
-          레이어
+          표시 항목
           <span aria-hidden>{layersOpen ? '▲' : '▼'}</span>
         </button>
         <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1 lg:flex`}>
@@ -253,7 +266,7 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           용도지역 (VWorld)
         </label>
         {showZoning && zoom < ZONING_MIN_ZOOM && (
-          <div className="text-[11px] text-gray-500">줌 {ZONING_MIN_ZOOM} 이상으로 확대하면 표시</div>
+          <div className="text-[11px] text-gray-500">지도를 {ZONING_MIN_ZOOM}단계 이상 확대하면 표시</div>
         )}
         {showZoning && zoningError && (
           <div className="max-w-[180px] text-[11px] text-red-600">{zoningError}</div>

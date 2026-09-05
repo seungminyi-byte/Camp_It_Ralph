@@ -102,7 +102,7 @@ export function buildChecklist(
     'power.gate': (() => {
       const n = result.gate.substationCount;
       const verdict: Verdict = !result.emd ? 'na' : !result.gate.pass ? 'risk' : n === 1 ? 'caution' : 'good';
-      const where = result.emd ? `${result.emd.sigungu} ${result.emd.emd}` : '행정구역 미매칭';
+      const where = result.emd ? `${result.emd.sigungu} ${result.emd.emd}` : '행정구역 미확인';
       return {
         verdict,
         points: null,
@@ -111,7 +111,7 @@ export function buildChecklist(
           (result.gate.substations.length ? ` (${result.gate.substations.join(', ')})` : '') +
           ` · 확보 전력 추정 "${result.power.capacityBand}"` +
           (result.emdUncertain && result.emd
-            ? ` · 행정구역 판정 불확실 (최근접 센트로이드 ${fmtKm(result.emd.distanceKm)})`
+            ? ` · 행정구역 판정 불확실 (가장 가까운 읍면동 중심점 ${fmtKm(result.emd.distanceKm)})`
             : ''),
         sources: [],
       };
@@ -221,7 +221,7 @@ export function buildChecklist(
     'permit.news': (() => {
       const ns = result.permit.newsSignal;
       if (!ns) {
-        return { verdict: 'na' as Verdict, points: null, evidence: '뉴스 시그널 데이터 없음', sources: [] };
+        return { verdict: 'na' as Verdict, points: null, evidence: '뉴스 갈등 보도 자료 없음', sources: [] };
       }
       const months = data.newsSignal?.window.months ?? 24;
       const head = ns.row.top[0];
@@ -259,7 +259,7 @@ export function buildChecklist(
             ? ` (조사 시군구 전체 ${ds.baselineMedianMonths}개월${ds.ratio !== null ? `, ${ds.ratio.toFixed(1)}배` : ''})`
             : '') +
           (ds.row.stalled12mShare !== null
-            ? ` · 12개월+ 미착공 ${Math.round(ds.row.stalled12mShare * 100)}%`
+            ? ` · 12개월 이상 미착공 ${Math.round(ds.row.stalled12mShare * 100)}%`
             : ''),
         anchor: '국토부: 수도권 건축허가 DC 33곳 중 17곳(51.5%) 지연·차질',
         sources: [],
@@ -287,7 +287,7 @@ export function buildChecklist(
       const verdict: Verdict =
         result.site.status === 'ok'
           ? 'good'
-          : result.site.status === 'nodata'
+          : result.site.status === 'nodata' || result.site.status === 'outside'
             ? 'na'
             : result.site.status === 'sea'
               ? 'risk'
@@ -310,7 +310,7 @@ export function buildChecklist(
     'permit.school': { group: '인허가', title: '학교 근접' },
     'permit.regulation': { group: '인허가', title: '지자체 규제·조례' },
     'permit.cases': { group: '인허가', title: '유사 갈등 사례' },
-    'permit.news': { group: '인허가', title: '뉴스 갈등 시그널' },
+    'permit.news': { group: '인허가', title: '뉴스 갈등 보도' },
     'permit.delayStat': { group: '인허가', title: '허가→착공 지연 통계' },
     'site.terrain': { group: '부지', title: '지형·경사' },
     'site.landWater': { group: '부지', title: '육지·수역 판정' },

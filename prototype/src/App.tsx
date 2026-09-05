@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useZoning } from './hooks/useZoning';
 import { scoreSite } from './scoring/engine';
@@ -10,6 +10,8 @@ import { ScoreCard } from './components/ScoreCard';
 import { CompareTray } from './components/CompareTray';
 import { MemoPanel } from './components/MemoPanel';
 import { DisclaimerFooter } from './components/DisclaimerFooter';
+import { PanelResizer } from './components/PanelResizer';
+import { PANEL_WIDTH, readPanelWidth, storePanelWidth } from './lib/panelWidth';
 
 export default function App() {
   const { data, error } = useAppData();
@@ -20,6 +22,7 @@ export default function App() {
   const [annualRate, setAnnualRate] = useState<number | null>(null);
   const [pins, setPins] = useState<PinnedSite[]>([]);
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
+  const [panelWidth, setPanelWidth] = useState(readPanelWidth);
 
   const zoning = useZoning(site);
   const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
@@ -51,7 +54,7 @@ export default function App() {
     [data, input],
   );
 
-  // Pinned sites are re-scored under the current sliders: same project, different place.
+  // Pinned sites are re-scored under the current capex and rate: same project, different place.
   const pinEntries = useMemo(
     () => (data ? pins.map((pin) => ({ pin, result: scoreSite(toScoreInput(pin, capex, rate), data) })) : []),
     [data, pins, capex, rate],
@@ -60,14 +63,14 @@ export default function App() {
   if (error) {
     return (
       <div className="flex h-full items-center justify-center text-red-600">
-        데이터 로드 실패: {error}
+        데이터를 불러오지 못했습니다: {error}
       </div>
     );
   }
   if (!data) {
     return (
       <div className="flex h-full items-center justify-center text-gray-500">
-        데이터 로드 중…
+        데이터 불러오는 중…
       </div>
     );
   }
@@ -88,7 +91,7 @@ export default function App() {
   };
 
   const currentPin: PinnedSite | null =
-    site && result && result.site.status !== 'sea'
+    site && result && result.site.status !== 'sea' && result.site.status !== 'outside'
       ? (() => {
           const base = { selection: site, landUse, assumeLand };
           return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup };
@@ -101,13 +104,20 @@ export default function App() {
     ? '지도를 클릭하거나 주소를 검색하세요'
     : result?.site.status === 'sea'
       ? '해상·수역은 비교 대상이 아닙니다'
-      : zoning.status === 'loading'
+      : result?.site.status === 'outside'
+        ? '남한 자료 범위 밖 지점은 비교 대상이 아닙니다'
+        : zoning.status === 'loading'
         ? '용도지역 조회 중…'
         : !isPinned && pins.length >= MAX_PINS
           ? `최대 ${MAX_PINS}곳까지 담을 수 있습니다`
           : isPinned
             ? '비교에서 해제'
             : '현재 지점을 비교에 담기';
+
+  const resizePanel = (w: number) => {
+    setPanelWidth(w);
+    storePanelWidth(w);
+  };
 
   const siteKey = site ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}` : 'none';
 
@@ -145,7 +155,17 @@ export default function App() {
             onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })}
           />
         </div>
-        <aside className="flex w-full min-h-0 flex-1 flex-col overflow-y-auto border-t border-gray-200 bg-white lg:w-[420px] lg:flex-none lg:border-l lg:border-t-0">
+        <PanelResizer
+          width={panelWidth}
+          min={PANEL_WIDTH.min}
+          max={PANEL_WIDTH.max}
+          defaultWidth={PANEL_WIDTH.default}
+          onChange={resizePanel}
+        />
+        <aside
+          className="site-panel flex w-full min-h-0 flex-1 flex-col overflow-y-auto border-t border-gray-200 bg-white lg:flex-none lg:border-l lg:border-t-0"
+          style={{ '--panel-w': `${panelWidth}px` } as CSSProperties}
+        >
           <SitePanel
             data={data}
             site={site}
@@ -168,7 +188,7 @@ export default function App() {
                 onAssumeLand={() => setAssumeLand(true)}
                 onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
               />
-              {result.site.status !== 'sea' && (
+              {result.site.status !== 'sea' && result.site.status !== 'outside' && (
                 <MemoPanel
                   key={siteKey}
                   data={data}

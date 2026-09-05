@@ -14,6 +14,7 @@ import type {
 } from '../types';
 import { haversineKm, nearest, sumWithinKm } from './geo';
 import { classifySite, findReclaimedOverride, lookupTerrain, slopeDeduction } from './terrain';
+import { classifyCoverage } from './coverage';
 
 export const LAND_USE_LABEL: Record<LandUse, string> = {
   industrial: '공업지역',
@@ -88,15 +89,34 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       }
     : null;
 
+  // Beyond the bundled South Korean data every number below would be borrowed from the nearest
+  // 읍면동 across the border or the sea, so the point is marked 판독 불가 and the UI shows no grade.
+  const coverage = classifyCoverage(
+    lat,
+    lng,
+    emdMatch
+      ? {
+          label:
+            emdMatch.item.sigungu === emdMatch.item.sido
+              ? `${emdMatch.item.sido} ${emdMatch.item.emd}`
+              : `${emdMatch.item.sido} ${emdMatch.item.sigungu} ${emdMatch.item.emd}`,
+          distanceKm: emdMatch.distanceKm,
+        }
+      : null,
+    scoring.coverage,
+  );
+
   const terrainCfg = scoring.terrain;
   const terrainSample: TerrainSample | null = data.terrain
     ? lookupTerrain(data.terrain, lat, lng)
     : null;
   const reclaimed = findReclaimedOverride(terrainCfg.reclaimedOverrides, lat, lng);
-  const site = classifySite(terrainSample, reclaimed, terrainCfg, {
-    zoningFound: input.zoning ? input.zoning.found : null,
-    assumeLand: input.assumeLand ?? false,
-  });
+  const site: ScoreResult['site'] = coverage.outside
+    ? { status: 'outside', label: '판독 불가', detail: coverage.detail, override: null }
+    : classifySite(terrainSample, reclaimed, terrainCfg, {
+        zoningFound: input.zoning ? input.zoning.found : null,
+        assumeLand: input.assumeLand ?? false,
+      });
 
   let emdPower = emdInfo
     ? data.emdPower.find(
@@ -173,7 +193,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       points: landDed,
       evidence:
         input.landUse === 'unknown'
-          ? '용도지역 미확인 (VWorld 오버레이 또는 토지이음에서 확인 필요)'
+          ? '용도지역 미확인 (지도의 용도지역 표시 또는 토지이음에서 확인 필요)'
           : '데이터센터는 공업·준공업 입지가 인허가 마찰 최소',
     });
   }
@@ -200,7 +220,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
           '산지관리법 시행령 별표4: 산지전용허가 평균경사도 25° 이하 · 화성·성남 개발행위허가 조례 15° 미만',
       });
     }
-  } else if (terrainSample) {
+  } else if (terrainSample && site.status !== 'outside') {
     const slope = slopeDeduction(terrainSample, terrainCfg);
     terrain = { sample: terrainSample, deduction: 0, band: slope.band, unsuitable: false };
   }
@@ -278,7 +298,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       const w = data.newsSignal.window;
       const head = newsRow.top[0];
       deductions.push({
-        label: '뉴스 갈등 시그널',
+        label: '뉴스 갈등 보도',
         points,
         evidence:
           `${areaLabel} 데이터센터 반대·갈등 기사 ${count}건` +
@@ -342,7 +362,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       const w = data.permitDelay.window;
       const stalledTxt =
         permitRow.stalled12mShare !== null
-          ? `, 12개월+ 미착공 ${Math.round(permitRow.stalled12mShare * 100)}%` +
+          ? `, 12개월 이상 미착공 ${Math.round(permitRow.stalled12mShare * 100)}%` +
             (base.stalled12mShare !== null ? `(전체 ${Math.round(base.stalled12mShare * 100)}%)` : '')
           : '';
       deductions.push({

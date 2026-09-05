@@ -1,6 +1,7 @@
 import type { AppData, LandUse, LandUseSource, SiteSelection } from '../types';
 import type { ZoningStatus } from '../hooks/useZoning';
 import { SiteSearch } from './SiteSearch';
+import { NumberField, type Preset } from './NumberField';
 
 const LAND_USE_OPTIONS: { value: LandUse; label: string }[] = [
   { value: 'unknown', label: '미확인 (기본 감점)' },
@@ -17,6 +18,22 @@ const SOURCE_LABEL: Record<SiteSelection['source'], string> = {
   geocode: '주소 검색',
   coords: '좌표 입력',
 };
+
+const EOK = 1e8;
+// Input conveniences, not scoring parameters, so they live here rather than in constants.json.
+const CAPEX_PRESETS: Preset[] = [
+  { label: '1,000억', value: 1_000 },
+  { label: '2,500억', value: 2_500 },
+  { label: '5,000억', value: 5_000 },
+  { label: '1조', value: 10_000 },
+  { label: '2조', value: 20_000 },
+];
+const RATE_PRESETS: Preset[] = [4, 5, 5.5, 6.5, 8].map((v) => ({ label: `${v.toFixed(1)}%`, value: v }));
+
+/** 억 → "100억" / "1조" for the range caption. */
+function fmtEok(eok: number): string {
+  return eok >= 10_000 ? `${(eok / 10_000).toLocaleString()}조` : `${eok.toLocaleString()}억`;
+}
 
 interface Props {
   data: AppData;
@@ -78,6 +95,14 @@ export function SitePanel({
   onRate,
 }: Props) {
   const fin = data.constants.scoring.finance;
+  const capexMin = fin.capexRangeKrw[0] / EOK;
+  const capexMax = fin.capexRangeKrw[1] / EOK;
+  // 0.2 * 100 is 20.000000000000004 in floating point; round to a tenth of a percent.
+  const rateMin = Math.round(fin.rateRange[0] * 1000) / 10;
+  const rateMax = Math.round(fin.rateRange[1] * 1000) / 10;
+  const impliedMw = Math.max(1, Math.round(capexKrw / fin.capexPerMwKrw));
+  const perMwEok = fin.capexPerMwKrw / EOK;
+
   return (
     <section className="border-b border-gray-200 p-4">
       <h2 className="mb-2 text-sm font-bold text-gray-700">부지 선택</h2>
@@ -92,8 +117,8 @@ export function SitePanel({
         </p>
       )}
 
-      <div className="mt-3 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
-        <label className="text-gray-600">용도지역</label>
+      <div className="mt-3 grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-2 text-sm">
+        <label className="pt-1 text-gray-600">용도지역</label>
         <select
           value={landUse}
           onChange={(e) => onLandUse(e.target.value as LandUse)}
@@ -109,39 +134,36 @@ export function SitePanel({
           <ZoningNote zoning={zoning} source={landUseSource} onResetAuto={onResetAuto} />
         </p>
         <p className="col-span-2 -mt-1 text-xs text-gray-400">
-          지도의 용도지역 오버레이(VWorld, 줌 12 이상)로 재확인할 수 있습니다.
+          지도의 용도지역 표시(VWorld, 지도를 12단계 이상 확대)로 재확인할 수 있습니다.
         </p>
 
-        <label className="text-gray-600">총사업비</label>
-        <div>
-          <input
-            type="range"
-            min={fin.capexRangeKrw[0]}
-            max={fin.capexRangeKrw[1]}
-            step={50_000_000_000}
-            value={capexKrw}
-            onChange={(e) => onCapex(Number(e.target.value))}
-            className="w-full"
-          />
-          <div className="text-xs text-gray-600">
-            {(capexKrw / 1e8).toLocaleString()}억원
-            <span className="ml-1 text-gray-400">({fin.capexLabel})</span>
-          </div>
-        </div>
+        <label className="pt-1 text-gray-600">총사업비</label>
+        <NumberField
+          label="총사업비 (억원)"
+          value={capexKrw / EOK}
+          min={capexMin}
+          max={capexMax}
+          step={100}
+          unit="억원"
+          koreanUnits
+          presets={CAPEX_PRESETS}
+          caption={`${fin.capexLabel} · 약 ${impliedMw}MW급 (MW당 약 ${perMwEok.toLocaleString()}억원 기준) · ${fmtEok(capexMin)}~${fmtEok(capexMax)} 입력, "1.5조"처럼 써도 됩니다`}
+          onChange={(eok) => onCapex(Math.round(eok) * EOK)}
+        />
 
-        <label className="text-gray-600">연 금리</label>
-        <div>
-          <input
-            type="range"
-            min={fin.rateRange[0] * 1000}
-            max={fin.rateRange[1] * 1000}
-            step={1}
-            value={annualRate * 1000}
-            onChange={(e) => onRate(Number(e.target.value) / 1000)}
-            className="w-full"
-          />
-          <div className="text-xs text-gray-600">{(annualRate * 100).toFixed(1)}%</div>
-        </div>
+        <label className="pt-1 text-gray-600">연 금리</label>
+        <NumberField
+          label="연 금리 (%)"
+          value={Math.round(annualRate * 1000) / 10}
+          min={rateMin}
+          max={rateMax}
+          step={0.1}
+          decimals={1}
+          unit="%"
+          presets={RATE_PRESETS}
+          caption={`${fin.rateLabel} · ${rateMin}~${rateMax}% 입력`}
+          onChange={(pct) => onRate(Math.round(pct * 10) / 1000)}
+        />
       </div>
     </section>
   );
