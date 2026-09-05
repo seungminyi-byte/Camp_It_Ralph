@@ -21,7 +21,7 @@ npm install
 npm run dev -- --port 5199
 ```
 
-앱 데이터(`prototype/public/data/*.json`, 약 3.9MB)는 커밋되어 있어 위 4줄로 바로 동작한다.
+앱 데이터(`prototype/public/data/*.json`, 약 5.3MB)는 커밋되어 있어 위 4줄로 바로 동작한다.
 원본 데이터부터 다시 만들려면(선택, 약 640MB 다운로드):
 
 ```bash
@@ -35,7 +35,17 @@ Python 3.12+ 와 `pip install pyshp pyproj`. 지형만 다시 만들 때는 `pys
 ```bash
 python3 data-pack/scripts/p07_terrain.py                       # 지형 타일 188MB 1회 다운로드 → raw/terrain 캐시
 cp data-pack/out/terrain_grid.json prototype/public/data/      # build_all을 못 돌리는 환경에서의 수동 동기화
-``` Windows에서 저장소 경로에 `&`가 있으면 `npx`가 깨지므로
+```
+
+인구 격자만 다시 만들 때(SGIS 2024 1km 격자, 전국 73,016셀 · `pyshp`·`pyproj` 필요):
+
+```bash
+python3 data-pack/scripts/fetch_raw.py sgis                    # 격자 zip 98MB만 재다운로드 (인자 = 대상 파일명 키워드)
+python3 data-pack/scripts/p03_population.py                    # → data-pack/out/pop_grid.json (전국, 클리핑 없음)
+cp data-pack/out/pop_grid.json prototype/public/data/
+```
+
+Windows에서 저장소 경로에 `&`가 있으면 `npx`가 깨지므로
 `node node_modules/typescript/bin/tsc -b`, `node node_modules/vitest/vitest.mjs run` 처럼 node로 직접 실행한다.
 
 ## 검증
@@ -43,7 +53,7 @@ cp data-pack/out/terrain_grid.json prototype/public/data/      # build_all을 �
 ```bash
 cd prototype && npm run typecheck                # 타입 검사 (src + api + scripts)
 cd prototype && npm run lint                     # oxlint
-node node_modules/vitest/vitest.mjs run          # 테스트 71건 (엔진 골든 18 · 지형 12 · 검색 11 · 체크리스트 7 · 메모 파서 8 · 비교 핀 7 · 자료 범위 3 · 숫자 입력 5)
+node node_modules/vitest/vitest.mjs run          # 테스트 72건 (엔진 골든 19 · 지형 12 · 검색 11 · 체크리스트 7 · 메모 파서 8 · 비교 핀 7 · 자료 범위 3 · 숫자 입력 5)
 python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·커버리지·지형·시나리오 스팟체크
 ```
 
@@ -66,6 +76,8 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
   전문이 위로 펼쳐진다. 지도와 패널 사이 세로 핸들을 드래그하면 **패널 폭**(320~760px)이 바뀌고 새로고침 후에도 유지된다
   (더블클릭·Enter 초기화, ←/→ 키 조절, lg 미만 스택 레이아웃에서는 숨김).
 - `37.85, 128.45` → 지형 감점 −30, "급경사 산지" 배지, 중앙값 경사 28°.
+- `부산 우동`(해운대) → 반경 1km 인구 수만 명·"주거 인접" 감점 표시. 2026-09-05 전국 격자 확장 전에는 수도권·일부 대조군 밖이
+  전부 0명이었다.
 - "AI 검토 의견 생성" → 12행 체크리스트가 순서대로 채워지고 "PDF로 저장"으로 A4 보고서 인쇄.
 - 지도 우상단 "용도지역 (VWorld)"를 켜고 줌 12 이상에서 노랑(주거)·분홍(상업)·보라(공업)·연두(녹지) 색이 깔리면 프록시·키가 정상.
 
@@ -136,7 +148,8 @@ LLM 설정 UI 삭제(서버 프록시 OpenRouter·MiniMax 단일 경로).
 2026-09-05 후속: 남한 자료 범위 밖 **'판독 불가'** 판정(`site.status = 'outside'`), 화면·보고서·프롬프트의 직역체 정비
 (전력 축/인허가 축 → 전력 수전 가능성/인허가 여건 · 전력 게이트 → 공급가능 변전소 미확인으로 등급 제한 · 앵커 → 참조 사례 ·
 점추정 → 대표값 · 뉴스 갈등 시그널 → 뉴스 갈등 보도 · 행정구역 매칭 실패 → 행정구역 미확인), 총사업비·금리 직접 입력,
-디스클레이머 접기, 패널 폭 조절.
+디스클레이머 접기, 패널 폭 조절. 이어서 **인구 격자 전국 확장**(21,944 → 73,016셀): `p03_population.py`의 bbox 클리핑을 제거해
+부산·울산·창원·제주·강원 동부·전남·경북에서도 '주거 인접' 감점이 계산된다.
 
 남은 일 (PLAN.md P4~P6, 해커톤 9.21~22):
 
@@ -157,6 +170,6 @@ LLM 설정 UI 삭제(서버 프록시 OpenRouter·MiniMax 단일 경로).
 
 ## 데이터 출처 요약
 
-공공데이터포털(한전 공급가능 변전소·DC 전기공급 현황·학교 위치·SGIS 격자 인구·상가업소·공공DC 시설),
+공공데이터포털(한전 공급가능 변전소·DC 전기공급 현황·학교 위치·SGIS 1km 격자 인구 전국 73,016셀·상가업소·공공DC 시설),
 OpenStreetMap(변전소 좌표, 참고치), 언론보도 큐레이션(갈등·규제 사례). 상세와 제약은 `docs/DATA.md`.
 한전 공개 여유용량은 발전접속 기준이라 수전 판단에 직접 쓰지 않았고, 변전소 공식 좌표는 비공개다.

@@ -66,8 +66,12 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
 - 남한 자료 범위 밖(북한·일본·먼바다·독도 같은 원거리 도서)은 `constants.scoring.coverage`로 **'판독 불가'**(`site.status='outside'`)
   처리한다 — bbox 33~38.7°/124.5~132° 밖, 휴전선(MDL)·NLL 근사 폴리라인 21점 이북, 가장 가까운 읍면동 중심점 20km 초과.
   폴리라인이 남한 읍면동 중심점 5,471건을 하나도 자르지 않는지 `coverage.test.ts`와 `validate_out.py`가 감시한다(최소 여유 약 3km, 강화 양사면).
-  서해 데모점(37.4, 126.2)은 중심점에서 16.6km라 '해상·수역' 판정이 유지된다. `pop_grid.json`은 국토 일부(수도권·충청·세종·광주·대구·춘천)만
-  담고 있어 부산·울산·제주·강원 동부·전남·경북 대부분은 '주거 인접' 감점이 0으로 나온다 — 별도 보강 과제.
+  서해 데모점(37.4, 126.2)은 중심점에서 16.6km라 '해상·수역' 판정이 유지된다.
+- `pop_grid.json`은 SGIS 2024 1km 격자 인구 **전국 73,016셀**(합계 5,183만 명, EPSG:5179 → WGS84 중심점)이다. 2026-09-05 이전에는
+  `p03_population.py`가 수도권·세종/충남·구미~영천·나주/광주 bbox로 잘라 21,944셀만 담았고 그 밖(부산·울산·제주·강원 동부 등)은
+  '주거 인접' 감점이 0이었다 — 클리핑을 제거했고 `validate_out.py`·`engine.test.ts`가 부산·제주 셀 존재를 감시한다.
+  격자만 다시 만들 때: `python data-pack/scripts/fetch_raw.py sgis`(zip 98MB) → `pyshp`·`pyproj` 있는 파이썬으로 `p03_population.py` →
+  `cp data-pack/out/pop_grid.json prototype/public/data/`.
 - 데모 3지점 현재 등급(회귀 감시용, 시나리오 좌표 기준): 고양 덕이동 D 45 / 인천 청천동 E 32 / 세종 반곡동 B 75.
   주민 갈등 가능성(`permit.conflictRisk`, 임계값 `constants.scoring.permit.conflictRisk` = mediumMin 5 / highMin 15):
   고양 높음(30) / 인천 주의(6) / 세종 낮음(4). 지연 금융비용(기본 5,000억·5.5%): 688억 / 688억 / 103억.

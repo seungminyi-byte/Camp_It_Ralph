@@ -124,6 +124,19 @@ describe('scoreSite golden cases', () => {
     expect(r.permit.deductions.some((d) => d.label === '조례상 입지 불가')).toBe(false);
   });
 
+  it('pop grid: 부산 해운대·제주 시내도 반경 1km 인구가 잡혀 주거 인접 감점이 붙는다', () => {
+    // The grid used to be clipped to the capital area and a few contrast zones, which silently
+    // zeroed this deduction for most of the country.
+    for (const [lat, lng] of [
+      [35.163, 129.163],
+      [33.499, 126.531],
+    ]) {
+      const r = scoreSite({ lat, lng, landUse: 'industrial', ...baseInput }, data);
+      expect(r.permit.popNearby, `${lat},${lng}`).toBeGreaterThan(2000);
+      expect(r.permit.deductions.some((d) => d.label === '주거 인접'), `${lat},${lng}`).toBe(true);
+    }
+  });
+
   it('permit-delay stat: 세종 is at/below baseline (no deduction), 고양 falls back to city roll-up', () => {
     if (!data.permitDelay) return; // signal disabled when data/permit_delay.json is absent
     const sj = scenario('sejong-contrast');

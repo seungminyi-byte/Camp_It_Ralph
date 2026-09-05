@@ -1,5 +1,8 @@
 """Download every raw source into data-pack/raw (reproducible setup for a fresh clone).
 
+Pass dataset keywords to refresh a subset, e.g. `fetch_raw.py sgis` re-downloads only the 98MB grid zip
+(matched against the target file name); with no arguments every source is fetched.
+
 No API keys needed. data.go.kr file downloads use a 2-step flow:
 POST /tcs/dss/selectFileDataDownload.do -> atchFileId -> GET /cmm/cmm/fileDownload.do.
 Schools come from the standard-data grid JSON endpoints (see fetch_schools.py).
@@ -90,10 +93,18 @@ def download_overpass(target: Path) -> None:
     raise RuntimeError("all Overpass mirrors failed")
 
 
-def main() -> int:
+def main(argv: list[str]) -> int:
     RAW.mkdir(parents=True, exist_ok=True)
-    for pk, detail, name in FILE_DATASETS:
+    only = [a.lower() for a in argv]
+    selected = [d for d in FILE_DATASETS if not only or any(k in d[2].lower() for k in only)]
+    if only and not selected:
+        print(f"no dataset matches {argv}; known targets: {[d[2] for d in FILE_DATASETS]}")
+        return 2
+    for pk, detail, name in selected:
         download_datagokr(pk, detail, RAW / name)
+    if only:
+        print("raw subset complete")
+        return 0
     download_overpass(RAW / "osm_substations.json")
     schools = RAW / "schools.csv"
     if schools.exists() and schools.stat().st_size > 100000:
@@ -105,4 +116,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

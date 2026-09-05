@@ -1,8 +1,9 @@
 """SGIS 1km grid population -> pop_grid.json [[lat, lng, pop], ...].
 
 Reads stats CSVs (long format) and boundary SHPs (EPSG:5179) from the zip,
-sums per-grid population, converts grid centroids to WGS84, and clips to
-regions of interest (capital area + non-capital contrast zones).
+sums per-grid population and converts grid centroids to WGS84. Every populated
+cell nationwide is kept: an earlier bbox clip (capital area + contrast zones)
+silently zeroed the 주거 인접 deduction for 부산·울산·제주·강원 동부 and more.
 """
 import csv
 import io
@@ -19,19 +20,7 @@ ZIP = ROOT / "raw" / "sgis_grid" / "sgis_grid.zip"
 OUT = ROOT / "out"
 OUT.mkdir(exist_ok=True)
 
-# (min_lng, min_lat, max_lng, max_lat)
-BBOXES = [
-    (126.3, 36.85, 127.9, 38.05),   # capital area (Seoul/Gyeonggi/Incheon)
-    (127.0, 36.35, 127.65, 36.75),  # Sejong / N-Chungnam contrast
-    (128.3, 35.75, 129.2, 36.25),   # Gyeongbuk contrast (Gumi/Pohang belt)
-    (126.6, 34.95, 127.5, 35.45),   # Jeonnam contrast (Naju/Gwangju belt)
-]
-
 TOTAL_ITEM = "to_in_001"  # verified below; fallback: sum of in_age_* buckets
-
-
-def in_bbox(lng: float, lat: float) -> bool:
-    return any(lo <= lng <= hi and la <= lat <= ha for lo, la, hi, ha in BBOXES)
 
 
 def main() -> None:
@@ -85,13 +74,15 @@ def main() -> None:
             cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
             lng, lat = tf.transform(cx, cy)
             matched += 1
-            if in_bbox(lng, lat):
-                out_rows.append([round(lat, 5), round(lng, 5), int(p)])
+            out_rows.append([round(lat, 5), round(lng, 5), int(p)])
 
-    print(f"boundary files: {len(shp_names)}, grids matched to pop: {matched}, kept in bbox: {len(out_rows)}")
+    print(f"boundary files: {len(shp_names)}, grids matched to pop: {matched}, kept: {len(out_rows)}")
     (OUT / "pop_grid.json").write_text(json.dumps(out_rows), encoding="utf-8")
     if out_rows:
+        lats = [r[0] for r in out_rows]
+        lngs = [r[1] for r in out_rows]
         print(f"sample: {out_rows[:3]}")
+        print(f"bounds: lat {min(lats)}~{max(lats)}, lng {min(lngs)}~{max(lngs)}, total pop {sum(r[2] for r in out_rows):,}")
 
 
 if __name__ == "__main__":

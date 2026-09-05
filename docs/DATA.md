@@ -19,7 +19,7 @@
 | 2 | 한국전력공사_지역별 공급가능 변전소 정보 | https://www.data.go.kr/data/15128065/fileData.do | CSV + OpenAPI | 4,557행. 시도/시군구/읍면동/공급가능 변전소(비식별 명칭). 좌표 없음 — 변전소 위치는 보안시설로 의도적 비공개 | 전력 게이트: 읍면동 단위 수전 가능성 프록시 |
 | 3 | 한국전력공사_데이터센터 전기공급 현황 | https://www.data.go.kr/data/15127315/fileData.do | CSV | 11행. 시도별 DC 고객호수·계약전력(MW) | 지역 포화도 대조 지표 |
 | 4 | 행안부_행정·공공기관 정보시스템 운영시설 현황 | https://www.data.go.kr/data/15080581/fileData.do | CSV/JSON/XML | 61행. 공공 DC(500㎡ 이상) 기관명·시설명·시도-시군구 | 참고 레이어 |
-| 5 | 국가데이터처_SGIS 격자 통계 및 경계 | https://www.data.go.kr/data/15141768/fileData.do | CSV + SHP | 격자 인구. 좌표계 EPSG:5179 추정 — 파일 확인 필요. SGIS OpenAPI(테스트키→상용키 2단계)를 우회하는 정적 대체재 | 반경 500m 인구 → 주거 근접 감점 |
+| 5 | 국가데이터처_SGIS 격자 통계 및 경계 | https://www.data.go.kr/data/15141768/fileData.do | CSV + SHP | 2024년 1km 격자 인구(통계항목 `to_in_001`) + 경계 SHP, EPSG:5179 확인. 전국 73,016셀·합계 5,183만 명. 2026-09-05까지는 `p03_population.py`가 수도권·대조군 bbox로 21,944셀만 남겼고 그 밖은 '주거 인접' 감점이 0이었다 → 클리핑 제거. SGIS OpenAPI(테스트키→상용키 2단계)를 우회하는 정적 대체재 | 반경 1km 인구 → 주거 인접 감점 |
 | 6 | OSM 변전소 좌표 | Overpass API (https://overpass-api.de/api/interpreter), 쿼리 `power=substation` | GeoJSON | 남한 범위 변전소 노드·웨이(중심점화). **공식 데이터 아님 — 참고치 명시 필수** | 최근접 변전소 거리 점수 |
 | 7 | Mapzen/Tilezen Terrain Tiles (skadi) | https://registry.opendata.aws/terrain-tiles/ · `s3.amazonaws.com/elevation-tiles-prod/skadi/N{lat}/N{lat}E{lng}.hgt.gz` | HGT (1" 3601² big-endian int16) | SRTM 30m 육지 표고 + ETOPO1 수심. 한국 30타일 188MB, 익명 접근·키 불필요 | 경사도 감점 · 육지/수역 판정 (`p07_terrain.py`) |
 

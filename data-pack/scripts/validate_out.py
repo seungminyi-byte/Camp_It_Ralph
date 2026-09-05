@@ -53,12 +53,18 @@ def main() -> int:
     check(len(cents) >= 5000, f"emd_centroids rows {len(cents)} >= 5000")
     check(len(subs) >= 800, f"substations rows {len(subs)} >= 800")
     check(len(schools) >= 11000, f"schools rows {len(schools)} >= 11000")
-    check(len(pop) >= 15000, f"pop_grid rows {len(pop)} >= 15000")
+    check(len(pop) >= 50000, f"pop_grid rows {len(pop)} >= 50000 (nationwide; the old bbox clip gave 21,944)")
 
     check(all(in_korea(c["lat"], c["lng"]) for c in cents), "centroid coords in Korea bbox")
     check(all(in_korea(s["lat"], s["lng"]) for s in subs), "substation coords in Korea bbox")
     check(all(in_korea(s[2], s[3]) for s in schools), "school coords in Korea bbox")
     check(all(in_korea(r[0], r[1]) for r in pop), "pop grid coords in Korea bbox")
+    # Nationwide grid: a re-clipped output (capital area + contrast zones only) fails here.
+    for name, lat, lng in [("부산", 35.18, 129.08), ("제주", 33.5, 126.5), ("강릉", 37.75, 128.9), ("울산", 35.54, 129.31), ("전주", 35.82, 127.15)]:
+        check(
+            any(abs(r[0] - lat) < 0.15 and abs(r[1] - lng) < 0.15 for r in pop),
+            f"pop grid has cells near {name}",
+        )
 
     # constants.scoring.coverage decides 판독 불가 in the app; a rebuilt centroid set must stay inside it.
     coverage = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"].get("coverage")
