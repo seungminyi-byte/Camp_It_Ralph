@@ -5,7 +5,7 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // the dropdown automatically instead of asking the user to read it off the WMS overlay.
 // A hit also tells the scoring engine that a water-looking cell is reclaimed land, not open sea.
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld';
+import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/data';
 

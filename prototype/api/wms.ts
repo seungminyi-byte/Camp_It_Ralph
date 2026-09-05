@@ -8,7 +8,7 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // Only whitelisted layers, PNG output and tile-sized images are forwarded; tiles are cached at
 // the edge for a day to stay well inside the 40,000 calls/day quota.
 
-import { fetchVworld, registeredDomain, UPSTREAM_TIMEOUT_MS } from './_vworld';
+import { fetchVworld, registeredDomain, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
 
 declare const process: { env: Record<string, string | undefined> };
 

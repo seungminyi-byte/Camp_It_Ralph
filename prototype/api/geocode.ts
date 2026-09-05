@@ -3,7 +3,7 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // Address -> coordinate through the VWorld Geocoder, for the search box in the site panel.
 // Offline 읍면동 search is handled in the bundle; this route only covers 도로명/지번 addresses.
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld';
+import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/address';
 
