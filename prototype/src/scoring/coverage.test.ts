@@ -17,7 +17,7 @@ function verdict(lat: number, lng: number) {
 }
 
 describe('classifyCoverage', () => {
-  it('leaves every bundled 읍면동 centroid inside — the MDL line must never cut South Korean data', () => {
+  it('leaves every bundled 읍면동 centroid inside — the MDL line must never cut bundled data', () => {
     const outside = data.emdCentroids.filter(
       (c) => classifyCoverage(c.lat, c.lng, { label: c.emd, distanceKm: 0 }, cfg).outside,
     );

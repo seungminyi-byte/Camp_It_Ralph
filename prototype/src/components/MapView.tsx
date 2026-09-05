@@ -4,6 +4,7 @@ import {
   CircleMarker,
   MapContainer,
   Marker,
+  Polygon,
   Popup,
   TileLayer,
   WMSTileLayer,
@@ -11,7 +12,7 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import { divIcon } from 'leaflet';
-import type { AppData, CaseRow, SiteSelection } from '../types';
+import type { AppData, CaseRow, Constants, ProtectedZone, ProtectedZones, SiteSelection } from '../types';
 
 const CASE_COLOR: Record<CaseRow['status'], string> = {
   무산: '#dc2626',
@@ -23,8 +24,14 @@ const CASE_COLOR: Record<CaseRow['status'], string> = {
 
 // VWorld 용도지역 layers: 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역 (WMS allows up to 4 per request).
 const ZONING_LAYERS = ['lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114'].join(',');
-// Scenario flyTo lands on zoom 13; below this zoom the overlay is not requested (quota + readability).
-const ZONING_MIN_ZOOM = 12;
+// VWorld 규제구역 layers: 개발제한구역 / 상수원보호구역 / 국가유산 지정·보호구역 / 농업진흥지역 (도시자연공원구역 is the
+// fifth and does not fit the 4-layer limit; the point lookup still checks it).
+const RESTRICTION_LAYERS = ['lt_c_ud801', 'lt_c_um710', 'lt_c_uo301', 'lt_c_agrixue101'].join(',');
+// Scenario flyTo lands on zoom 13; below this zoom the overlays are not requested (quota + readability).
+const VWORLD_MIN_ZOOM = 12;
+// Bundled 보호지역 polygons: drawn from this zoom, largest first, capped so a coastal view stays responsive.
+const ZONE_MIN_ZOOM = 10;
+const ZONE_MAX_DRAWN = 300;
 // Fill colours sampled from VWorld tiles (2026-09); dot/hatch patterns mark sub-categories.
 const ZONING_LEGEND: { label: string; color: string; color2?: string }[] = [
   { label: '주거', color: '#fdff00', color2: '#fdcb00' },
@@ -33,6 +40,9 @@ const ZONING_LEGEND: { label: string; color: string; color2?: string }[] = [
   { label: '녹지·관리·농림', color: '#cbfd66' },
 ];
 const ZONING_ERROR = '용도지역 타일을 불러오지 못했습니다 (VWorld 응답 없음 또는 서버 VWORLD_API_KEY·등록 도메인 확인)';
+const RESTRICTION_ERROR = '규제구역 타일을 불러오지 못했습니다 (VWorld 응답 없음 또는 서버 VWORLD_API_KEY·등록 도메인 확인)';
+
+type RestrictionTypes = Constants['scoring']['restriction']['types'];
 
 function siteIcon(): ReturnType<typeof divIcon> {
   return divIcon({
@@ -93,6 +103,131 @@ function FlyTo({ target }: { target: FlyToTarget | null }) {
   return null;
 }
 
+/**
+ * One VWorld WMS overlay through /api/wms. Per tile-batch counters: the caller is told a batch failed only when
+ * no tile of it loaded (a single 504 is just a slow VWorld).
+ */
+function VworldOverlay({
+  layers,
+  attribution,
+  zIndex,
+  onFailed,
+}: {
+  layers: string;
+  attribution: string;
+  zIndex: number;
+  onFailed: (failed: boolean) => void;
+}) {
+  const tiles = useRef({ loaded: 0, errored: 0 });
+  return (
+    <WMSTileLayer
+      url="/api/wms"
+      layers={layers}
+      styles={layers}
+      format="image/png"
+      transparent
+      version="1.3.0"
+      opacity={0.5}
+      minZoom={VWORLD_MIN_ZOOM}
+      zIndex={zIndex}
+      updateWhenIdle
+      attribution={attribution}
+      eventHandlers={{
+        loading: () => {
+          tiles.current = { loaded: 0, errored: 0 };
+        },
+        tileload: () => {
+          tiles.current.loaded += 1;
+          onFailed(false);
+        },
+        tileerror: () => {
+          tiles.current.errored += 1;
+        },
+        load: () => {
+          const { loaded, errored } = tiles.current;
+          onFailed(loaded === 0 && errored > 0);
+        },
+      }}
+    />
+  );
+}
+
+interface ViewBox {
+  zoom: number;
+  s: number;
+  n: number;
+  w: number;
+  e: number;
+}
+
+function bboxArea(z: ProtectedZone): number {
+  return (z.bbox[2] - z.bbox[0]) * (z.bbox[3] - z.bbox[1]);
+}
+
+/**
+ * Bundled 보호지역 polygons (국립공원·KDPA) for the current viewport: red solid = 법적 입지 제한, amber dashed =
+ * 검토 필요; the zones the selected site falls in are drawn heavier.
+ */
+function ProtectedZoneLayer({
+  zones,
+  types,
+  highlightIds,
+}: {
+  zones: ProtectedZones;
+  types: RestrictionTypes;
+  highlightIds: string[];
+}) {
+  const snapshot = (m: ReturnType<typeof useMap>): ViewBox => {
+    const b = m.getBounds();
+    return { zoom: m.getZoom(), s: b.getSouth(), n: b.getNorth(), w: b.getWest(), e: b.getEast() };
+  };
+  const map = useMapEvents({
+    moveend() {
+      setView(snapshot(map));
+    },
+    zoomend() {
+      setView(snapshot(map));
+    },
+  });
+  const [view, setView] = useState<ViewBox>(() => snapshot(map));
+
+  const visible = useMemo(() => {
+    if (view.zoom < ZONE_MIN_ZOOM) return [];
+    const inView = zones.zones.filter(
+      (z) => z.bbox[0] <= view.n && z.bbox[2] >= view.s && z.bbox[1] <= view.e && z.bbox[3] >= view.w,
+    );
+    inView.sort((a, b) => bboxArea(b) - bboxArea(a));
+    return inView.slice(0, ZONE_MAX_DRAWN);
+  }, [zones, view]);
+  const highlighted = useMemo(() => new Set(highlightIds), [highlightIds]);
+
+  return (
+    <>
+      {visible.map((z) => {
+        const level = types[z.type]?.level ?? 'conditional';
+        const on = highlighted.has(z.id);
+        const pathOptions =
+          level === 'prohibited'
+            ? { color: '#b91c1c', weight: on ? 2.5 : 1, fillOpacity: on ? 0.2 : 0.08 }
+            : { color: '#d97706', weight: on ? 2.5 : 1, dashArray: '4 3', fillOpacity: on ? 0.15 : 0.06 };
+        return (
+          <Polygon key={z.id} positions={z.rings} pathOptions={pathOptions}>
+            <Popup maxWidth={320}>
+              <b>{z.name}</b> — {z.type}
+              <br />
+              {types[z.type]?.law ?? ''}
+              <br />
+              <span style={{ color: '#6b7280' }}>
+                {level === 'prohibited' ? '법적 입지 제한' : '검토 필요'} · 단순화 도형, 고시 도면 우선
+              </span>
+            </Popup>
+          </Polygon>
+        );
+      })}
+    </>
+  );
+}
+
 export interface FlyToTarget {
   lat: number;
   lng: number;
@@ -103,25 +238,30 @@ interface Props {
   data: AppData;
   site: SiteSelection | null;
   flyTo: FlyToTarget | null;
+  /** ids of the bundled zones the current site falls in (drawn heavier) */
+  highlightZoneIds: string[];
   onSelect: (lat: number, lng: number) => void;
 }
 
-export function MapView({ data, site, flyTo, onSelect }: Props) {
+export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
   const [showSubs, setShowSubs] = useState(true);
   const [showCases, setShowCases] = useState(true);
   const [showSchools, setShowSchools] = useState(false);
   const [showZoning, setShowZoning] = useState(true);
+  // Off by default: four more VWorld tile layers per view, and the bundled polygons already show the parks.
+  const [showRestrictions, setShowRestrictions] = useState(false);
+  const [showZones, setShowZones] = useState(true);
   const [zoom, setZoom] = useState(9);
   // On phones the layer panel would cover the map, so it collapses behind a button under lg.
   const [layersOpen, setLayersOpen] = useState(false);
   const [zoningError, setZoningError] = useState<string | null>(null);
-  // Per tile-batch counters: warn only when a whole batch failed (a single 504 is just a slow VWorld).
-  const zoningTiles = useRef({ loaded: 0, errored: 0 });
+  const [restrictionError, setRestrictionError] = useState<string | null>(null);
 
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
     [data.substations],
   );
+  const zoneTypes = data.constants.scoring.restriction.types;
 
   return (
     <div className="h-full">
@@ -131,35 +271,23 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {showZoning && (
-          <WMSTileLayer
-            url="/api/wms"
+          <VworldOverlay
             layers={ZONING_LAYERS}
-            styles={ZONING_LAYERS}
-            format="image/png"
-            transparent
-            version="1.3.0"
-            opacity={0.5}
-            minZoom={ZONING_MIN_ZOOM}
-            zIndex={5}
-            updateWhenIdle
             attribution='용도지역 &copy; <a href="https://www.vworld.kr">VWorld</a>'
-            eventHandlers={{
-              loading: () => {
-                zoningTiles.current = { loaded: 0, errored: 0 };
-              },
-              tileload: () => {
-                zoningTiles.current.loaded += 1;
-                setZoningError(null);
-              },
-              tileerror: () => {
-                zoningTiles.current.errored += 1;
-              },
-              load: () => {
-                const { loaded, errored } = zoningTiles.current;
-                setZoningError(loaded === 0 && errored > 0 ? ZONING_ERROR : null);
-              },
-            }}
+            zIndex={5}
+            onFailed={(failed) => setZoningError(failed ? ZONING_ERROR : null)}
           />
+        )}
+        {showRestrictions && (
+          <VworldOverlay
+            layers={RESTRICTION_LAYERS}
+            attribution='규제구역 &copy; <a href="https://www.vworld.kr">VWorld</a>'
+            zIndex={6}
+            onFailed={(failed) => setRestrictionError(failed ? RESTRICTION_ERROR : null)}
+          />
+        )}
+        {showZones && data.protectedZones && (
+          <ProtectedZoneLayer zones={data.protectedZones} types={zoneTypes} highlightIds={highlightZoneIds} />
         )}
         <ClickHandler onSelect={onSelect} />
         <ZoomWatcher onZoom={setZoom} />
@@ -265,13 +393,13 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
           />
           용도지역 (VWorld)
         </label>
-        {showZoning && zoom < ZONING_MIN_ZOOM && (
-          <div className="text-[11px] text-gray-500">지도를 {ZONING_MIN_ZOOM}단계 이상 확대하면 표시</div>
+        {showZoning && zoom < VWORLD_MIN_ZOOM && (
+          <div className="text-[11px] text-gray-500">지도를 {VWORLD_MIN_ZOOM}단계 이상 확대하면 표시</div>
         )}
         {showZoning && zoningError && (
           <div className="max-w-[180px] text-[11px] text-red-600">{zoningError}</div>
         )}
-        {showZoning && zoom >= ZONING_MIN_ZOOM && !zoningError && (
+        {showZoning && zoom >= VWORLD_MIN_ZOOM && !zoningError && (
           <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 border-t border-gray-200 pt-1 text-[11px]">
             {ZONING_LEGEND.map((z) => (
               <span key={z.label} className="flex items-center gap-1">
@@ -287,6 +415,49 @@ export function MapView({ data, site, flyTo, onSelect }: Props) {
               </span>
             ))}
             <span className="col-span-2 text-gray-400">빗금·점 무늬는 세부 용도·구역</span>
+          </div>
+        )}
+        <label className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            checked={showRestrictions}
+            onChange={(e) => {
+              setShowRestrictions(e.target.checked);
+              setRestrictionError(null);
+            }}
+          />
+          규제구역 (VWorld)
+        </label>
+        {showRestrictions && zoom < VWORLD_MIN_ZOOM && (
+          <div className="text-[11px] text-gray-500">지도를 {VWORLD_MIN_ZOOM}단계 이상 확대하면 표시</div>
+        )}
+        {showRestrictions && restrictionError && (
+          <div className="max-w-[180px] text-[11px] text-red-600">{restrictionError}</div>
+        )}
+        {showRestrictions && zoom >= VWORLD_MIN_ZOOM && !restrictionError && (
+          <div className="max-w-[200px] border-t border-gray-200 pt-1 text-[11px] text-gray-500">
+            개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역 (VWorld 기본 색상)
+          </div>
+        )}
+        {data.protectedZones && (
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={showZones} onChange={(e) => setShowZones(e.target.checked)} />
+            보호지역 도형 (국립공원·KDPA)
+          </label>
+        )}
+        {data.protectedZones && showZones && zoom < ZONE_MIN_ZOOM && (
+          <div className="text-[11px] text-gray-500">지도를 {ZONE_MIN_ZOOM}단계 이상 확대하면 표시</div>
+        )}
+        {data.protectedZones && showZones && zoom >= ZONE_MIN_ZOOM && (
+          <div className="flex flex-col gap-0.5 border-t border-gray-200 pt-1 text-[11px]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm border-2 border-red-700 bg-red-100" />
+              법적 입지 제한 (국립공원·습지·상수원 등)
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm border-2 border-dashed border-amber-600 bg-amber-50" />
+              검토 필요 (수변구역·생물권보전지역 등)
+            </span>
           </div>
         )}
         </div>

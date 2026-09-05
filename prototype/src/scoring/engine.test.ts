@@ -7,11 +7,14 @@ import type {
   CaseRow,
   NewsSignalFile,
   PermitDelayFile,
+  ProtectedZonesFile,
   RegulationRow,
+  RestrictionLookup,
   Scenario,
   TerrainGridFile,
 } from '../types';
 import { decodeTerrain } from './terrain';
+import { decodeProtectedZones } from './restriction';
 import { scoreSite } from './engine';
 
 const DATA_DIR = join(__dirname, '..', '..', 'public', 'data');
@@ -50,6 +53,10 @@ function loadData(): AppData {
     terrain: (() => {
       const f = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
       return f ? decodeTerrain(f) : null;
+    })(),
+    protectedZones: (() => {
+      const f = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
+      return f ? decodeProtectedZones(f) : null;
     })(),
   };
 }
@@ -227,7 +234,7 @@ describe('scoreSite golden cases', () => {
     expect(r.permit.deductions.some((x) => x.label === '지형·경사')).toBe(false);
   });
 
-  it('coverage: 개성·대마도는 판독 불가, 데모 3지점은 남한 자료 범위 안이다', () => {
+  it('coverage: 개성·대마도는 판독 불가, 데모 3지점은 자료 범위 안이다', () => {
     const at = (lat: number, lng: number) =>
       scoreSite({ lat, lng, landUse: 'unknown', ...baseInput }, data).site;
     expect(at(37.97, 126.55).status).toBe('outside'); // 개성 — 휴전선 이북
@@ -236,6 +243,106 @@ describe('scoreSite golden cases', () => {
     for (const sc of scenarios) {
       expect(at(sc.lat, sc.lng).status, sc.id).not.toBe('outside');
     }
+  });
+
+  describe('restriction (법정 보호·규제구역)', () => {
+    const cfg = data.constants.scoring.restriction;
+    const vworld = (hits: RestrictionLookup['hits'], failed: string[] = []): RestrictionLookup => ({
+      hits,
+      queried: ['LT_C_UD801', 'LT_C_UM710', 'LT_C_UO301', 'LT_C_UO301@500', 'LT_C_AGRIXUE101', 'LT_C_UQ162'],
+      failed,
+      complete: failed.length === 0,
+    });
+
+    it('북한산 국립공원 안은 법적 입지 제한으로 E등급', () => {
+      if (!data.protectedZones) return;
+      const r = scoreSite({ lat: 37.66, lng: 126.98, landUse: 'green', ...baseInput }, data);
+      expect(r.restriction.level).toBe('prohibited');
+      expect(r.restriction.hits[0]?.type).toBe('국립공원');
+      expect(r.restriction.hits[0]?.source).toBe('bundled');
+      const d = r.permit.deductions.find((x) => x.label === '법적 입지 제한 구역');
+      expect(d?.points).toBe(cfg.prohibitedDeduction);
+      expect(d?.evidence).toContain('북한산');
+      expect(r.composite.grade).toBe('E');
+      expect(r.composite.capReason).toBe('restriction');
+    });
+
+    it('지리산·설악산도 국립공원 판정이고 게이트 실패와 겹쳐도 상한 사유는 규제구역', () => {
+      if (!data.protectedZones) return;
+      for (const [lat, lng] of [[35.34, 127.73], [38.12, 128.47]]) {
+        const r = scoreSite({ lat, lng, landUse: 'green', ...baseInput }, data);
+        expect(r.restriction.level, `${lat},${lng}`).toBe('prohibited');
+        expect(r.restriction.hits.some((h) => h.type === '국립공원')).toBe(true);
+        expect(r.composite.grade).toBe('E');
+        expect(r.composite.capReason).toBe('restriction');
+      }
+    });
+
+    it('데모 3지점은 번들 보호지역에 걸리지 않는다', () => {
+      for (const sc of scenarios) {
+        const r = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+        expect(['none', 'unknown'], sc.id).toContain(r.restriction.level);
+        expect(r.permit.deductions.some((d) => d.label.startsWith('법적 입지') || d.label.startsWith('규제구역')), sc.id).toBe(false);
+        expect(r.composite.capReason, sc.id).not.toBe('restriction');
+        expect(sc.expectedGrade).toContain(r.composite.grade);
+      }
+    });
+
+    it('VWorld 개발제한구역 응답만으로도 E등급으로 제한된다', () => {
+      const sc = scenario('sejong-contrast');
+      const r = scoreSite(
+        { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput,
+          restrictions: vworld([{ layer: 'LT_C_UD801', name: '개발제한구역', buffered: false }]) },
+        data,
+      );
+      expect(r.restriction.level).toBe('prohibited');
+      expect(r.restriction.hits[0]).toMatchObject({ type: '개발제한구역', source: 'vworld', level: 'prohibited' });
+      expect(r.permit.deductions.find((d) => d.label === '법적 입지 제한 구역')?.points).toBe(cfg.prohibitedDeduction);
+      expect(r.composite.grade).toBe('E');
+      expect(r.composite.capReason).toBe('restriction');
+    });
+
+    it('농업보호구역·역사문화환경 보존지역은 검토 감점만 받고 상한은 없다', () => {
+      const sc = scenario('sejong-contrast');
+      const r = scoreSite(
+        { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput,
+          restrictions: vworld([
+            { layer: 'LT_C_AGRIXUE101', name: '농업보호구역', buffered: false },
+            { layer: 'LT_C_UO301', name: '사적', buffered: true },
+          ]) },
+        data,
+      );
+      expect(r.restriction.level).toBe('conditional');
+      expect(r.restriction.hits.map((h) => h.type)).toEqual(['농업보호구역', '역사문화환경 보존지역(추정)']);
+      const d = r.permit.deductions.find((x) => x.label === '규제구역 검토 필요');
+      expect(d?.points).toBe(cfg.conditionalDeduction);
+      expect(r.permit.deductions.some((x) => x.label === '법적 입지 제한 구역')).toBe(false);
+      expect(r.composite.capReason).toBeNull();
+      expect(['B', 'C']).toContain(r.composite.grade);
+    });
+
+    it('일부 레이어 실패는 partial로 남고 히트가 없으면 none이다', () => {
+      const sc = scenario('sejong-contrast');
+      const partial = scoreSite(
+        { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput, restrictions: vworld([], ['LT_C_UD801']) },
+        data,
+      );
+      expect(partial.restriction.level).toBe('none');
+      expect(partial.restriction.checked.vworld).toBe('partial');
+      const ok = scoreSite(
+        { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput, restrictions: vworld([]) },
+        data,
+      );
+      expect(ok.restriction.level).toBe('none');
+      expect(ok.restriction.checked).toEqual({ bundled: data.protectedZones !== null, vworld: 'ok' });
+    });
+
+    it('자료 범위 밖(독도)은 규제구역을 판정하지 않는다', () => {
+      const r = scoreSite({ lat: 37.24, lng: 131.86, landUse: 'unknown', ...baseInput }, data);
+      expect(r.site.status).toBe('outside');
+      expect(r.restriction.level).toBe('unknown');
+      expect(r.restriction.hits).toEqual([]);
+    });
   });
 
   describe('conflictRisk (named roll-up of the three conflict deductions)', () => {

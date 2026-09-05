@@ -51,7 +51,7 @@ export function SiteSearch({ centroids, onPick }: Props) {
       // A pair outside Korea would otherwise fall through to geocoding and read as "address not
       // found", which hides the real reason.
       setOpen(false);
-      setMessage('남한 범위 밖 좌표입니다 — 판독할 수 없습니다 (위도 33~39°, 경도 124~132° 안에서 입력하세요).');
+      setMessage('자료 범위 밖 좌표입니다 — 판독할 수 없습니다 (위도 33~39°, 경도 124~132° 안에서 입력하세요).');
       return;
     }
     if (highlight >= 0 && results[highlight]) return pickEmd(results[highlight]);

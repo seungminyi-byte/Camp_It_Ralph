@@ -27,6 +27,9 @@ FILE_DATASETS = [
     ("15080581", "uddi:c17ae174-0fb0-4b9f-9d33-99c3b42d02c2", "gov_facilities.csv"),
     ("15141768", "uddi:2d720442-85fd-4ab6-b23c-a924da535c58", "sgis_grid/sgis_grid.zip"),
     ("15083033", "uddi:b3094bc9-8756-4ecc-9141-9144b98a531e", "sanga.zip"),
+    # 법정 보호·규제구역 (p08_protected_zones.py): 국립공원 공원경계 SHP + 한국보호지역(KDPA) SHP, 이용허락범위 제한 없음
+    ("15017313", "uddi:d73c08a4-5cdc-4b06-a9ad-dbf3484c1b04_201709051712", "protected/knps_park_boundary.zip"),
+    ("15127921", "uddi:b5ddf478-33a0-491a-998f-c9d42b747c2f", "protected/kdpa_2016.zip"),
 ]
 
 OVERPASS_QUERY = (

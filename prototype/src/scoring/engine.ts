@@ -1,5 +1,6 @@
 import type {
   AppData,
+  CapReason,
   CaseRow,
   ConflictLevel,
   Deduction,
@@ -15,6 +16,7 @@ import type {
 import { haversineKm, nearest, sumWithinKm } from './geo';
 import { classifySite, findReclaimedOverride, lookupTerrain, slopeDeduction } from './terrain';
 import { classifyCoverage } from './coverage';
+import { RESTRICTION_DEDUCTION_LABEL, describeRestrictionHits, lookupRestrictions } from './restriction';
 
 export const LAND_USE_LABEL: Record<LandUse, string> = {
   industrial: '공업지역',
@@ -89,7 +91,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       }
     : null;
 
-  // Beyond the bundled South Korean data every number below would be borrowed from the nearest
+  // Beyond the bundled data every number below would be borrowed from the nearest
   // 읍면동 across the border or the sea, so the point is marked 판독 불가 and the UI shows no grade.
   const coverage = classifyCoverage(
     lat,
@@ -252,6 +254,27 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     });
   }
 
+  // 법정 보호·규제구역: bundled polygons (국립공원·KDPA) plus the VWorld lookup the caller passed in. Water and
+  // coastal cells are checked too — a 갯벌 습지보호지역 is exactly what a "매립 예정지로 간주" click should hit —
+  // but a point beyond the bundled data is left unknown rather than judged from foreign geometry.
+  const rCfg = scoring.restriction;
+  const restriction: ScoreResult['restriction'] = coverage.outside
+    ? { level: 'unknown', hits: [], checked: { bundled: false, vworld: 'none' } }
+    : lookupRestrictions(data.protectedZones, input.restrictions, lat, lng, rCfg);
+  if (restriction.level === 'prohibited' || restriction.level === 'conditional') {
+    // One deduction per site at the highest level; the evidence still lists every hit.
+    deductions.push({
+      label: RESTRICTION_DEDUCTION_LABEL[restriction.level],
+      points:
+        restriction.level === 'prohibited' ? rCfg.prohibitedDeduction : rCfg.conditionalDeduction,
+      evidence: describeRestrictionHits(restriction.hits),
+      anchor:
+        restriction.level === 'prohibited'
+          ? '자연공원법·수도법·개발제한구역법 등 법정 구역은 해제·지정 변경 없이는 신축 불가 — 스크리닝 판정이며 고시 도면 확인 필요'
+          : undefined,
+    });
+  }
+
   const matchedCases: CaseRow[] = [];
   let caseDedSum = 0;
   if (emdInfo) {
@@ -388,13 +411,22 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   );
   let grade = comp.grades.find((g) => compositeScore >= g.min)?.grade ?? 'E';
   let gradeCapped = false;
-  if (!gatePass) {
-    const capIdx = comp.grades.findIndex((g) => g.grade === comp.gateFailGradeCap);
+  let capReason: CapReason | null = null;
+  // Caps from mildest to strictest; grades[] is ordered best→worst, so a larger index is a lower grade.
+  // capReason names the strictest cap in force even when the score already sat at or below it.
+  const caps: { grade: string; reason: CapReason }[] = [];
+  if (!gatePass) caps.push({ grade: comp.gateFailGradeCap, reason: 'gate' });
+  if (restriction.level === 'prohibited') {
+    caps.push({ grade: comp.restrictionGradeCap, reason: 'restriction' });
+  }
+  for (const cap of caps) {
+    const capIdx = comp.grades.findIndex((g) => g.grade === cap.grade);
     const curIdx = comp.grades.findIndex((g) => g.grade === grade);
     if (curIdx < capIdx) {
-      grade = comp.gateFailGradeCap;
+      grade = cap.grade;
       gradeCapped = true;
     }
+    capReason = cap.reason;
   }
 
   const permitGrade =
@@ -439,7 +471,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     },
     site,
     terrain,
-    composite: { score: compositeScore, grade, gradeCapped },
+    restriction,
+    composite: { score: compositeScore, grade, gradeCapped, capReason },
     delay: {
       minMonths: delay.minMonths,
       maxMonths: delay.maxMonths,

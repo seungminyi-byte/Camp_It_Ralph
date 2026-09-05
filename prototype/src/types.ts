@@ -209,7 +209,7 @@ export interface TerrainSample {
   col: number;
 }
 
-/** 'outside' = beyond the bundled South Korean data (north of the MDL, Japan, far islands): 판독 불가. */
+/** 'outside' = beyond the bundled data (north of the MDL, Japan, far islands): 판독 불가. */
 export type SiteStatus = 'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata' | 'outside';
 
 /** Manually curated boxes for post-2000 reclamation that SRTM still reads as water. */
@@ -218,6 +218,63 @@ export interface ReclaimedOverride {
   /** [minLat, minLng, maxLat, maxLng] */
   bbox: [number, number, number, number];
   note?: string;
+}
+
+/** Wire shape of api/restrictions.ts: raw VWorld hits, judged by the engine through constants. */
+export interface RestrictionLookup {
+  hits: { layer: string; name: string | null; buffered: boolean }[];
+  queried: string[];
+  failed: string[];
+  /** true when every queried layer answered — only then is "no hit" evidence of absence */
+  complete: boolean;
+}
+
+export type RestrictionLevel = 'prohibited' | 'conditional' | 'none' | 'unknown';
+/** Which cap is in force on the composite grade (the strictest one, whether or not it lowered the grade). */
+export type CapReason = 'gate' | 'restriction';
+
+export interface RestrictionHit {
+  /** canonical type — a key of constants.scoring.restriction.types */
+  type: string;
+  name: string;
+  level: 'prohibited' | 'conditional';
+  law: string;
+  source: 'bundled' | 'vworld';
+  zoneId?: string;
+  layer?: string;
+}
+
+/** One protected-area polygon from protected_zones.json (p08_protected_zones.py). */
+export interface ProtectedZone {
+  id: string;
+  type: string;
+  name: string;
+  /** KDPA MARINE flag: 0 land, 1 partly marine, 2 marine */
+  marine: number;
+  /** [minLat, minLng, maxLat, maxLng] */
+  bbox: [number, number, number, number];
+  /** closed [lat, lng] rings; outer rings and holes alike, tested with the even-odd rule */
+  rings: [number, number][][];
+}
+
+export interface ProtectedZonesFile {
+  source: string;
+  sourceUrls: string[];
+  license?: string;
+  builtAt: string;
+  asOf: Record<string, string>;
+  method: Record<string, unknown>;
+  types: Record<string, { zones: number; vertices: number; source: string }>;
+  dropped?: Record<string, number>;
+  zones: ProtectedZone[];
+}
+
+/** Validated once in useAppData (rings closed, bbox present); scoreSite runs on every slider move. */
+export interface ProtectedZones {
+  source: string;
+  sourceUrls: string[];
+  asOf: Record<string, string>;
+  zones: ProtectedZone[];
 }
 
 /** VWorld 용도지역 point lookup (api/zoning.ts). */
@@ -285,11 +342,27 @@ export interface Constants {
       unsuitable: { minP50Deg: number; minSteepPct: number };
       reclaimedOverrides: ReclaimedOverride[];
     };
+    /** 법정 보호·규제구역: bundled polygons (protected_zones.json) + VWorld point lookups (api/restrictions.ts) */
+    restriction: {
+      prohibitedDeduction: number;
+      conditionalDeduction: number;
+      /** metres; the 국가유산 layer is queried again with this buffer for 역사문화환경 보존지역 */
+      heritageBufferM: number;
+      /** canonical zone type → verdict and the statute behind it; bundled zones and VWorld layers share it */
+      types: Record<string, { level: 'prohibited' | 'conditional'; law: string }>;
+      /** VWorld 2D Data API layer → canonical type; `buffered` names the type of the buffered query's hits */
+      vworldLayers: Record<
+        string,
+        { type: string; buffered?: string; nameRules?: { includes: string; type: string }[] }
+      >;
+    };
     composite: {
       weightPower: number;
       weightPermit: number;
       grades: { min: number; grade: string }[];
       gateFailGradeCap: string;
+      /** a 법적 입지 제한 hit caps the grade here (E) */
+      restrictionGradeCap: string;
     };
     delayByPermitGrade: Record<
       string,
@@ -325,6 +398,8 @@ export interface AppData {
   newsSignal: NewsSignalFile | null;
   /** 지형 격자 (p07_terrain.py); null when data/terrain_grid.json is absent or undecodable */
   terrain: TerrainGrid | null;
+  /** 법정 보호·규제구역 도형 (p08_protected_zones.py); null when data/protected_zones.json is absent or malformed */
+  protectedZones: ProtectedZones | null;
 }
 
 export interface Deduction {
@@ -344,6 +419,8 @@ export interface ScoreInput {
   zoning?: ZoningLookup | null;
   /** User override: treat a water cell as buildable land. */
   assumeLand?: boolean;
+  /** VWorld 규제구역 lookup for this point (api/restrictions.ts); null while loading or when it failed. */
+  restrictions?: RestrictionLookup | null;
 }
 
 export interface ScoreResult {
@@ -398,7 +475,13 @@ export interface ScoreResult {
   };
   site: { status: SiteStatus; label: string; detail: string; override: string | null };
   terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;
-  composite: { score: number; grade: string; gradeCapped: boolean };
+  /** 법정 보호·규제구역 verdict; `checked` says which of the two layers actually answered */
+  restriction: {
+    level: RestrictionLevel;
+    hits: RestrictionHit[];
+    checked: { bundled: boolean; vworld: 'ok' | 'partial' | 'none' };
+  };
+  composite: { score: number; grade: string; gradeCapped: boolean; capReason: CapReason | null };
   delay: { minMonths: number; maxMonths: number; pointMonths: number; anchor: string };
   finance: { delayCostKrw: number; monthlyCostKrw: number };
 }

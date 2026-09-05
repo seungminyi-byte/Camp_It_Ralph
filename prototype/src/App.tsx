@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useZoning } from './hooks/useZoning';
+import { useRestrictions } from './hooks/useRestrictions';
 import { scoreSite } from './scoring/engine';
 import type { LandUse, LandUseSource, ScoreInput, SiteSelection } from './types';
 import { MAX_PINS, pinId, removePin, toScoreInput, togglePin, type PinnedSite } from './compare/pins';
@@ -26,6 +27,9 @@ export default function App() {
 
   const zoning = useZoning(site);
   const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
+  // Separate request from zoning so a VWorld hiccup on one never blanks the other.
+  const restrictions = useRestrictions(site, data?.constants.scoring.restriction.heritageBufferM ?? 500);
+  const restrictionLookup = restrictions.status === 'done' ? restrictions.lookup : null;
 
   // The dropdown wins once the user touches it; otherwise VWorld fills it in.
   const auto = zoningLookup?.found ? zoningLookup : null;
@@ -46,8 +50,9 @@ export default function App() {
       annualRate: rate,
       zoning: zoningLookup,
       assumeLand,
+      restrictions: restrictionLookup,
     };
-  }, [data, site, landUse, capex, rate, zoningLookup, assumeLand]);
+  }, [data, site, landUse, capex, rate, zoningLookup, assumeLand, restrictionLookup]);
 
   const result = useMemo(
     () => (data && input ? scoreSite(input, data) : null),
@@ -94,20 +99,25 @@ export default function App() {
     site && result && result.site.status !== 'sea' && result.site.status !== 'outside'
       ? (() => {
           const base = { selection: site, landUse, assumeLand };
-          return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup };
+          return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup, restrictions: restrictionLookup };
         })()
       : null;
   const isPinned = currentPin !== null && pins.some((p) => p.id === currentPin.id);
   const canPin =
-    currentPin !== null && zoning.status !== 'loading' && (isPinned || pins.length < MAX_PINS);
+    currentPin !== null &&
+    zoning.status !== 'loading' &&
+    restrictions.status !== 'loading' &&
+    (isPinned || pins.length < MAX_PINS);
   const pinHint = !site
     ? '지도를 클릭하거나 주소를 검색하세요'
     : result?.site.status === 'sea'
       ? '해상·수역은 비교 대상이 아닙니다'
       : result?.site.status === 'outside'
-        ? '남한 자료 범위 밖 지점은 비교 대상이 아닙니다'
+        ? '자료 범위 밖 지점은 비교 대상이 아닙니다'
         : zoning.status === 'loading'
         ? '용도지역 조회 중…'
+        : restrictions.status === 'loading'
+        ? '규제구역 조회 중…'
         : !isPinned && pins.length >= MAX_PINS
           ? `최대 ${MAX_PINS}곳까지 담을 수 있습니다`
           : isPinned
@@ -152,6 +162,7 @@ export default function App() {
             data={data}
             site={site}
             flyTo={flyTo}
+            highlightZoneIds={result?.restriction.hits.flatMap((h) => (h.zoneId ? [h.zoneId] : [])) ?? []}
             onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })}
           />
         </div>

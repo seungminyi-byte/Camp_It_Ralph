@@ -1,4 +1,4 @@
-import type { LandUse, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
+import type { LandUse, RestrictionLookup, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
 
 /** UI capacity, not a scoring threshold — so it lives here rather than in constants.json. */
 export const MAX_PINS = 4;
@@ -16,6 +16,8 @@ export interface PinnedSite {
   /** restored when the pin is reopened, so the card matches the chip */
   manualLandUse: LandUse | null;
   zoning: ZoningLookup | null;
+  /** VWorld 규제구역 answer as pinned, so re-scoring the tray never refetches */
+  restrictions: RestrictionLookup | null;
   assumeLand: boolean;
 }
 
@@ -50,6 +52,7 @@ export function toScoreInput(pin: PinnedSite, capexKrw: number, annualRate: numb
     annualRate,
     zoning: pin.zoning,
     assumeLand: pin.assumeLand,
+    restrictions: pin.restrictions,
   };
 }
 

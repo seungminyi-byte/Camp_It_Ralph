@@ -18,7 +18,7 @@ export interface NearestEmd {
 }
 
 /**
- * Whether the bundled South Korean land data can say anything about this point. Three checks in
+ * Whether the bundled land data can say anything about this point. Three checks in
  * order: outside the bounding box, north of the MDL/NLL line, or farther from every 읍면동 centroid
  * than `emdOutsideKm` (대마도, 독도, open sea). Anything inside is left to classifySite().
  */
@@ -33,7 +33,7 @@ export function classifyCoverage(
     return {
       outside: true,
       reason: 'bbox',
-      detail: `남한 자료 범위(위도 ${minLat}~${maxLat}°·경도 ${minLng}~${maxLng}°) 밖 지점입니다.`,
+      detail: `자료 범위(위도 ${minLat}~${maxLat}°·경도 ${minLng}~${maxLng}°) 밖 지점입니다.`,
     };
   }
   if (isNorthOfBoundary(lat, lng, cfg.northernBoundary)) {
@@ -46,7 +46,7 @@ export function classifyCoverage(
     return {
       outside: true,
       reason: 'far',
-      detail: `${where}남한 육상 자료 범위를 벗어난 지점입니다 (원거리 도서·먼바다·국외).`,
+      detail: `${where}육상 자료 범위를 벗어난 지점입니다 (원거리 도서·먼바다·국외).`,
     };
   }
   return { outside: false, reason: null, detail: '' };

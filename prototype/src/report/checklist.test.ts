@@ -4,8 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { parseCsv } from '../lib/csv';
 import { scoreSite } from '../scoring/engine';
 import { decodeTerrain } from '../scoring/terrain';
+import { decodeProtectedZones } from '../scoring/restriction';
 import type {
-  AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow, Scenario, TerrainGridFile,
+  AppData, CaseRow, NewsSignalFile, PermitDelayFile, ProtectedZonesFile, RegulationRow, Scenario, TerrainGridFile,
 } from '../types';
 import { CHECKLIST_KEYS, buildChecklist, verdictFromPoints } from './checklist';
 
@@ -16,6 +17,7 @@ const readJsonOrNull = <T,>(n: string): T | null =>
 
 function loadData(): AppData {
   const terrainFile = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
+  const zonesFile = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
   return {
     emdPower: readJson('emd_power.json'),
     emdCentroids: readJson('emd_centroids.json'),
@@ -33,6 +35,7 @@ function loadData(): AppData {
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
     newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
     terrain: terrainFile ? decodeTerrain(terrainFile) : null,
+    protectedZones: zonesFile ? decodeProtectedZones(zonesFile) : null,
   };
 }
 
@@ -62,10 +65,10 @@ describe('verdictFromPoints', () => {
 });
 
 describe('buildChecklist', () => {
-  it('always returns the same 12 rows in order', () => {
+  it('always returns the same 13 rows in order', () => {
     const rows = rowsFor('goyang-deogi');
     expect(rows.map((r) => r.key)).toEqual([...CHECKLIST_KEYS]);
-    expect(new Set(rows.map((r) => r.key)).size).toBe(12);
+    expect(new Set(rows.map((r) => r.key)).size).toBe(13);
     expect(rows.every((r) => r.evidence.length > 0)).toBe(true);
   });
 
@@ -96,6 +99,38 @@ describe('buildChecklist', () => {
     } else {
       expect(byKey(rows, 'site.terrain').verdict).toBe('na');
     }
+  });
+
+  it('법정 보호·규제구역: VWorld 미조회면 판단 보류, 국립공원 안이면 위험', () => {
+    const offline = byKey(rowsFor('sejong-contrast'), 'permit.restriction');
+    if (data.protectedZones) {
+      expect(offline.verdict).toBe('na');
+      expect(offline.evidence).toContain('미조회');
+    }
+    const input = {
+      lat: 37.66, lng: 126.98, landUse: 'green' as const,
+      capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
+      restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },
+    };
+    const result = scoreSite(input, data);
+    const row = byKey(buildChecklist(result, data, { input, landUseSource: 'manual', zoningName: null }), 'permit.restriction');
+    if (data.protectedZones) {
+      expect(row.verdict).toBe('risk');
+      expect(row.points).toBe(data.constants.scoring.restriction.prohibitedDeduction);
+      expect(row.evidence).toContain('북한산');
+    }
+  });
+
+  it('법정 보호·규제구역: 도형과 VWorld를 모두 확인하고 히트가 없으면 양호', () => {
+    const sc = scenarios.find((s) => s.id === 'sejong-contrast')!;
+    const input = {
+      lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
+      capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
+      restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },
+    };
+    const result = scoreSite(input, data);
+    const row = byKey(buildChecklist(result, data, { input, landUseSource: 'manual', zoningName: null }), 'permit.restriction');
+    expect(row.verdict).toBe(data.protectedZones ? 'good' : 'na');
   });
 
   it('용도지역 판정 출처를 근거 문구에 적는다', () => {

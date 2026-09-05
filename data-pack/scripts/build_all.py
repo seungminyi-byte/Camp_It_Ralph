@@ -20,6 +20,7 @@ PIPELINE = [
     "p06_news_api.py",
     # p07 downloads ~188MB of terrain tiles on the first run (cached in raw/terrain, stdlib only).
     "p07_terrain.py",
+    "p08_protected_zones.py",  # 법정 보호·규제구역 (pyshp+pyproj; skips with a warning without raw zips)
 ]
 
 

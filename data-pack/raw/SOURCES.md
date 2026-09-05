@@ -11,6 +11,8 @@
 | sgis_grid/sgis_grid.zip | data.go.kr 15141768 국가데이터처_SGIS 격자 통계 및 경계 (2024년 1km 격자 인구 + 경계 SHP EPSG:5179) | selectFileDataDownload.do 2단계 POST (98.4MB) · 2026-09-05 macOS에서 `fetch_raw.py sgis`로 재수집, 동일 98,426,954바이트 |
 | sanga.zip | data.go.kr 15083033 소상공인시장진흥공단_상가(상권)정보 202606 (시도별 CSV 17개, UTF-8) | selectFileDataDownload.do 2단계 POST (352.7MB) — 법정동 센트로이드 보강용 |
 | osm_substations.json | OpenStreetMap Overpass API (power=substation, 남한 1,192개) | maps.mail.ru 미러 GET (overpass-api.de는 사내망에서 406) |
+| protected/knps_park_boundary.zip | data.go.kr 15017313 국립공원공단_국립공원 공원경계 (BSI_NPK_BBNDR.shp, 23곳, EPSG:5179, cp949, 기준 2024-12-30) | selectFileDataDownload.do 2단계 POST (0.33MB) — publicDataDetailPk에 `_201709051712` 접미사 필요 · 이용허락범위 제한 없음 |
+| protected/kdpa_2016.zip | data.go.kr 15127921 국립공원공단_한국보호지역 데이터 KDPA (wdpa_kor_poly_2016.shp, 1,516 폴리곤, EPSG:4326, UTF-8, 2016-12-31 기준) | selectFileDataDownload.do 2단계 POST (19.5MB) · 이용허락범위 제한 없음 |
 | terrain/N{33..38}E{125..129}.hgt.gz | AWS Open Data — Mapzen/Tilezen Terrain Tiles, skadi 1" HGT (SRTM 30m 육지 + ETOPO1 수심) | scripts/p07_terrain.py 익명 GET 30타일 188MB (키 불필요). 표기 의무: "SRTM and GMTED2010 data courtesy of the U.S. Geological Survey; ETOPO1 DOC/NOAA/NESDIS/NCEI" |
 
 주의:

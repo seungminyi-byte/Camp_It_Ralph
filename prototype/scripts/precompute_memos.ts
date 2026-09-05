@@ -7,11 +7,12 @@ import { join } from 'node:path';
 import { parseCsv } from '../src/lib/csv';
 import { scoreSite } from '../src/scoring/engine';
 import { decodeTerrain } from '../src/scoring/terrain';
-import { buildChecklist } from '../src/report/checklist';
+import { decodeProtectedZones } from '../src/scoring/restriction';
+import { CHECKLIST_KEYS, buildChecklist } from '../src/report/checklist';
 import { buildMemoPrompt } from '../src/genai/prompts';
 import { parseMemo, stripThinking } from '../src/genai/memoFormat';
 import type {
-  AppData, CaseRow, NewsSignalFile, PermitDelayFile, RegulationRow, Scenario, TerrainGridFile,
+  AppData, CaseRow, NewsSignalFile, PermitDelayFile, ProtectedZonesFile, RegulationRow, Scenario, TerrainGridFile,
 } from '../src/types';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -33,6 +34,7 @@ function loadData(): AppData {
   const casesRaw = parseCsv(readFileSync(join(DATA_DIR, 'cases.csv'), 'utf-8'));
   const regsRaw = parseCsv(readFileSync(join(DATA_DIR, 'regulations.csv'), 'utf-8'));
   const terrainFile = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
+  const zonesFile = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
   return {
     emdPower: readJson('emd_power.json'),
     emdCentroids: readJson('emd_centroids.json'),
@@ -48,6 +50,7 @@ function loadData(): AppData {
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
     newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
     terrain: terrainFile ? decodeTerrain(terrainFile) : null,
+    protectedZones: zonesFile ? decodeProtectedZones(zonesFile) : null,
   };
 }
 
@@ -110,7 +113,7 @@ async function main() {
     }
     const parsed = parseMemo(text);
     if (!parsed.complete) {
-      throw new Error(`${sc.id}: response missing item sections (${Object.keys(parsed.items).length}/12)`);
+      throw new Error(`${sc.id}: response missing item sections (${Object.keys(parsed.items).length}/${CHECKLIST_KEYS.length})`);
     }
     memos[sc.id] = { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, text };
     console.log(`${text.length} chars`);

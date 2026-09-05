@@ -1,4 +1,5 @@
 import { LAND_USE_LABEL } from '../scoring/engine';
+import { RESTRICTION_DEDUCTION_LABEL, describeRestrictionHits } from '../scoring/restriction';
 import type { AppData, LandUseSource, ScoreInput, ScoreResult } from '../types';
 
 export type Verdict = 'good' | 'caution' | 'risk' | 'na';
@@ -25,6 +26,7 @@ export type ChecklistKey =
   | 'permit.population'
   | 'permit.school'
   | 'permit.regulation'
+  | 'permit.restriction'
   | 'permit.cases'
   | 'permit.news'
   | 'permit.delayStat'
@@ -39,6 +41,7 @@ export const CHECKLIST_KEYS: readonly ChecklistKey[] = [
   'permit.population',
   'permit.school',
   'permit.regulation',
+  'permit.restriction',
   'permit.cases',
   'permit.news',
   'permit.delayStat',
@@ -87,7 +90,7 @@ function landUseSourceLabel(ctx: ChecklistContext): string {
 }
 
 /**
- * Fixed 12-row due-diligence checklist. Verdicts and evidence come straight from ScoreResult so
+ * Fixed 13-row due-diligence checklist. Verdicts and evidence come straight from ScoreResult so
  * the report is reproducible without the LLM; the model only fills the opinion column.
  */
 export function buildChecklist(
@@ -205,6 +208,47 @@ export function buildChecklist(
       };
     })(),
 
+    'permit.restriction': (() => {
+      const rs = result.restriction;
+      if (rs.level === 'unknown') {
+        return {
+          verdict: 'na' as Verdict,
+          points: null,
+          evidence: '보호·규제구역 자료 없음 — 토지이용계획확인서(토지이음)에서 확인 필요',
+          sources: [],
+        };
+      }
+      // The VWorld half can be missing (offline, undeployed) or partial; say so instead of calling it clean.
+      const hedge =
+        rs.checked.vworld === 'partial'
+          ? ' · VWorld 일부 레이어 조회 실패(미확인 항목 있음)'
+          : rs.checked.vworld === 'none'
+            ? ' · VWorld 규제 레이어 미조회(개발제한구역·상수원보호구역·국가유산·농업진흥지역·도시자연공원구역 미확인)'
+            : '';
+      if (rs.hits.length === 0) {
+        const full = rs.checked.bundled && rs.checked.vworld === 'ok';
+        const layers = [
+          rs.checked.bundled ? '공원경계·보호지역 도형' : '',
+          rs.checked.vworld === 'ok' ? 'VWorld 규제 레이어' : '',
+        ].filter(Boolean);
+        return {
+          verdict: (full ? 'good' : 'na') as Verdict,
+          points: full ? 0 : null,
+          evidence: `확인된 법정 보호·규제구역 없음 (${layers.join(' + ')})${hedge}`,
+          sources: [],
+        };
+      }
+      return {
+        verdict: (rs.level === 'prohibited' ? 'risk' : 'caution') as Verdict,
+        points: dedPoints(result, RESTRICTION_DEDUCTION_LABEL.prohibited, RESTRICTION_DEDUCTION_LABEL.conditional),
+        evidence: describeRestrictionHits(rs.hits) + hedge,
+        sources: [
+          ...(rs.hits.some((h) => h.source === 'bundled') ? (data.protectedZones?.sourceUrls ?? []) : []),
+          ...(rs.hits.some((h) => h.source === 'vworld') ? ['https://www.vworld.kr'] : []),
+        ],
+      };
+    })(),
+
     'permit.cases': (() => {
       const points = result.permit.conflictRisk.casePoints + result.permit.conflictRisk.nearbyPoints;
       const cases = result.permit.matchedCases;
@@ -309,6 +353,7 @@ export function buildChecklist(
     'permit.population': { group: '인허가', title: '주거 인접 (반경 1km 인구)' },
     'permit.school': { group: '인허가', title: '학교 근접' },
     'permit.regulation': { group: '인허가', title: '지자체 규제·조례' },
+    'permit.restriction': { group: '인허가', title: '법정 보호·규제구역' },
     'permit.cases': { group: '인허가', title: '유사 갈등 사례' },
     'permit.news': { group: '인허가', title: '뉴스 갈등 보도' },
     'permit.delayStat': { group: '인허가', title: '허가→착공 지연 통계' },

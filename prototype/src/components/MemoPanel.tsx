@@ -44,7 +44,10 @@ function sameInput(a: ScoreInput, b: ScoreInput): boolean {
     a.landUse === b.landUse &&
     a.capexKrw === b.capexKrw &&
     a.annualRate === b.annualRate &&
-    (a.assumeLand ?? false) === (b.assumeLand ?? false)
+    (a.assumeLand ?? false) === (b.assumeLand ?? false) &&
+    // A late VWorld answer can flip the grade (규제구역 → E), so the memo must go stale with it.
+    (a.zoning ?? null) === (b.zoning ?? null) &&
+    (a.restrictions ?? null) === (b.restrictions ?? null)
   );
 }
 

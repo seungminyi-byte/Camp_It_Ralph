@@ -1,4 +1,4 @@
-import type { ScoreResult } from '../types';
+import type { Constants, ScoreResult } from '../types';
 
 export const GRADE_COLOR: Record<string, string> = {
   A: 'bg-green-600',
@@ -19,4 +19,21 @@ export function areaLabel(result: ScoreResult, fallback = '행정구역 미확�
   const e = result.emd;
   if (!e) return fallback;
   return e.sigungu === e.sido ? `${e.sido} ${e.emd}` : `${e.sigungu} ${e.emd}`;
+}
+
+/**
+ * One wording source for the grade-cap note on the card, the report and the LLM prompt. The restriction cap is
+ * reported whenever it is in force; the substation cap only when it actually lowered the grade (as before).
+ */
+export function gradeCapNote(
+  result: ScoreResult,
+  composite: Constants['scoring']['composite'],
+): string | null {
+  if (result.composite.capReason === 'restriction') {
+    return `법정 보호·규제구역 해당으로 ${composite.restrictionGradeCap}등급으로 제한`;
+  }
+  if (result.composite.gradeCapped) {
+    return `공급가능 변전소 미확인으로 ${composite.gateFailGradeCap}등급 이하로 제한`;
+  }
+  return null;
 }

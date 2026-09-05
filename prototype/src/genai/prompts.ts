@@ -1,5 +1,7 @@
 import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
 import { CONFLICT_LEVEL_LABEL, LAND_USE_LABEL } from '../scoring/engine';
+import { summarizeRestriction } from '../scoring/restriction';
+import { gradeCapNote } from '../lib/format';
 import { VERDICT_GLYPH, VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
 
 export interface MemoContext {
@@ -48,6 +50,7 @@ export function buildMemoPrompt(
     ? `- 지형: 중앙값 경사 ${result.terrain.sample.slopeP50Deg}°, 표고 약 ${result.terrain.sample.elevM}m, ${result.terrain.band}`
     : '- 지형: 데이터 없음';
   const itemSections = rows.map((r) => `## ITEM ${r.key}\n(1~2문장)`).join('\n');
+  const capNote = gradeCapNote(result, data.constants.scoring.composite);
 
   return `당신은 데이터센터 개발을 검토하는 '데이터센터팀'(가상의 팀)의 부지 실사 담당자다. 아래 스크리닝 결과와 체크리스트를 바탕으로 체크리스트의 [검토 의견] 칸을 채운다. 판정·수치·근거는 이미 확정된 값이므로 바꾸지 말고, 각 항목이 사업에 갖는 의미와 실사 단계에서 확인할 점을 실무자 관점에서 서술한다.
 
@@ -55,11 +58,12 @@ export function buildMemoPrompt(
 - 위치: ${loc}${ctx.site?.label ? ` (${ctx.site.label})` : ''}
 - 용도지역: ${landUseLine(input, ctx)}
 - 부지 판정: ${result.site.label} — ${result.site.detail}
+- 법정 보호·규제구역: ${summarizeRestriction(result.restriction)}
 ${terrainLine}
 - 총사업비 가정: ${(input.capexKrw / 1e8).toLocaleString()}억원, 연 금리 ${(input.annualRate * 100).toFixed(1)}%
 
 [스크리닝 결과]
-- 종합 등급: ${result.composite.grade} (${result.composite.score}점)${result.composite.gradeCapped ? ` · 공급가능 변전소 미확인으로 ${data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한` : ''}
+- 종합 등급: ${result.composite.grade} (${result.composite.score}점)${capNote ? ` · ${capNote}` : ''}
 - 전력 수전 가능성 ${result.power.score}점 · 인허가 여건 ${result.permit.score}점
 - 주민 갈등 가능성: ${CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]} (갈등 사례·인근 사례·뉴스 감점 합 ${result.permit.conflictRisk.points}점)
 - 예상 인허가 지연: ${result.delay.minMonths}~${result.delay.maxMonths}개월 (대표값 ${result.delay.pointMonths}개월, 참조 사례: ${result.delay.anchor})
@@ -89,12 +93,14 @@ ${itemSections}
 ## CAVEATS
 - 본 스크리닝은 참고용이며 한국전력 공식 전력공급 가능 검토와 법률 검토를 대체하지 않습니다.
 - 변전소 위치는 OpenStreetMap 참고치이고 공개 여유용량은 발전접속 기준이며, 용도지역 자동 판정과 1km 격자 지형값은 토지이음·현장 측량으로 재확인이 필요합니다.
+- 보호·규제구역 판정은 단순화한 도형과 VWorld 조회에 따른 스크리닝 참고치이며 고시 도면과 토지이용계획확인서가 우선합니다.
 - (추가 한계가 있으면 1~2개)
 
 [작성 규칙]
 - 경어체("~입니다"). 항목별 의견은 1~2문장(120자 이내), 전체 1,200자 이내.
 - 숫자·지명·사례명은 위 자료에 있는 것만 인용한다. 새 수치·기관명·법령명·사례를 만들지 않는다.
 - 판정이 '—'(미확인)인 항목은 "데이터 미확보로 판단을 유보하며 ○○에서 확인 필요"로 쓴다.
+- '법적 입지 제한 구역' 판정이 있으면 종합 의견 첫 문장에 해당 구역의 해제·지정 변경 없이는 추진이 불가함을 적는다.
 - 확인된 사실은 단정하고, 추정은 "~로 추정됩니다", 검증 필요 사항은 명시한다.
 - 회사명·개인 실명·내부 자료를 언급하지 않는다. 사례는 언론 보도 기반임을 전제로 서술한다.
 - 특정 사업장·시설의 고유명을 비용·규모 기준으로 인용하지 않는다. 지역명과 시설 유형으로만 서술한다.`;

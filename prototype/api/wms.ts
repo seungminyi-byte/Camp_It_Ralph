@@ -2,7 +2,7 @@
 // e.g. hnd1), while requests from the icn1 region succeed.
 export const config = { runtime: 'edge', regions: ['icn1'] };
 
-// Proxies VWorld WMS GetMap requests for the 용도지역 (zoning) overlay so the server-side
+// Proxies VWorld WMS GetMap requests for the 용도지역 (zoning) and 규제구역 overlays so the server-side
 // VWORLD_API_KEY never reaches the browser. VWorld requires the registered service URL in the
 // `domain` parameter for non-browser calls (VWORLD_DOMAIN overrides the production URL).
 // Only whitelisted layers, PNG output and tile-sized images are forwarded; tiles are cached at
@@ -13,7 +13,11 @@ import { fetchVworld, registeredDomain, UPSTREAM_TIMEOUT_MS } from './_vworld.js
 declare const process: { env: Record<string, string | undefined> };
 
 const UPSTREAM = 'https://api.vworld.kr/req/wms';
-const ALLOWED_LAYERS = new Set(['lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114']);
+// 용도지역 4종 + 규제구역 5종 (개발제한구역·상수원보호구역·국가유산·농업진흥지역·도시자연공원구역); ≤ 4 layers per request.
+const ALLOWED_LAYERS = new Set([
+  'lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114',
+  'lt_c_ud801', 'lt_c_um710', 'lt_c_uo301', 'lt_c_agrixue101', 'lt_c_uq162',
+]);
 const ALLOWED_CRS = new Set(['EPSG:3857', 'EPSG:900913', 'EPSG:4326']);
 const MAX_SIZE = 512;
 

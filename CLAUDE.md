@@ -23,7 +23,8 @@ GS그룹 해커톤 PLAI CAMP S3 **개발자리그(9.21~22, 현장 1박2일 AI �
   칩의 등급·비용은 `scoreSite()` 재호출 결과만 표시하고, 차액은 그 결과값끼리의 뺄셈만 한다(`src/compare/pins.ts`). 가중치·임계값·통계는
   `data-pack/curated/constants.json` 한 곳에서만 바꾼다(앱 복사본은 `build_all.py`가 동기화).
 - 엔진을 바꾸면 `engine.test.ts` 골든 테스트를 먼저 갱신하고 통과시킨다.
-- 런타임 외부 API 의존을 늘리지 않는다(지도 타일·LLM 호출만 온라인). 새 데이터는 빌드타임 JSON으로 번들.
+- 런타임 외부 API 의존을 늘리지 않는다(지도 타일·LLM·**VWorld 점 조회 두 라우트**(`api/zoning.ts` 용도지역, `api/restrictions.ts` 규제구역)만 온라인 —
+  규제구역은 배포본이 로그인·공공누리 4유형이라 번들이 불가해 2026-09-05 사용자 확정으로 예외). 그 밖의 새 데이터는 빌드타임 JSON으로 번들.
 - API 키를 코드·번들·커밋에 넣지 않는다. 키는 **서버(Vercel 환경변수)에만** 둔다 — 브라우저에 키를 넣는 UI는 없다.
 - 화면·데이터·프롬프트·문서에 **회사명(사업자명)을 쓰지 않는다** — '자사' 같은 표현도 금지. 실사 메모 페르소나는
   가상의 '데이터센터팀'이고, 사례는 언론 보도 인용임을 전제로 지역명·시설 유형으로만 서술한다.
@@ -34,7 +35,8 @@ GS그룹 해커톤 PLAI CAMP S3 **개발자리그(9.21~22, 현장 1박2일 AI �
 - 화면 문구에 "스크리닝 참고용, 한전 공식 검토·법률 판단 대체 불가" disclaimer를 유지한다.
 - 화면·보고서·LLM 프롬프트 문구에 영어 직역체(축·게이트·앵커·시그널·매칭·센트로이드·점추정·로드·프록시·오버레이)를 쓰지 않는다.
   현재 표기: 전력 수전 가능성 / 인허가 여건 · "공급가능 변전소 미확인으로 D등급 이하로 제한" · 참조 사례 · 대표값 ·
-  뉴스 갈등 보도 · 행정구역 미확인 · 가장 가까운 읍면동 중심점. 감점 라벨은 `checklist.ts`·테스트가 문자열 키로 쓰므로 함께 고친다.
+  뉴스 갈등 보도 · 행정구역 미확인 · 가장 가까운 읍면동 중심점 · 자료 범위 밖(북한·국외도 '남한 자료 범위 밖'이 아니라 그냥 자료 범위 밖) ·
+  법정 보호·규제구역 / 법적 입지 제한 구역 / 규제구역 검토 필요 / "법정 보호·규제구역 해당으로 E등급으로 제한". 감점 라벨은 `checklist.ts`·테스트가 문자열 키로 쓰므로 함께 고친다.
 
 ## 명령 (Windows, 경로에 `&`가 있으면 npx 대신 node 직접 실행)
 
@@ -48,7 +50,9 @@ python data-pack/scripts/validate_out.py               # 데이터 검증
 python data-pack/scripts/build_all.py                  # 전처리 전체 + 검증 + 앱 데이터 동기화
 ```
 
-Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우선, 실패 시 utf-8-sig (상가업소 CSV는 UTF-8).
+Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 이 Mac은 `/usr/bin/python3` 3.9뿐이라 스크래치 venv에 `pyshp`·`"pyproj<3.7"`을 설치해 돌린다
+(p03·p08은 3.9 호환). 공공 CSV 인코딩은 cp949 우선, 실패 시 utf-8-sig (상가업소 CSV는 UTF-8). 보호지역 도형 재생성은
+`fetch_raw.py protected` → `p08_protected_zones.py --probe`(유형·좌표계 확인) → `p08_protected_zones.py` → `cp data-pack/out/protected_zones.json prototype/public/data/`.
 
 ## 데이터 사실관계 (문서·발표에 그대로 인용)
 
@@ -63,9 +67,9 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
 - 네이버 검색 API는 NAVER API HUB(`naverapihub.apigw.ntruss.com/search/v1/news`, `X-NCP-APIGW-*` 헤더)로 이관됐다.
   `developers.naver.com`·`X-Naver-Client-*` 조합은 신규 키에서 401. 뉴스 갈등 기사(24개월): 고양 50 · 세종 26 ·
   과천 24 · 금천 18 · 김포 12건. **세종 어진동 DC는 2026.3 주민 반발로 백지화** — 비수도권도 무갈등이 아니다.
-- 남한 자료 범위 밖(북한·일본·먼바다·독도 같은 원거리 도서)은 `constants.scoring.coverage`로 **'판독 불가'**(`site.status='outside'`)
+- 자료 범위 밖(북한·일본·먼바다·독도 같은 원거리 도서)은 `constants.scoring.coverage`로 **'판독 불가'**(`site.status='outside'`)
   처리한다 — bbox 33~38.7°/124.5~132° 밖, 휴전선(MDL)·NLL 근사 폴리라인 21점 이북, 가장 가까운 읍면동 중심점 20km 초과.
-  폴리라인이 남한 읍면동 중심점 5,471건을 하나도 자르지 않는지 `coverage.test.ts`와 `validate_out.py`가 감시한다(최소 여유 약 3km, 강화 양사면).
+  폴리라인이 읍면동 중심점 5,471건을 하나도 자르지 않는지 `coverage.test.ts`와 `validate_out.py`가 감시한다(최소 여유 약 3km, 강화 양사면).
   서해 데모점(37.4, 126.2)은 중심점에서 16.6km라 '해상·수역' 판정이 유지된다.
 - `pop_grid.json`은 SGIS 2024 1km 격자 인구 **전국 73,016셀**(합계 5,183만 명, EPSG:5179 → WGS84 중심점)이다. 2026-09-05 이전에는
   `p03_population.py`가 수도권·세종/충남·구미~영천·나주/광주 bbox로 잘라 21,944셀만 담았고 그 밖(부산·울산·제주·강원 동부 등)은
@@ -79,6 +83,14 @@ Python은 3.12+ 에 `pyshp`, `pyproj` 필요. 공공 CSV 인코딩은 cp949 우�
   (지형 중앙값 경사 5°와 같은 성격의 경계, 골든 테스트가 감시).
   세종 반곡동은 지형 중앙값 경사 5°로 감점 밴드 경계(≤5° 0점)에 붙어 있다 — 지형 파이프라인을 바꾸면 등급이 흔들릴 수 있어
   골든 테스트가 `terrain.deduction <= 5`로 감시한다.
+- **법정 보호·규제구역은 두 층**이다(2026-09-05): 번들 `protected_zones.json`(국립공원공단 공원경계 23곳 2024.12 + 한국보호지역 KDPA 1,516 도형
+  **2016-12-31 기준**, Douglas–Peucker 50m·검토 유형 100m 단순화, 3.3MB)과 VWorld 실시간 점 조회(`LT_C_UD801` 개발제한구역·`LT_C_UM710` 상수원보호구역·
+  `LT_C_UO301` 국가유산 보호구역(0m 입지 제한 / 500m 버퍼 역사문화환경 보존지역 검토)·`LT_C_AGRIXUE101` 농업진흥지역·`LT_C_UQ162` 도시자연공원구역).
+  입지 제한 히트 → `'법적 입지 제한 구역'` 감점 40 + E 상한(`composite.capReason='restriction'`), 검토 히트 → `'규제구역 검토 필요'` 감점 15. 유형→판정·법령은
+  `constants.scoring.restriction.types`, 레이어→유형은 `vworldLayers`, KDPA 원본 유형→정식 유형은 `p08_protected_zones.py`의 `TYPE_ALIASES`(데이터 배관).
+  **군사시설보호구역은 공개 자료가 없어 미반영**, 개발제한구역 파일(15125048)은 공공누리 4유형(변경금지)이라 번들하지 않는다. 데모 3지점은 번들 입지 제한 도형 밖이어야
+  하며(`validate_out.py`·`engine.test.ts`·`restriction.test.ts` 감시), 고양 덕이동은 개발제한구역(VWorld 런타임)에 걸릴 수 있으니 배포 후 `/api/restrictions`로 확인한다.
+  북한산(37.66,126.98)·지리산·설악산은 국립공원, 팔당(37.52,127.30)은 상수원보호구역 히트가 골든 값이다. VWorld 응답이 없으면 번들 층만 판정하고 체크리스트는 '미확인'.
 
 ## 남은 작업 (우선순위순)
 

@@ -2,11 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseCsv } from '../lib/csv';
 import { decodeTerrain } from '../scoring/terrain';
+import { decodeProtectedZones } from '../scoring/restriction';
 import type {
   AppData,
   CaseRow,
   NewsSignalFile,
   PermitDelayFile,
+  ProtectedZonesFile,
   RegulationRow,
   Scenario,
   TerrainGridFile,
@@ -27,6 +29,7 @@ export function loadAppData(): AppData {
   const casesRaw = parseCsv(readFileSync(join(DATA_DIR, 'cases.csv'), 'utf-8'));
   const regsRaw = parseCsv(readFileSync(join(DATA_DIR, 'regulations.csv'), 'utf-8'));
   const terrainFile = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
+  const zonesFile = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
   return {
     emdPower: readJson('emd_power.json'),
     emdCentroids: readJson('emd_centroids.json'),
@@ -45,6 +48,7 @@ export function loadAppData(): AppData {
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
     newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
     terrain: terrainFile ? decodeTerrain(terrainFile) : null,
+    protectedZones: zonesFile ? decodeProtectedZones(zonesFile) : null,
   };
 }
 

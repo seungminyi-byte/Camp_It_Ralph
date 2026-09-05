@@ -2,7 +2,8 @@ import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } f
 import { CONFLICT_LEVEL_LABEL, LAND_USE_LABEL } from '../scoring/engine';
 import { VERDICT_GLYPH, VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
 import type { ParsedMemo } from '../genai/memoFormat';
-import { fmtKrw } from '../lib/format';
+import { fmtKrw, gradeCapNote } from '../lib/format';
+import { summarizeRestriction } from '../scoring/restriction';
 
 const SOURCE_LABEL: Record<SiteSelection['source'], string> = {
   map: '지도 클릭',
@@ -48,6 +49,7 @@ export function ChecklistReport(props: ReportProps) {
     d.substation,
     d.stats,
     d.terrain,
+    d.restriction,
     ...(data.permitDelay ? [d.permits] : []),
     ...(data.newsSignal ? [d.news] : []),
   ].filter(Boolean);
@@ -75,6 +77,8 @@ export function ChecklistReport(props: ReportProps) {
           <dd>{landUseText(input, landUseSource, zoningName)}</dd>
           <dt className="text-gray-500">부지 판정</dt>
           <dd>{result.site.label} — {result.site.detail}</dd>
+          <dt className="text-gray-500">보호·규제구역</dt>
+          <dd>{summarizeRestriction(result.restriction)}</dd>
           <dt className="text-gray-500">사업 가정</dt>
           <dd>
             총사업비 {(input.capexKrw / 1e8).toLocaleString()}억원 · 연 금리{' '}
@@ -87,8 +91,10 @@ export function ChecklistReport(props: ReportProps) {
         <h2 className="text-sm font-bold">종합 판정</h2>
         <p className="mt-1">
           <b className="text-base">{result.composite.grade}</b> 등급 · {result.composite.score}점
-          {result.composite.gradeCapped &&
-            ` (공급가능 변전소 미확인으로 ${data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한)`}
+          {(() => {
+            const note = gradeCapNote(result, data.constants.scoring.composite);
+            return note ? ` (${note})` : '';
+          })()}
           {' · '}전력 수전 가능성 {result.power.score}점 · 인허가 여건 {result.permit.score}점
         </p>
         <p className={`mt-0.5 ${small}`}>
@@ -196,6 +202,10 @@ export function ChecklistReport(props: ReportProps) {
           ))}
           <li>한국전력공사 지역별 공급가능 변전소 정보 · 데이터센터 전기공급 현황 (공공데이터포털)</li>
           <li>변전소 좌표: OpenStreetMap (참고치) · 용도지역: 국토교통부 VWorld</li>
+          <li>
+            법정 보호·규제구역: 국립공원공단 국립공원 공원경계 · 한국보호지역 데이터(KDPA, 2016.12 기준) (공공데이터포털) ·
+            개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역·도시자연공원구역: 국토교통부 VWorld
+          </li>
           {data.permitDelay && <li>허가→착공 통계: {data.permitDelay.source}</li>}
           {data.terrain && <li>지형: {data.terrain.attribution}</li>}
         </ul>

@@ -4,11 +4,14 @@ import type {
   CaseRow,
   NewsSignalFile,
   PermitDelayFile,
+  ProtectedZones,
+  ProtectedZonesFile,
   RegulationRow,
   TerrainGrid,
   TerrainGridFile,
 } from '../types';
 import { decodeTerrain } from '../scoring/terrain';
+import { decodeProtectedZones } from '../scoring/restriction';
 import { parseCsv } from '../lib/csv';
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -35,6 +38,17 @@ function safeDecodeTerrain(file: TerrainGridFile | null): TerrainGrid | null {
     return decodeTerrain(file);
   } catch (e) {
     console.warn('terrain_grid.json ignored:', e);
+    return null;
+  }
+}
+
+/** A malformed protected_zones.json disables the restriction layer instead of blanking the app. */
+function safeDecodeProtectedZones(file: ProtectedZonesFile | null): ProtectedZones | null {
+  if (!file) return null;
+  try {
+    return decodeProtectedZones(file);
+  } catch (e) {
+    console.warn('protected_zones.json ignored:', e);
     return null;
   }
 }
@@ -66,6 +80,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           permitDelay,
           newsSignal,
           terrainFile,
+          protectedZonesFile,
         ] = await Promise.all([
           fetchJson<AppData['emdPower']>('data/emd_power.json'),
           fetchJson<AppData['emdCentroids']>('data/emd_centroids.json'),
@@ -79,6 +94,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchJsonOrNull<PermitDelayFile>('data/permit_delay.json'),
           fetchJsonOrNull<NewsSignalFile>('data/news_signal.json'),
           fetchJsonOrNull<TerrainGridFile>('data/terrain_grid.json'),
+          fetchJsonOrNull<ProtectedZonesFile>('data/protected_zones.json'),
         ]);
         const cases: CaseRow[] = casesRaw.map((r) => ({
           id: r.id,
@@ -117,6 +133,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
             permitDelay,
             newsSignal,
             terrain: safeDecodeTerrain(terrainFile),
+            protectedZones: safeDecodeProtectedZones(protectedZonesFile),
           });
         }
       } catch (e) {

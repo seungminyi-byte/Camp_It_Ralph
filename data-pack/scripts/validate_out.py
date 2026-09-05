@@ -42,6 +42,33 @@ def terrain_cell(grid, planes, lat, lng):
     return {k: v[i] for k, v in planes.items()}
 
 
+def point_in_ring(lat: float, lng: float, ring) -> bool:
+    """Even-odd ray cast, identical to pointInRing() in prototype/src/scoring/restriction.ts."""
+    inside = False
+    j = len(ring) - 1
+    for i in range(len(ring)):
+        yi, xi = ring[i]
+        yj, xj = ring[j]
+        if (yi > lat) != (yj > lat):
+            x = xi + (lat - yi) * (xj - xi) / (yj - yi)
+            if lng < x:
+                inside = not inside
+        j = i
+    return inside
+
+
+def zone_contains(zone, lat: float, lng: float) -> bool:
+    """bbox fast path, then even-odd over every ring — same as pointInZone() in restriction.ts."""
+    b = zone["bbox"]
+    if lat < b[0] or lat > b[2] or lng < b[1] or lng > b[3]:
+        return False
+    inside = False
+    for ring in zone["rings"]:
+        if point_in_ring(lat, lng, ring):
+            inside = not inside
+    return inside
+
+
 def main() -> int:
     emd_power = json.loads((OUT / "emd_power.json").read_text(encoding="utf-8"))
     cents = json.loads((OUT / "emd_centroids.json").read_text(encoding="utf-8"))
@@ -211,6 +238,76 @@ def main() -> int:
         check(bool(songdo), "송도 6·8공구 covered by a reclaimed override: {}".format(songdo))
     else:
         print("SKIP terrain_grid.json not present (terrain signal disabled)")
+
+    # 법정 보호·규제구역 polygons (p08) — the app caps a site inside a prohibited zone at grade E, so the demo
+    # scenarios must stay clear of them and the well-known parks must register.
+    pz_path = OUT / "protected_zones.json"
+    if pz_path.exists():
+        pz = json.loads(pz_path.read_text(encoding="utf-8"))
+        rcfg = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))
+        restriction = rcfg["scoring"].get("restriction") or {}
+        rtypes = restriction.get("types") or {}
+        zones = pz.get("zones", [])
+        size_mb = pz_path.stat().st_size / 1e6
+        check(size_mb <= 3.5, "protected_zones size {:.2f} MB <= 3.5 MB".format(size_mb))
+        check(len(zones) >= 1000, f"protected_zones zones {len(zones)} >= 1000")
+        check(
+            all(all(k in z for k in ("id", "type", "name", "bbox", "rings")) for z in zones),
+            "protected_zones zones carry id/type/name/bbox/rings",
+        )
+        bad_rings = bad_bbox = out_of_range = 0
+        for z in zones:
+            b = z["bbox"]
+            if not (b[0] <= b[2] and b[1] <= b[3]):
+                bad_bbox += 1
+            for ring in z["rings"]:
+                if len(ring) < 4 or ring[0] != ring[-1]:
+                    bad_rings += 1
+                for lat, lng in ring:
+                    if not (b[0] <= lat <= b[2] and b[1] <= lng <= b[3]):
+                        bad_bbox += 1
+                    if not (32.0 <= lat <= 39.5 and 123.5 <= lng <= 132.5):
+                        out_of_range += 1
+        check(bad_rings == 0, f"protected_zones rings closed with >= 4 points ({bad_rings} bad)")
+        check(bad_bbox == 0, f"protected_zones bboxes ordered and enclosing their rings ({bad_bbox} bad)")
+        check(out_of_range == 0, f"protected_zones vertices within 32~39.5 / 123.5~132.5 ({out_of_range} outside)")
+        unmapped = sorted({z["type"] for z in zones if z["type"] not in rtypes})
+        check(not unmapped, f"every zone type has a constants.scoring.restriction.types entry (unmapped: {unmapped})")
+        counts: dict[str, int] = {}
+        for z in zones:
+            counts[z["type"]] = counts.get(z["type"], 0) + 1
+        for t, n in [("국립공원", 22), ("습지보호지역", 1), ("생태·경관보전지역", 1), ("상수원보호구역", 1), ("백두대간보호지역", 1)]:
+            check(counts.get(t, 0) >= n, f"protected_zones has >= {n} {t} ({counts.get(t, 0)})")
+        check(
+            all(v.get("level") in ("prohibited", "conditional") for v in rtypes.values()),
+            "restriction types levels are prohibited/conditional",
+        )
+        vl = restriction.get("vworldLayers") or {}
+        vl_types = [v["type"] for v in vl.values()]
+        vl_types += [v["buffered"] for v in vl.values() if v.get("buffered")]
+        vl_types += [r["type"] for v in vl.values() for r in v.get("nameRules", [])]
+        check(all(t in rtypes for t in vl_types), "restriction vworldLayers types exist in restriction.types")
+        grades = [g["grade"] for g in rcfg["scoring"]["composite"]["grades"]]
+        check(rcfg["scoring"]["composite"].get("restrictionGradeCap") in grades, "composite.restrictionGradeCap is a grade")
+        check(bool(rcfg.get("disclaimer", {}).get("restriction")), "disclaimer.restriction present")
+
+        def hits_at(lat: float, lng: float):
+            return [z for z in zones if zone_contains(z, lat, lng)]
+
+        for name, lat, lng in [("북한산", 37.66, 126.98), ("지리산", 35.34, 127.73), ("설악산", 38.12, 128.47)]:
+            parks = [z["name"] for z in hits_at(lat, lng) if z["type"] == "국립공원"]
+            check(any(name in park for park in parks), f"protected_zones {name} inside a 국립공원 zone: {parks}")
+        for name, lat, lng in [("서해", 37.4, 126.2), ("여의도", 37.5285, 126.9327)]:
+            check(not hits_at(lat, lng), f"protected_zones {name} has no hit")
+        for sc in scenarios:
+            hits = hits_at(sc["lat"], sc["lng"])
+            prohibited = [z["name"] for z in hits if rtypes.get(z["type"], {}).get("level") == "prohibited"]
+            check(not prohibited, f"scenario {sc['id']}: no 법적 입지 제한 zone (golden tests depend on it): {prohibited}")
+            conditional = [z["name"] for z in hits if rtypes.get(z["type"], {}).get("level") == "conditional"]
+            if conditional:
+                print(f"INFO scenario {sc['id']}: conditional zones {conditional}")
+    else:
+        print("SKIP protected_zones.json not present (restriction layer disabled)")
 
     print()
     if ERRORS:

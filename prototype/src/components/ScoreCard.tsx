@@ -1,8 +1,9 @@
 import type { AppData, ConflictLevel, ScoreResult } from '../types';
-import { GRADE_COLOR, fmtKrw } from '../lib/format';
+import { GRADE_COLOR, fmtKrw, gradeCapNote } from '../lib/format';
 import { CONFLICT_LEVEL_LABEL } from '../scoring/engine';
+import { summarizeRestriction } from '../scoring/restriction';
 
-// Soft tints only: solid red stays reserved for hard blockers (조례상 입지 불가, 급경사 산지).
+// Soft tints only: solid red stays reserved for hard blockers (법적 입지 제한 구역, 조례상 입지 불가, 급경사 산지).
 const CONFLICT_BADGE: Record<ConflictLevel, string> = {
   low: 'bg-green-100 text-green-800',
   medium: 'bg-amber-100 text-amber-800',
@@ -37,17 +38,18 @@ export function ScoreCard({
   onFlyTo?: (lat: number, lng: number) => void;
 }) {
   const r = result;
+  const capNote = gradeCapNote(r, data.constants.scoring.composite);
 
-  // Outside the bundled South Korean data every number would be borrowed from the nearest 읍면동
+  // Outside the bundled data every number would be borrowed from the nearest 읍면동
   // across the border or the sea, so say so instead of grading.
   if (r.site.status === 'outside') {
     return (
       <section className="border-b border-gray-200 p-4">
         <div className="rounded border border-gray-300 bg-gray-100 p-3">
-          <div className="text-sm font-bold text-gray-800">판독 불가 — 남한 자료 범위 밖</div>
+          <div className="text-sm font-bold text-gray-800">판독 불가 — 자료 범위 밖</div>
           <p className="mt-1 text-xs text-gray-700">{r.site.detail}</p>
           <p className="mt-2 text-[11px] text-gray-600">
-            전력·인허가·지형 자료가 남한 육상 기준이라 이 지점은 평가하지 않습니다. 남한 내 지점을
+            전력·인허가·지형 자료가 없는 지점이라 평가하지 않습니다. 자료 범위 안의 지점을
             클릭하거나 읍면동·주소로 검색하세요.
           </p>
         </div>
@@ -92,11 +94,7 @@ export function ScoreCard({
         <div>
           <div className="text-sm font-bold">
             종합 {r.composite.score}점
-            {r.composite.gradeCapped && (
-              <span className="ml-1 text-xs font-normal text-red-600">
-                (공급가능 변전소 미확인으로 {data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한)
-              </span>
-            )}
+            {capNote && <span className="ml-1 text-xs font-normal text-red-600">({capNote})</span>}
           </div>
           <div className="text-xs text-gray-500">
             {r.emd
@@ -117,6 +115,17 @@ export function ScoreCard({
         ) : (
           <span className="rounded bg-red-100 px-2 py-0.5 font-semibold text-red-800">
             공급가능 변전소 미확인
+          </span>
+        )}
+        {r.restriction.level === 'prohibited' && (
+          <span className="rounded bg-red-600 px-2 py-0.5 font-semibold text-white">
+            법적 입지 제한 구역 — {r.restriction.hits[0].name}
+            {r.restriction.hits.length > 1 ? ` 외 ${r.restriction.hits.length - 1}` : ''}
+          </span>
+        )}
+        {r.restriction.level === 'conditional' && (
+          <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+            규제구역 검토 필요 — {r.restriction.hits[0].type}
           </span>
         )}
         {r.permit.deductions.some((d) => d.label === '조례상 입지 불가') && (
@@ -163,6 +172,7 @@ export function ScoreCard({
           </div>
         )}
         <div>반경 1km 인구: 약 {r.permit.popNearby.toLocaleString()}명</div>
+        <div>법정 보호·규제구역: {summarizeRestriction(r.restriction)}</div>
         {r.terrain && (
           <div>
             지형: 중앙값 경사 {r.terrain.sample.slopeP50Deg}° ·{' '}
