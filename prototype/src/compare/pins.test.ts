@@ -17,16 +17,15 @@ const data = loadAppData();
 const scenarios = loadScenarios();
 const fin = data.constants.scoring.finance;
 
-function pin(lat: number, lng: number, landUse: LandUse = 'unknown', assumeLand = false): PinnedSite {
-  const base = { selection: { lat, lng, source: 'map' as const }, landUse, assumeLand };
+function pin(lat: number, lng: number, landUse: LandUse = 'unknown'): PinnedSite {
+  const base = { selection: { lat, lng, source: 'map' as const }, landUse };
   return { id: pinId(base), ...base, manualLandUse: landUse === 'unknown' ? null : landUse, zoning: null };
 }
 
 describe('pinId', () => {
-  it('rounds coordinates to 5 decimals and separates land use / assumeLand', () => {
-    expect(pinId(pin(37.123456789, 127.1))).toBe('37.12346,127.10000|unknown|');
+  it('rounds coordinates to 5 decimals and separates land use', () => {
+    expect(pinId(pin(37.123456789, 127.1))).toBe('37.12346,127.10000|unknown');
     expect(pinId(pin(37.1, 127.1, 'industrial'))).not.toBe(pinId(pin(37.1, 127.1, 'unknown')));
-    expect(pinId(pin(37.1, 127.1, 'unknown', true))).not.toBe(pinId(pin(37.1, 127.1)));
   });
 });
 
@@ -57,16 +56,16 @@ describe('togglePin / removePin', () => {
 
 describe('toScoreInput', () => {
   it('carries the location facts and takes capex/rate from the caller', () => {
-    const p = pin(37.1, 127.1, 'industrial', true);
-    const input = toScoreInput(p, 123, 0.07);
-    expect(input).toMatchObject({ lat: 37.1, lng: 127.1, landUse: 'industrial', assumeLand: true, capexKrw: 123, annualRate: 0.07 });
+    const p = pin(37.1, 127.1, 'industrial');
+    const input = toScoreInput(p, 123, 0.07, 'small');
+    expect(input).toMatchObject({ lat: 37.1, lng: 127.1, landUse: 'industrial', projectType: 'small', capexKrw: 123, annualRate: 0.07 });
   });
 });
 
 describe('compareSummary', () => {
   const entries: CompareEntry[] = scenarios.map((sc) => {
     const p = pin(sc.lat, sc.lng, sc.landUse);
-    return { pin: p, result: scoreSite(toScoreInput(p, fin.defaultCapexKrw, fin.defaultAnnualRate), data) };
+    return { pin: p, result: scoreSite(toScoreInput(p, fin.defaultCapexKrw, fin.defaultAnnualRate, 'standard'), data) };
   });
 
   it('needs at least two entries', () => {

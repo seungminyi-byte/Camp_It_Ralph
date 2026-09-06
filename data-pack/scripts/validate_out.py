@@ -67,7 +67,8 @@ def main() -> int:
         )
 
     # constants.scoring.coverage decides 판독 불가 in the app; a rebuilt centroid set must stay inside it.
-    coverage = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"].get("coverage")
+    scoring = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"]
+    coverage = scoring.get("coverage")
     check(coverage is not None, "constants.scoring.coverage present")
     if coverage:
         line = coverage["northernBoundary"]
@@ -197,6 +198,20 @@ def main() -> int:
         cfg = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"]["terrain"]
         bands = [b["maxP50Deg"] for b in cfg["slopeDeduction"]]
         check(bands == sorted(bands) and bands[-1] >= 999, "terrain slope bands ascend to a catch-all")
+        check(
+            cfg["unsuitable"]["minDeduction"] == 20,
+            "terrain unsuitable cells receive at least a 20-point deduction",
+        )
+
+    profiles = scoring.get("projectProfiles", {})
+    check(set(profiles) == {"small", "standard", "hyperscale"}, "three project profiles present")
+    if profiles:
+        ordered = [profiles[key] for key in ("small", "standard", "hyperscale")]
+        check([p["targetMw"] for p in ordered] == [10, 40, 100], "project profile MW presets are 10/40/100")
+        check(
+            [p["powerDeductionCap"] for p in ordered] == sorted(p["powerDeductionCap"] for p in ordered),
+            "project power deduction caps ascend with scale",
+        )
         check(
             all(
                 b[0] < b[2] and b[1] < b[3] and in_korea(b[0], b[1]) and in_korea(b[2], b[3])

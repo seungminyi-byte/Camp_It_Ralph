@@ -94,6 +94,19 @@ export type LandUse =
   | 'residential'
   | 'unknown';
 
+export type ProjectType = 'small' | 'standard' | 'hyperscale';
+
+export interface ProjectProfile {
+  label: string;
+  description: string;
+  targetMw: number;
+  minSubstations: number;
+  maxSubstationKm: number;
+  powerDeductionCap: number;
+  populationSchoolMultiplier: number;
+  slopeMultiplier: number;
+}
+
 export interface PermitDelayStat {
   n: number;
   started: number;
@@ -243,6 +256,7 @@ export interface Constants {
       /** a nearest 읍면동 centroid farther than this means no land data (대마도, 독도, open sea) */
       emdOutsideKm: number;
     };
+    projectProfiles: Record<ProjectType, ProjectProfile>;
     power: {
       weightSupply: number;
       weightRegion: number;
@@ -282,7 +296,7 @@ export interface Constants {
       seaMaxLandPct: number;
       coastalMaxLandPct: number;
       slopeDeduction: { maxP50Deg: number; deduction: number; label: string }[];
-      unsuitable: { minP50Deg: number; minSteepPct: number };
+      unsuitable: { minP50Deg: number; minSteepPct: number; minDeduction: number };
       reclaimedOverrides: ReclaimedOverride[];
     };
     composite: {
@@ -338,15 +352,24 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
+  projectType: ProjectType;
   capexKrw: number;
   annualRate: number;
   /** VWorld lookup for this point; lets the engine tell reclaimed land from open water. */
   zoning?: ZoningLookup | null;
-  /** User override: treat a water cell as buildable land. */
-  assumeLand?: boolean;
 }
 
 export interface ScoreResult {
+  project: {
+    type: ProjectType;
+    profile: ProjectProfile;
+    powerDeduction: number;
+    substationDeduction: number;
+    distanceDeduction: number;
+    requirementsMet: boolean;
+    substationRequirementMet: boolean;
+    distanceRequirementMet: boolean;
+  };
   emd: { key: string; sido: string; sigungu: string; emd: string; distanceKm: number } | null;
   emdUncertain: boolean;
   gate: { pass: boolean; substationCount: number; substations: string[] };
@@ -396,7 +419,14 @@ export interface ScoreResult {
       newsPoints: number;
     };
   };
-  site: { status: SiteStatus; label: string; detail: string; override: string | null };
+  site: {
+    status: SiteStatus;
+    /** Only confirmed land or a corroborated reclaimed area may receive a score. */
+    eligible: boolean;
+    label: string;
+    detail: string;
+    override: string | null;
+  };
   terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;
   composite: { score: number; grade: string; gradeCapped: boolean };
   delay: { minMonths: number; maxMonths: number; pointMonths: number; anchor: string };

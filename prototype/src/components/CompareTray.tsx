@@ -10,6 +10,7 @@ interface Props {
   pinHint: string;
   capexKrw: number;
   annualRate: number;
+  projectLabel: string;
   onPinCurrent: () => void;
   onOpen: (pin: PinnedSite) => void;
   onRemove: (id: string) => void;
@@ -20,7 +21,7 @@ interface Props {
  * a scoreSite() output; the spread is a plain difference of two of them.
  */
 export function CompareTray(props: Props) {
-  const { entries, currentId, isPinned, canPin, pinHint, capexKrw, annualRate } = props;
+  const { entries, currentId, isPinned, canPin, pinHint, capexKrw, annualRate, projectLabel } = props;
   const summary = compareSummary(entries);
 
   return (
@@ -94,7 +95,8 @@ export function CompareTray(props: Props) {
           </span>
         )}
         <span className="text-[10px] text-gray-400">
-          총사업비 {(capexKrw / 1e8).toLocaleString()}억원 · 연 {(annualRate * 100).toFixed(1)}% 공통 적용 · 스크리닝 참고용
+          {projectLabel} · 총사업비{' '}
+          {(capexKrw / 1e8).toLocaleString()}억원 · 연 {(annualRate * 100).toFixed(1)}% 공통 적용 · 스크리닝 참고용
         </span>
       </div>
     </div>

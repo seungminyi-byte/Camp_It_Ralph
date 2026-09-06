@@ -139,6 +139,38 @@
    ],
    "emdOutsideKm": 20
   },
+  "projectProfiles": {
+   "small": {
+    "label": "엣지·소형",
+    "description": "도심 접근성을 허용하는 10MW급 소형 데이터센터",
+    "targetMw": 10,
+    "minSubstations": 1,
+    "maxSubstationKm": 10,
+    "powerDeductionCap": 10,
+    "populationSchoolMultiplier": 0.8,
+    "slopeMultiplier": 1.0
+   },
+   "standard": {
+    "label": "일반 코로케이션",
+    "description": "전력과 인허가 여건을 균형 있게 보는 40MW급 데이터센터",
+    "targetMw": 40,
+    "minSubstations": 1,
+    "maxSubstationKm": 5,
+    "powerDeductionCap": 20,
+    "populationSchoolMultiplier": 1.0,
+    "slopeMultiplier": 1.0
+   },
+   "hyperscale": {
+    "label": "초대형·AI",
+    "description": "복수 전력경로와 넓고 평탄한 입지가 중요한 100MW급 데이터센터",
+    "targetMw": 100,
+    "minSubstations": 2,
+    "maxSubstationKm": 5,
+    "powerDeductionCap": 30,
+    "populationSchoolMultiplier": 1.25,
+    "slopeMultiplier": 1.25
+   }
+  },
   "power": {
    "weightSupply": 0.45,
    "weightRegion": 0.3,
@@ -341,7 +373,8 @@
    ],
    "unsuitable": {
     "minP50Deg": 25,
-    "minSteepPct": 70
+    "minSteepPct": 70,
+    "minDeduction": 20
    },
    "reclaimedOverrides": [
     {

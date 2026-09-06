@@ -87,6 +87,7 @@ async function main() {
   for (const sc of scenarios) {
     const input = {
       lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
+      projectType: 'standard' as const,
       capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
     };
     const result = scoreSite(input, data);

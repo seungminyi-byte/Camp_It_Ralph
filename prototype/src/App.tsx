@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useZoning } from './hooks/useZoning';
 import { scoreSite } from './scoring/engine';
-import type { LandUse, LandUseSource, ScoreInput, SiteSelection } from './types';
+import type { LandUse, LandUseSource, ProjectType, ScoreInput, SiteSelection } from './types';
 import { MAX_PINS, pinId, removePin, toScoreInput, togglePin, type PinnedSite } from './compare/pins';
 import { MapView, type FlyToTarget } from './components/MapView';
 import { SitePanel } from './components/SitePanel';
@@ -17,7 +17,7 @@ export default function App() {
   const { data, error } = useAppData();
   const [site, setSite] = useState<SiteSelection | null>(null);
   const [manualLandUse, setManualLandUse] = useState<LandUse | null>(null);
-  const [assumeLand, setAssumeLand] = useState(false);
+  const [projectType, setProjectType] = useState<ProjectType>('standard');
   const [capexKrw, setCapexKrw] = useState<number | null>(null);
   const [annualRate, setAnnualRate] = useState<number | null>(null);
   const [pins, setPins] = useState<PinnedSite[]>([]);
@@ -42,22 +42,22 @@ export default function App() {
       lat: site.lat,
       lng: site.lng,
       landUse,
+      projectType,
       capexKrw: capex,
       annualRate: rate,
       zoning: zoningLookup,
-      assumeLand,
     };
-  }, [data, site, landUse, capex, rate, zoningLookup, assumeLand]);
+  }, [data, site, landUse, projectType, capex, rate, zoningLookup]);
 
   const result = useMemo(
     () => (data && input ? scoreSite(input, data) : null),
     [data, input],
   );
 
-  // Pinned sites are re-scored under the current capex and rate: same project, different place.
+  // Pinned sites are re-scored under the current project assumptions: same project, different place.
   const pinEntries = useMemo(
-    () => (data ? pins.map((pin) => ({ pin, result: scoreSite(toScoreInput(pin, capex, rate), data) })) : []),
-    [data, pins, capex, rate],
+    () => (data ? pins.map((pin) => ({ pin, result: scoreSite(toScoreInput(pin, capex, rate, projectType), data) })) : []),
+    [data, pins, capex, rate, projectType],
   );
 
   if (error) {
@@ -78,7 +78,6 @@ export default function App() {
   const selectSite = (selection: SiteSelection, zoom?: number) => {
     setSite(selection);
     setManualLandUse(null);
-    setAssumeLand(false);
     if (zoom !== undefined) setFlyTo({ lat: selection.lat, lng: selection.lng, zoom });
   };
 
@@ -86,14 +85,13 @@ export default function App() {
   const openPin = (pin: PinnedSite) => {
     setSite(pin.selection);
     setManualLandUse(pin.manualLandUse);
-    setAssumeLand(pin.assumeLand);
     setFlyTo({ lat: pin.selection.lat, lng: pin.selection.lng, zoom: 13 });
   };
 
   const currentPin: PinnedSite | null =
-    site && result && result.site.status !== 'sea' && result.site.status !== 'outside'
+    site && result && result.site.eligible
       ? (() => {
-          const base = { selection: site, landUse, assumeLand };
+          const base = { selection: site, landUse };
           return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup };
         })()
       : null;
@@ -102,11 +100,9 @@ export default function App() {
     currentPin !== null && zoning.status !== 'loading' && (isPinned || pins.length < MAX_PINS);
   const pinHint = !site
     ? '지도를 클릭하거나 주소를 검색하세요'
-    : result?.site.status === 'sea'
-      ? '해상·수역은 비교 대상이 아닙니다'
-      : result?.site.status === 'outside'
-        ? '남한 자료 범위 밖 지점은 비교 대상이 아닙니다'
-        : zoning.status === 'loading'
+    : result && !result.site.eligible
+      ? `${result.site.label} 지점은 비교 대상이 아닙니다`
+      : zoning.status === 'loading'
         ? '용도지역 조회 중…'
         : !isPinned && pins.length >= MAX_PINS
           ? `최대 ${MAX_PINS}곳까지 담을 수 있습니다`
@@ -139,6 +135,7 @@ export default function App() {
         pinHint={pinHint}
         capexKrw={capex}
         annualRate={rate}
+        projectLabel={`${data.constants.scoring.projectProfiles[projectType].label} · ${data.constants.scoring.projectProfiles[projectType].targetMw}MW`}
         onPinCurrent={() => {
           if (currentPin) setPins((p) => togglePin(p, currentPin));
         }}
@@ -174,21 +171,26 @@ export default function App() {
             zoning={zoning}
             capexKrw={capex}
             annualRate={rate}
+            projectType={projectType}
             onPick={selectSite}
             onLandUse={setManualLandUse}
             onResetAuto={() => setManualLandUse(null)}
             onCapex={setCapexKrw}
             onRate={setAnnualRate}
+            onProjectType={(type) => {
+              setProjectType(type);
+              const profile = data.constants.scoring.projectProfiles[type];
+              setCapexKrw(profile.targetMw * data.constants.scoring.finance.capexPerMwKrw);
+            }}
           />
           {result && input && site && (
             <>
               <ScoreCard
                 result={result}
                 data={data}
-                onAssumeLand={() => setAssumeLand(true)}
                 onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
               />
-              {result.site.status !== 'sea' && result.site.status !== 'outside' && (
+              {result.site.eligible && (
                 <MemoPanel
                   key={siteKey}
                   data={data}

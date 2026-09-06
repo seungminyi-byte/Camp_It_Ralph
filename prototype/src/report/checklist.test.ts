@@ -44,6 +44,7 @@ function rowsFor(id: string, landUseSource: 'unknown' | 'auto' | 'manual' = 'man
   const sc = scenarios.find((s) => s.id === id)!;
   const input = {
     lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
+    projectType: 'standard' as const,
     capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
   };
   const result = scoreSite(input, data);

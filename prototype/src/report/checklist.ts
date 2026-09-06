@@ -101,14 +101,21 @@ export function buildChecklist(
   const rows: Record<ChecklistKey, Omit<ChecklistRow, 'key' | 'group' | 'title'>> = {
     'power.gate': (() => {
       const n = result.gate.substationCount;
-      const verdict: Verdict = !result.emd ? 'na' : !result.gate.pass ? 'risk' : n === 1 ? 'caution' : 'good';
+      const verdict: Verdict = !result.emd
+        ? 'na'
+        : result.project.substationRequirementMet
+          ? 'good'
+          : result.gate.pass
+            ? 'caution'
+            : 'risk';
       const where = result.emd ? `${result.emd.sigungu} ${result.emd.emd}` : '행정구역 미확인';
       return {
         verdict,
-        points: null,
+        points: result.project.substationDeduction,
         evidence:
           `${where} 공급가능 변전소 ${n}곳` +
           (result.gate.substations.length ? ` (${result.gate.substations.join(', ')})` : '') +
+          ` · ${result.project.profile.label} ${result.project.profile.targetMw}MW급 권장조건 ${result.project.profile.minSubstations}곳 이상` +
           ` · 확보 전력 추정 "${result.power.capacityBand}"` +
           (result.emdUncertain && result.emd
             ? ` · 행정구역 판정 불확실 (가장 가까운 읍면동 중심점 ${fmtKm(result.emd.distanceKm)})`
@@ -121,10 +128,16 @@ export function buildChecklist(
       const near = result.power.nearestSubstation;
       const score = result.power.distanceScore;
       return {
-        verdict: (!near ? 'na' : score >= 80 ? 'good' : score >= 60 ? 'caution' : 'risk') as Verdict,
-        points: null,
+        verdict: (!near
+          ? 'na'
+          : result.project.distanceRequirementMet
+            ? 'good'
+            : score >= 60
+              ? 'caution'
+              : 'risk') as Verdict,
+        points: result.project.distanceDeduction,
         evidence: near
-          ? `최근접 변전소 ${near.name} ${fmtKm(near.distanceKm)} (OpenStreetMap 참고치)`
+          ? `최근접 변전소 ${near.name} ${fmtKm(near.distanceKm)} · ${result.project.profile.label} 권장거리 ${result.project.profile.maxSubstationKm}km 이내 (OpenStreetMap 참고치)`
           : '반경 내 변전소 정보 없음',
         sources: [],
       };

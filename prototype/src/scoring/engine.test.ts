@@ -59,6 +59,7 @@ const scenarios = readJson<{ scenarios: Scenario[] }>('scenarios.json').scenario
 
 const data = loadData();
 const baseInput = {
+  projectType: 'standard' as const,
   capexKrw: data.constants.scoring.finance.defaultCapexKrw,
   annualRate: data.constants.scoring.finance.defaultAnnualRate,
 };
@@ -195,18 +196,39 @@ describe('scoreSite golden cases', () => {
     expect(r.finance.delayCostKrw).toBeCloseTo(expected, 0);
   });
 
-  it('terrain: 서해 한복판은 해상으로 판정되고 용도지역·수동 지정으로만 뒤집힌다', () => {
+  it('사업 유형에 따라 같은 부지의 전력·주변 영향 기준이 달라진다', () => {
+    const sc = scenario('goyang-deogi');
+    const at = (projectType: 'small' | 'standard' | 'hyperscale') =>
+      scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput, projectType }, data);
+    const small = at('small');
+    const standard = at('standard');
+    const hyperscale = at('hyperscale');
+
+    expect([small.project.profile.targetMw, standard.project.profile.targetMw, hyperscale.project.profile.targetMw])
+      .toEqual([10, 40, 100]);
+    expect(small.project.powerDeduction).toBeLessThanOrEqual(standard.project.powerDeduction);
+    expect(standard.project.powerDeduction).toBeLessThanOrEqual(hyperscale.project.powerDeduction);
+    expect(small.power.score).toBeGreaterThanOrEqual(standard.power.score);
+    expect(standard.power.score).toBeGreaterThanOrEqual(hyperscale.power.score);
+
+    const points = (r: typeof small, label: string) =>
+      r.permit.deductions.find((d) => d.label === label)?.points ?? 0;
+    expect(points(small, '주거 인접')).toBeLessThanOrEqual(points(standard, '주거 인접'));
+    expect(points(standard, '주거 인접')).toBeLessThanOrEqual(points(hyperscale, '주거 인접'));
+    expect(small.site.status).toBe(standard.site.status);
+    expect(standard.site.status).toBe(hyperscale.site.status);
+  });
+
+  it('terrain: 서해 한복판은 해상 부적합이고 객관적인 용도지역 근거로만 뒤집힌다', () => {
     if (!data.terrain) return; // signal disabled when data/terrain_grid.json is absent
     const at = { lat: 37.4, lng: 126.2, landUse: 'unknown' as const, ...baseInput };
-    expect(scoreSite(at, data).site.status).toBe('sea');
+    expect(scoreSite(at, data).site).toMatchObject({ status: 'sea', eligible: false });
 
     const zoned = scoreSite(
       { ...at, zoning: { found: true, layer: 'LT_C_UQ111', name: '일반공업지역', landUse: 'industrial', all: [] } },
       data,
     );
-    expect(zoned.site.status).toBe('reclaimed');
-
-    expect(scoreSite({ ...at, assumeLand: true }, data).site.status).toBe('reclaimed');
+    expect(zoned.site).toMatchObject({ status: 'reclaimed', eligible: true });
   });
 
   it('terrain: 태백산맥 능선은 산지 감점과 부적합 플래그를 받는다', () => {
@@ -217,6 +239,7 @@ describe('scoreSite golden cases', () => {
     const d = r.permit.deductions.find((x) => x.label === '지형·경사');
     expect(d?.points).toBeGreaterThanOrEqual(20);
     expect(d?.evidence).toContain('중앙값 경사');
+    expect(d?.evidence).toContain('정밀측량 및 관할기관 검토가 필요합니다');
   });
 
   it('coverage: 독도 인근(울릉읍 중심점 89km)은 판독 불가로 빠지고 지형 감점이 없다', () => {

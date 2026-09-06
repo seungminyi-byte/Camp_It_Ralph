@@ -42,9 +42,9 @@ function sameInput(a: ScoreInput, b: ScoreInput): boolean {
     a.lat === b.lat &&
     a.lng === b.lng &&
     a.landUse === b.landUse &&
+    a.projectType === b.projectType &&
     a.capexKrw === b.capexKrw &&
-    a.annualRate === b.annualRate &&
-    (a.assumeLand ?? false) === (b.assumeLand ?? false)
+    a.annualRate === b.annualRate
   );
 }
 

@@ -1,4 +1,4 @@
-import type { AppData, LandUse, LandUseSource, SiteSelection } from '../types';
+import type { AppData, LandUse, LandUseSource, ProjectType, SiteSelection } from '../types';
 import type { ZoningStatus } from '../hooks/useZoning';
 import { SiteSearch } from './SiteSearch';
 import { NumberField, type Preset } from './NumberField';
@@ -43,11 +43,13 @@ interface Props {
   zoning: ZoningStatus;
   capexKrw: number;
   annualRate: number;
+  projectType: ProjectType;
   onPick: (selection: SiteSelection, zoom: number) => void;
   onLandUse: (v: LandUse) => void;
   onResetAuto: () => void;
   onCapex: (v: number) => void;
   onRate: (v: number) => void;
+  onProjectType: (v: ProjectType) => void;
 }
 
 function ZoningNote({ zoning, source, onResetAuto }: Pick<Props, 'zoning' | 'onResetAuto'> & { source: LandUseSource }) {
@@ -88,11 +90,13 @@ export function SitePanel({
   zoning,
   capexKrw,
   annualRate,
+  projectType,
   onPick,
   onLandUse,
   onResetAuto,
   onCapex,
   onRate,
+  onProjectType,
 }: Props) {
   const fin = data.constants.scoring.finance;
   const capexMin = fin.capexRangeKrw[0] / EOK;
@@ -100,8 +104,8 @@ export function SitePanel({
   // 0.2 * 100 is 20.000000000000004 in floating point; round to a tenth of a percent.
   const rateMin = Math.round(fin.rateRange[0] * 1000) / 10;
   const rateMax = Math.round(fin.rateRange[1] * 1000) / 10;
-  const impliedMw = Math.max(1, Math.round(capexKrw / fin.capexPerMwKrw));
   const perMwEok = fin.capexPerMwKrw / EOK;
+  const projectProfile = data.constants.scoring.projectProfiles[projectType];
 
   return (
     <section className="border-b border-gray-200 p-4">
@@ -118,6 +122,23 @@ export function SitePanel({
       )}
 
       <div className="mt-3 grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-2 text-sm">
+        <label className="pt-1 text-gray-600">사업 유형</label>
+        <select
+          value={projectType}
+          onChange={(e) => onProjectType(e.target.value as ProjectType)}
+          className="rounded border border-gray-300 px-2 py-1"
+        >
+          {Object.entries(data.constants.scoring.projectProfiles).map(([value, profile]) => (
+            <option key={value} value={value}>
+              {profile.label} · {profile.targetMw}MW
+            </option>
+          ))}
+        </select>
+        <p className="col-span-2 -mt-1 text-xs text-gray-500">
+          {projectProfile.description} · 공급가능 변전소 {projectProfile.minSubstations}곳 이상,
+          최근접 변전소 {projectProfile.maxSubstationKm}km 이내 권장
+        </p>
+
         <label className="pt-1 text-gray-600">용도지역</label>
         <select
           value={landUse}
@@ -147,7 +168,7 @@ export function SitePanel({
           unit="억원"
           koreanUnits
           presets={CAPEX_PRESETS}
-          caption={`${fin.capexLabel} · 약 ${impliedMw}MW급 (MW당 약 ${perMwEok.toLocaleString()}억원 기준) · ${fmtEok(capexMin)}~${fmtEok(capexMax)} 입력, "1.5조"처럼 써도 됩니다`}
+          caption={`${fin.capexLabel} · 사업 유형 변경 시 MW당 약 ${perMwEok.toLocaleString()}억원 기준으로 자동 설정 · ${fmtEok(capexMin)}~${fmtEok(capexMax)} 입력, "1.5조"처럼 써도 됩니다`}
           onChange={(eok) => onCapex(Math.round(eok) * EOK)}
         />
 

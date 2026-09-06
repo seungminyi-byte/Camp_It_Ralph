@@ -27,12 +27,10 @@ function Gauge({ label, score }: { label: string; score: number }) {
 export function ScoreCard({
   result,
   data,
-  onAssumeLand,
   onFlyTo,
 }: {
   result: ScoreResult;
   data: AppData;
-  onAssumeLand: () => void;
   /** pan the map to a related case — the drawer used to do this */
   onFlyTo?: (lat: number, lng: number) => void;
 }) {
@@ -55,27 +53,35 @@ export function ScoreCard({
     );
   }
 
-  // Open water is not a site: showing a grade for it invites the reader to trust a number that
-  // only looks good because nobody lives there.
+  // Open water is a hard blocker. Reclaimed land needs objective corroboration instead of a
+  // manual escape hatch.
   if (r.site.status === 'sea') {
     return (
       <section className="border-b border-gray-200 p-4">
         <div className="rounded border border-sky-300 bg-sky-50 p-3">
-          <div className="text-sm font-bold text-sky-900">해상·수역 — 평가 대상 아님</div>
+          <div className="text-sm font-bold text-sky-900">판정 부적합 — 해상·수역</div>
           <p className="mt-1 text-xs text-sky-900">{r.site.detail}</p>
           <p className="mt-2 text-[11px] text-sky-800">
-            매립·간척으로 조성된 부지라면 아래 버튼으로 평가할 수 있습니다. SRTM은 2000년 촬영
-            기준이라 이후 매립지가 수역으로 남아 있습니다.
+            해상·수역에는 종합점수와 등급을 부여하지 않습니다. 실제 매립·간척지라면 VWorld
+            용도지역 또는 등재된 매립지 자료로 육지 여부가 확인되어야 평가할 수 있습니다.
           </p>
-          <button
-            onClick={onAssumeLand}
-            className="mt-2 rounded border border-sky-400 bg-white px-2 py-1 text-xs font-semibold text-sky-900 hover:bg-sky-100"
-          >
-            매립·간척 예정지로 간주하고 평가
-          </button>
         </div>
         <div className="mt-2 text-[10px] leading-snug text-gray-400">
           {data.constants.disclaimer.terrain}
+        </div>
+      </section>
+    );
+  }
+
+  if (!r.site.eligible) {
+    return (
+      <section className="border-b border-gray-200 p-4">
+        <div className="rounded border border-amber-300 bg-amber-50 p-3">
+          <div className="text-sm font-bold text-amber-900">{r.site.label}</div>
+          <p className="mt-1 text-xs text-amber-900">{r.site.detail}</p>
+          <p className="mt-2 text-[11px] text-amber-800">
+            육지 여부가 확인되지 않아 종합점수와 등급을 표시하지 않습니다.
+          </p>
         </div>
       </section>
     );
@@ -110,6 +116,9 @@ export function ScoreCard({
       </div>
 
       <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
+        <span className="rounded bg-blue-100 px-2 py-0.5 font-semibold text-blue-800">
+          {r.project.profile.label} · {r.project.profile.targetMw}MW 기준
+        </span>
         {r.gate.pass ? (
           <span className="rounded bg-green-100 px-2 py-0.5 font-semibold text-green-800">
             공급가능 변전소 {r.gate.substationCount}곳 (읍면동 기준)
@@ -132,7 +141,7 @@ export function ScoreCard({
         </span>
         {r.site.status === 'coastal' && (
           <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
-            연안 — 지형 판정 불확실
+            연안 육지 확인 — 경계 검토 필요
           </span>
         )}
         {r.site.status === 'reclaimed' && (
@@ -142,10 +151,22 @@ export function ScoreCard({
         )}
         {r.terrain?.unsuitable && (
           <span className="rounded bg-red-600 px-2 py-0.5 font-semibold text-white">
-            급경사 산지 — 입지 부적합 가능
+            급경사 구간 — 정밀 검토 필요
+          </span>
+        )}
+        {!r.project.requirementsMet && (
+          <span className="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-900">
+            사업 규모별 전력 권장조건 미달
           </span>
         )}
       </div>
+
+      {r.terrain?.unsuitable && (
+        <div className="mb-3 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-900">
+          급경사 구간이 확인되어 토목공사비, 사면 안정성 및 산지전용 인허가 위험이 높으므로
+          정밀측량 및 관할기관 검토가 필요합니다.
+        </div>
+      )}
 
       <div className="mb-3 flex flex-col gap-2">
         <Gauge label="전력 수전 가능성" score={r.power.score} />
@@ -153,6 +174,14 @@ export function ScoreCard({
       </div>
 
       <div className="mb-3 rounded bg-gray-50 p-2 text-xs text-gray-700">
+        <div>
+          사업 기준: <b>{r.project.profile.label} {r.project.profile.targetMw}MW급</b> · 공급가능
+          변전소 {r.project.profile.minSubstations}곳 이상, 최근접 변전소{' '}
+          {r.project.profile.maxSubstationKm}km 이내 권장
+          {r.project.powerDeduction > 0 && (
+            <span className="font-semibold text-red-600"> · 전력 적합성 −{r.project.powerDeduction}</span>
+          )}
+        </div>
         <div>
           확보 전력 추정: <b>{r.power.capacityBand}</b>
         </div>
@@ -220,6 +249,11 @@ export function ScoreCard({
           </div>
         )}
       </div>
+
+      <p className="mb-3 text-[10px] leading-snug text-gray-400">
+        사업 유형별 전력 기준은 공개자료 기반 예비 적합성 기준이며 한국전력의 전력공급 가능 검토를
+        대체하지 않습니다.
+      </p>
 
       <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-2">
         <div className="text-xs text-amber-900">
