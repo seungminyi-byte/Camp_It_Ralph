@@ -54,3 +54,14 @@
 - 1차 프리뷰 `dpl_FsqWQTWey2hqMj6UrT8TdwAXCcYw`에서 규제 조회(고양 덕이동) complete=true 및 근린공원, 재해 조회(군산 문화동) found=true, 용도지역 조회(세종 소담동) 제2종일반주거지역 HTTP200 확인. 잘못된 재해 조회 좌표는 HTTP400.
 - 실패·부분 응답·취소 처리는 기존 API/client 테스트와 신규 요약 판정 테스트로 검증했다. 프리뷰 실조회 중 외부 서비스 장애는 발생하지 않았다.
 - 최종 커밋 프리뷰와 운영 배포·기본 브랜치 변경 결과는 아래 후속 기록에 남긴다.
+
+
+### 추가 통합 배포 완료 (2026-09-08)
+
+- 병합 커밋: `fa25d00a235c978411609744b234f3dc03b547b9` (부모: `acd3ced`, `682432c`). 원격 `seungminyi-byte-prototype`에 푸시 완료.
+- 최종 커밋 프리뷰: https://grand-site-ddn0wd0bv-camp-it-ralph.vercel.app · `dpl_7VfAXYTGx69nhJeSwmiNS6fMgp2F`, Ready. 규제 E 상한 및 자료 범위 밖 표시 확인.
+- 운영 자동 배포: [GitHub Actions #10](https://github.com/seungminyi-byte/Camp_It_Ralph/actions/runs/34171063112), 성공(58초).
+- 운영 배포: `dpl_8eapdeQqjmPqE62gcQFDxXApQBEh` · https://grand-site-7o7yhx6y0-camp-it-ralph.vercel.app · Ready, https://grand-site-dc.vercel.app 연결 확인.
+- 운영에서 새 분석 화면·북한산 E 상한 및 온라인 규제 히트, 규제·재해·용도지역 API 응답을 확인했다. 롤백 사유 없음. 직전 정상 배포는 `dpl_DYXnLacPUZRh55Tqtd6ZMSL9aq27`.
+- GitHub 기본 브랜치를 `nanace1228-prototype`에서 `seungminyi-byte-prototype`으로 변경했다. GitHub 성공 알림과 원격 HEAD를 확인하고 로컬 origin/HEAD도 동기화했다.
+- 기존 브랜치·기존 작업 트리·미추적 AGENTS.md는 보존했다. 이 완료 기록만 추가한 후속 커밋은 앱 코드를 변경하지 않는다.
