@@ -43,12 +43,12 @@ function ZoningNote({ zoning, source, onResetAuto }: Pick<Props, 'zoning' | 'onR
       </span>
     );
   }
-  if (zoning.status === 'loading') return <span className="text-gray-400">VWorld 용도지역 조회 중…</span>;
+  if (zoning.status === 'loading') return <span className="text-gray-400">국토교통부 용도지역 API 조회 중…</span>;
   if (zoning.status === 'done' && zoning.lookup.found) {
-    return <span className="text-green-700">자동 판정: {zoning.lookup.name} (VWorld)</span>;
+    return <span className="text-green-700">자동 판정: {zoning.lookup.name} (국토교통부 공간정보 API)</span>;
   }
   if (zoning.status === 'done') {
-    return <span className="text-gray-500">VWorld에서 용도지역 도형을 찾지 못했습니다 — 직접 선택하세요.</span>;
+    return <span className="text-gray-500">국토교통부 용도지역 도형을 찾지 못했습니다 — 직접 선택하세요.</span>;
   }
   if (zoning.status === 'error') {
     return <span className="text-gray-500">자동 판정 불가 (오프라인 또는 서버 미배포) — 직접 선택하세요.</span>;

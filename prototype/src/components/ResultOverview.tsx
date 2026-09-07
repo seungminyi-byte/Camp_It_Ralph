@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import type { ScoreResult } from '../types';
-import { siteVerdict } from '../lib/verdict';
+import { siteVerdict, verdictReasons } from '../lib/verdict';
 import { summarizeDisaster } from '../lib/disasterSummary';
 
-export function ResultOverview({ result: r, loading, incomplete, children }: {
-  result: ScoreResult; loading: boolean; incomplete: boolean; children: ReactNode;
+export function ResultOverview({ result: r, loading, incomplete, missingEvidence, children }: {
+  result: ScoreResult; loading: boolean; incomplete: boolean; missingEvidence: string[]; children: ReactNode;
 }) {
   const verdict = siteVerdict(r, incomplete);
+  const reasons = verdictReasons(r, missingEvidence);
   return <section className="result-overview" aria-label="핵심 분석 요약" aria-busy={loading}>
     <div className="overview-location"><span>선택 부지 분석</span><span role="status">{loading ? '조회 중 · 잠정 결과' : '예비 스크리닝'}</span></div>
     <h2>{r.emd && r.site.status !== 'outside' ? `${r.emd.sigungu} ${r.emd.emd}` : '선택 지점'}</h2>
@@ -17,6 +18,13 @@ export function ResultOverview({ result: r, loading, incomplete, children }: {
     </div>
     {children}
     <div className="key-verdict"><span className={`status-icon tone-${verdict.tone}`} aria-hidden="true">{verdict.tone === 'good' ? '✓' : '!'}</span><div><span>핵심 판단</span><strong>{verdict.label}</strong><p>{verdict.reason}</p></div></div>
+    {verdict.tone !== 'good' && reasons.length > 0 && <details className="verdict-reasons">
+      <summary><span>왜 {verdict.label}인가요?</span><small>{reasons.length}가지 핵심 이유</small></summary>
+      <div>{reasons.map((reason, index) => <article key={`${reason.title}-${index}`}>
+        <i className={`reason-dot tone-${reason.tone}`} aria-hidden="true" />
+        <div><strong>{reason.title}</strong><p>{reason.detail}</p></div>
+      </article>)}</div>
+    </details>}
     <div className="hazard-notice"><span className={`warning-icon tone-${r.disaster.status === 'hit' || r.terrain?.unsuitable ? 'risk' : r.disaster.status === 'none' ? 'good' : 'caution'}`} aria-hidden="true">△</span><div><strong>{r.disaster.status === 'hit' ? '재해위험지구 해당 · 관할기관 검토 필요' : r.terrain?.unsuitable ? '급경사 고위험 · 정밀 검토 필요' : r.disaster.status === 'none' ? '재해위험지구 해당 없음' : '재해위험지구 조회 중 또는 실패'}</strong><p>{summarizeDisaster(r.disaster)}{r.terrain?.unsuitable ? ' · 급경사 구간으로 사면 안정성 검토가 필요합니다.' : ''}</p></div></div>
     <details className="judgment-note"><summary>판단 기준과 자료 한계</summary><p>A·B등급 및 규모 권장조건 충족: 검토적합 / C등급·미확인 자료·규모 조건 미달: 조건부 검토 / D·E등급 또는 중대한 입지 제약: 부적합. 미확인 자료가 있으면 추가 검토를 우선합니다. 재해 안전을 포함한 최종 사업 승인이 아닙니다.</p></details>
   </section>;

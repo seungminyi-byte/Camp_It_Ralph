@@ -127,7 +127,12 @@ export default function App() {
 
   const siteKey = site ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}` : 'none';
 
-  const incomplete = landUse === 'unknown' || zoning.status === 'loading' || disaster.status !== 'done';
+  const missingEvidence = [
+    landUse === 'unknown' ? '공식 용도지역' : null,
+    zoning.status === 'loading' ? '용도지역 조회 완료' : zoning.status === 'error' ? '용도지역 조회 오류 재확인' : null,
+    disaster.status === 'loading' ? '재해위험지구 조회 완료' : disaster.status === 'error' ? '재해위험지구 조회 오류 재확인' : null,
+  ].filter((item): item is string => item !== null);
+  const incomplete = missingEvidence.length > 0;
   const tone = result ? siteVerdict(result, incomplete).tone : 'neutral';
   const scalePicker = <ProjectScalePicker data={data} value={projectType} capexKrw={capex}
     annualRate={rate} onCapex={setCapexKrw} onRate={setAnnualRate} onChange={(type) => {
@@ -160,7 +165,7 @@ export default function App() {
         />
         <aside className="analysis-panel" aria-label="부지 분석 패널">
           <div className="panel-scroll" ref={panelScroll}>
-            {result ? <ResultOverview result={result} loading={zoning.status === 'loading' || disaster.status === 'loading'} incomplete={incomplete}>{scalePicker}</ResultOverview> :
+            {result ? <ResultOverview result={result} loading={zoning.status === 'loading' || disaster.status === 'loading'} incomplete={incomplete} missingEvidence={missingEvidence}>{scalePicker}</ResultOverview> :
               <section className="empty-state"><span className="eyebrow">SITE ASSESSMENT</span><h2>좋은 부지의 시작,<br />명확한 판단에서.</h2><p>전력부터 인허가까지.<br />지도에서 후보지를 선택해 가능성을 확인하세요.</p><div className="empty-score"><strong>—</strong><span>종합 점수 · 부지 선택 대기</span></div>{scalePicker}<div className="empty-features"><span>01 <b>입지 조건 분석</b></span><span>02 <b>리스크 확인</b></span><span>03 <b>후보지 비교</b></span></div></section>}
             {result && <AnalysisDetails result={result} data={data} onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })} />}
             <details className="settings-section"><summary>용도지역 및 부지 정보 <span>{landUse === 'unknown' ? '용도지역 미확인' : '용도지역 확인됨'}</span></summary>
