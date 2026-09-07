@@ -25,5 +25,18 @@
 
 ## 실조회·배포
 
-프리뷰에서 재해 API 해당·비해당 및 보호·규제구역 API를 검증한 후에만 사용자 브랜치를 푸시한다.
-아직 이 기록 시점에는 실조회 검증 및 프로덕션 배포 전이며 결과를 후속 기록한다.
+프리뷰: https://grand-site-olqw3v0re-camp-it-ralph.vercel.app
+배포 ID: `dpl_Cfa2W4bxroaKVnceg7wEk5hkTidg`, 커밋 `f4461b4`, Ready. 신규 API는 서울 리전(icn1).
+
+- `GET /api/disaster?lat=36.49&lng=127.3`: HTTP200, found=false, hits=[].
+- 군산시 문화동886 지번은 [군산시보 제679호(2024-06-03)](https://tour.gunsan.go.kr/_cms/board/eFileDownload/253/1450370/2c2eef662e4c2065afe1d8ffd9652ab9)의 신풍지구 지정 위치를 사용했다.
+  VWorld Geocoder 좌표는35.97666901174112,126.70492658409447이며,
+  `GET /api/disaster?lat=35.97667&lng=126.70493`는 HTTP200, found=true,
+  name=자연재해위험지구, sido_name=전북특별자치도, sigg_name=군산시, dyear=2024, dnum=0071로 응답했다.
+  위 속성은 지정 근거 확인용이며 위험 확률이나 내부 감점의 법적 근거로 해석하지 않는다.
+- `GET /api/restrictions?lat=37.6851&lng=126.7482`: HTTP200, complete=true, failed=[], 6개 조회 모두 완료.
+  LT_C_UQ162(근린공원) 히트 확인. 이 온라인 결과가 반영되면 고양의 기본 번들 전용 D등급과 달라질 수 있다.
+- 모바일390px에서 본문 가로 넘침 없음, 비교 부지 재열기 확인. 해상과 자료 범위 밖은 보고서·비교 담기 차단 확인.
+- 의존성을 `npm ci`로 새로 설치한 뒤 전체 타입 검사·lint·125개 테스트·build 재검증 통과.
+
+프로덕션 배포는 이 실조회 검증 이후 진행하며, 최종 상태는 작업 완료 보고에 기록한다.
