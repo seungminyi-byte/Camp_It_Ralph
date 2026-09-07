@@ -77,9 +77,7 @@ export function PanelResizer({ width, min, max, defaultWidth, onChange }: Props)
       onPointerCancel={endDrag}
       onDoubleClick={(e) => onChange(clamp(defaultWidth, rowRect(e.currentTarget).width))}
       onKeyDown={onKeyDown}
-      className={`hidden w-1.5 flex-none cursor-col-resize touch-none transition-colors hover:bg-blue-400 focus-visible:bg-blue-500 focus-visible:outline-none lg:block ${
-        dragging ? 'bg-blue-500' : 'bg-gray-200'
-      }`}
+      className={`panel-resizer${dragging ? ' is-dragging' : ''}`}
     />
   );
 }

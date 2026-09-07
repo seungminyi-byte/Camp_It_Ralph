@@ -15,10 +15,10 @@ import { divIcon } from 'leaflet';
 import type { AppData, CaseRow, Constants, ProtectedZone, ProtectedZones, SiteSelection } from '../types';
 
 const CASE_COLOR: Record<CaseRow['status'], string> = {
-  무산: '#dc2626',
-  중단후재개: '#ea580c',
-  진행중분쟁: '#d97706',
-  지연후준공: '#65a30d',
+  무산: '#d8756b',
+  중단후재개: '#d89470',
+  진행중분쟁: '#c6a260',
+  지연후준공: '#74a99b',
   대응중: '#6b7280',
 };
 
@@ -39,15 +39,15 @@ const ZONING_LEGEND: { label: string; color: string; color2?: string }[] = [
   { label: '공업', color: '#cb66ff' },
   { label: '녹지·관리·농림', color: '#cbfd66' },
 ];
-const ZONING_ERROR = '용도지역 타일을 불러오지 못했습니다 (VWorld 응답 없음 또는 서버 VWORLD_API_KEY·등록 도메인 확인)';
-const RESTRICTION_ERROR = '규제구역 타일을 불러오지 못했습니다 (VWorld 응답 없음 또는 서버 VWORLD_API_KEY·등록 도메인 확인)';
+const ZONING_ERROR = '용도지역 지도를 불러오지 못했습니다. 잠시 후 다시 켜 주세요.';
+const RESTRICTION_ERROR = '규제구역 지도를 불러오지 못했습니다. 잠시 후 다시 켜 주세요.';
 
 type RestrictionTypes = Constants['scoring']['restriction']['types'];
 
 function siteIcon(): ReturnType<typeof divIcon> {
   return divIcon({
     className: '',
-    html: '<div class="marker-badge" style="width:26px;height:26px;background:#1d4ed8">P</div>',
+    html: '<div class="marker-badge" style="width:26px;height:26px;background:#e77524">P</div>',
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
@@ -269,6 +269,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          className="base-map-tiles"
         />
         {showZoning && (
           <VworldOverlay
@@ -299,7 +300,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
               key={`sub-${i}`}
               center={[s.lat, s.lng]}
               radius={4}
-              pathOptions={{ color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.7, weight: 1 }}
+              pathOptions={{ color: '#88a8b2', fillColor: '#a9c6cc', fillOpacity: 0.38, weight: 1 }}
             >
               <Popup>
                 <b>{s.name}</b>
@@ -317,7 +318,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
               pathOptions={{
                 color: CASE_COLOR[c.status],
                 fillColor: CASE_COLOR[c.status],
-                fillOpacity: 0.75,
+                fillOpacity: 0.30,
                 weight: 2,
               }}
             >
@@ -340,7 +341,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
               key={`sch-${i}`}
               center={[s[2], s[3]]}
               radius={2}
-              pathOptions={{ color: '#16a34a', fillOpacity: 0.5, weight: 1 }}
+              pathOptions={{ color: '#82aa99', fillOpacity: 0.3, weight: 1 }}
             />
           ))}
         {site && (
@@ -355,17 +356,17 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
           </>
         )}
       </MapContainer>
-      <div className="absolute right-2 top-2 z-[1000] max-w-[60%] rounded bg-white/95 p-2 text-xs shadow sm:right-3 sm:top-3 sm:max-w-none">
+      <div className="map-layer-control">
         <button
           type="button"
           onClick={() => setLayersOpen((v) => !v)}
           aria-expanded={layersOpen}
-          className="flex w-full items-center justify-between gap-2 font-semibold lg:hidden"
+          className="flex w-full items-center justify-between gap-2 font-semibold"
         >
-          표시 항목
+          지도 레이어
           <span aria-hidden>{layersOpen ? '▲' : '▼'}</span>
         </button>
-        <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1 lg:flex`}>
+        <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1`}>
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} />
           변전소 (OSM)

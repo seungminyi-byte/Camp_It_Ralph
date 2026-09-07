@@ -1,0 +1,70 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+import { loadAppData, loadScenarios } from '../test/loadData';
+import { scoreSite } from '../scoring/engine';
+import { buildChecklist } from '../report/checklist';
+import type { ScoreInput } from '../types';
+import { ChecklistReport } from './ChecklistReport';
+import { ResultOverview } from './ResultOverview';
+import { CompareDialog } from './CompareDialog';
+import { pinId } from '../compare/pins';
+
+const data = loadAppData();
+const sc = loadScenarios().find((s) => s.id === 'sejong-contrast')!;
+const base: ScoreInput = {
+  lat: sc.lat, lng: sc.lng, landUse: sc.landUse, projectType: 'standard',
+  capexKrw: 5000e8, annualRate: 0.055,
+};
+
+function renderSurfaces(input: ScoreInput) {
+  const result = scoreSite(input, data);
+  const site = { lat: input.lat, lng: input.lng, source: 'coords' as const };
+  const rows = buildChecklist(result, data, { input, landUseSource: 'manual', zoningName: null });
+  const report = (variant: 'screen' | 'print') => renderToStaticMarkup(<ChecklistReport
+    data={data} input={input} result={result} rows={rows} site={site} landUseSource="manual"
+    zoningName={null} memo={null} generatedBy={null} generatedAt={null} variant={variant} />);
+  const pin = { id: pinId({ selection: site, landUse: input.landUse }), selection: site,
+    landUse: input.landUse, manualLandUse: input.landUse, zoning: null,
+    restrictions: input.restrictions ?? null, disaster: input.disaster ?? null };
+  return {
+    result, rows,
+    overview: renderToStaticMarkup(<ResultOverview result={result} loading={false}
+      incomplete={false} missingEvidence={[]}>{null}</ResultOverview>),
+    reports: [report('screen'), report('print')],
+    compare: renderToStaticMarkup(<CompareDialog open={false} entries={[{ pin, result }]}
+      onClose={() => {}} onOpen={() => {}} onRemove={() => {}} />),
+  };
+}
+
+describe('ARIA integration across summary surfaces', () => {
+  it('preserves the legal E cap and report evidence in the new layout', () => {
+    const rendered = renderSurfaces({ ...base, restrictions: {
+      hits: [{ layer: 'LT_C_UD801', name: '개발제한구역', buffered: false }],
+      queried: ['LT_C_UD801'], failed: [], complete: true,
+    } });
+    expect(rendered.result.composite.capReason).toBe('restriction');
+    expect(rendered.overview).toContain('법정 보호·규제구역 해당으로 E등급으로 제한');
+    expect(rendered.compare).toContain('개발제한구역');
+    expect(rendered.rows).toHaveLength(14);
+    for (const html of rendered.reports) {
+      expect(html).toContain('법정 보호·규제구역 해당으로 E등급으로 제한');
+      expect(html).not.toContain('공급가능 변전소 미확인으로');
+      expect(html).toContain('데이터센터팀');
+      expect(html).not.toContain('GS E');
+    }
+  });
+
+  it('keeps the coverage boundary visible in the new overview', () => {
+    const rendered = renderSurfaces({ ...base, lat: 38, lng: 126.5 });
+    expect(rendered.overview).toContain('자료 범위 밖');
+    expect(rendered.overview).toContain('등급 없음');
+  });
+
+  it('shows conditional review consistently when a B-grade site has unconfirmed lookups', () => {
+    const rendered = renderSurfaces(base);
+    expect(rendered.result.composite.grade).toBe('B');
+    for (const html of [rendered.overview, rendered.compare, ...rendered.reports]) {
+      expect(html).toContain('조건부 검토');
+    }
+  });
+});

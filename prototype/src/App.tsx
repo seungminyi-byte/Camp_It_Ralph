@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useZoning } from './hooks/useZoning';
 import { useDisaster } from './hooks/useDisaster';
@@ -8,12 +8,16 @@ import type { LandUse, LandUseSource, ProjectType, ScoreInput, SiteSelection } f
 import { MAX_PINS, pinId, removePin, toScoreInput, togglePin, type PinnedSite } from './compare/pins';
 import { MapView, type FlyToTarget } from './components/MapView';
 import { SitePanel } from './components/SitePanel';
-import { ScoreCard } from './components/ScoreCard';
-import { CompareTray } from './components/CompareTray';
+import { AnalysisDetails } from './components/AnalysisDetails';
+import { SiteSearch } from './components/SiteSearch';
+import { siteVerdict } from './lib/verdict';
+import { CompareDialog } from './components/CompareDialog';
 import { MemoPanel } from './components/MemoPanel';
 import { DisclaimerFooter } from './components/DisclaimerFooter';
+import { ProjectScalePicker } from './components/ProjectScalePicker';
+import { ResultOverview } from './components/ResultOverview';
 import { PanelResizer } from './components/PanelResizer';
-import { PANEL_WIDTH, readPanelWidth, storePanelWidth } from './lib/panelWidth';
+import { defaultPanelWidth, PANEL_WIDTH, readPanelWidth, storePanelWidth } from './lib/panelWidth';
 
 export default function App() {
   const { data, error } = useAppData();
@@ -24,7 +28,9 @@ export default function App() {
   const [annualRate, setAnnualRate] = useState<number | null>(null);
   const [pins, setPins] = useState<PinnedSite[]>([]);
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
+  const panelScroll = useRef<HTMLDivElement>(null);
 
   const zoning = useZoning(site);
   const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
@@ -93,6 +99,7 @@ export default function App() {
 
   const selectSite = (selection: SiteSelection, zoom?: number) => {
     setPins(resolvedPins);
+    panelScroll.current?.scrollTo({ top: 0 });
     setSite(selection);
     setManualLandUse(null);
     if (zoom !== undefined) setFlyTo({ lat: selection.lat, lng: selection.lng, zoom });
@@ -101,6 +108,7 @@ export default function App() {
   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
   const openPin = (pin: PinnedSite) => {
     setPins(resolvedPins);
+    panelScroll.current?.scrollTo({ top: 0 });
     setSite(pin.selection);
     setManualLandUse(pin.manualLandUse);
     setFlyTo({ lat: pin.selection.lat, lng: pin.selection.lng, zoom: 13 });
@@ -135,106 +143,67 @@ export default function App() {
         : !isPinned && resolvedPins.length >= MAX_PINS
           ? `최대 ${MAX_PINS}곳까지 담을 수 있습니다`
           : isPinned
-            ? '비교에서 해제'
+            ? '이미 담긴 지점입니다'
             : '현재 지점을 비교에 담기';
-
-  const resizePanel = (w: number) => {
-    setPanelWidth(w);
-    storePanelWidth(w);
-  };
 
   const siteKey = site ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}` : 'none';
 
+  const missingEvidence = [
+    landUse === 'unknown' ? '공식 용도지역' : null,
+    zoning.status === 'loading' ? '용도지역 조회 완료' : zoning.status === 'error' ? '용도지역 조회 오류 재확인' : null,
+    restrictions.status === 'loading' ? '규제구역 조회 완료' : restrictions.status === 'error' ? '규제구역 조회 오류 재확인' : restrictionLookup?.complete === false ? '규제구역 일부 조회 미완료' : null,
+    disaster.status === 'loading' ? '재해위험지구 조회 완료' : disaster.status === 'error' ? '재해위험지구 조회 오류 재확인' : null,
+  ].filter((item): item is string => item !== null);
+  const incomplete = missingEvidence.length > 0;
+  const tone = result ? siteVerdict(result, incomplete).tone : 'neutral';
+  const scalePicker = <ProjectScalePicker data={data} value={projectType} capexKrw={capex}
+    annualRate={rate} onCapex={setCapexKrw} onRate={setAnnualRate} onChange={(type) => {
+    setProjectType(type);
+    setCapexKrw(data.constants.scoring.projectProfiles[type].targetMw * data.constants.scoring.finance.capexPerMwKrw);
+    setAnnualRate(data.constants.scoring.finance.defaultAnnualRate);
+  }} />;
+  const addCurrent = () => { if (currentPin && canPin && !isPinned) setPins(togglePin(resolvedPins, currentPin)); };
+
   return (
-    <div className="flex h-full flex-col bg-gray-50 text-gray-900 print:hidden">
-      <header className="flex-none border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
-        <h1 className="text-base font-bold sm:text-lg">
-          여기 DC 돼요?
-          <span className="ml-2 hidden text-sm font-normal text-gray-500 sm:inline">
-            데이터센터 부지 리스크 스크리닝
-          </span>
-        </h1>
+    <div className="dc-workspace print:hidden">
+      <header className="app-header">
+        <div className="brand-symbol" aria-hidden="true">dc<span>↗</span></div>
+        <div className="brand-name"><h1>여기 DC 돼요?</h1><span>데이터센터 부지 사전검토</span></div>
+        <div className="header-context"><span>부지 탐색</span><i>/</i> 예비 타당성 검토</div>
+        <button className="header-saved" onClick={() => setCompareOpen(true)}>담은 후보 <b>{resolvedPins.length}</b></button>
       </header>
-      <CompareTray
-        entries={pinEntries}
-        currentId={currentPin?.id ?? null}
-        isPinned={isPinned}
-        canPin={canPin}
-        pinHint={pinHint}
-        capexKrw={capex}
-        annualRate={rate}
-        projectLabel={`${data.constants.scoring.projectProfiles[projectType].label} · ${data.constants.scoring.projectProfiles[projectType].targetMw}MW`}
-        onPinCurrent={() => {
-          if (currentPin) setPins(togglePin(resolvedPins, currentPin));
-        }}
-        onOpen={openPin}
-        onRemove={(id) => setPins(removePin(resolvedPins, id))}
-      />
-      {/* Under lg the map sits on top at a fixed height and the panel scrolls beneath it. */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="relative h-[42vh] min-h-[200px] w-full flex-none lg:h-auto lg:min-h-0 lg:w-auto lg:min-w-0 lg:flex-[7]">
-          <MapView
-            data={data}
-            site={site}
-            flyTo={flyTo}
-            highlightZoneIds={result?.restriction.hits.flatMap((h) => (h.zoneId ? [h.zoneId] : [])) ?? []}
-            onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })}
-          />
+      <main className="workspace-grid" style={{ gridTemplateColumns: `minmax(360px, 1fr) 6px ${panelWidth}px` }}>
+        <div className={`map-column map-tone-${tone}`}>
+          <div className="map-search"><span className="search-eyebrow">어디에 짓고 싶으세요?</span><SiteSearch centroids={data.emdCentroids} onPick={selectSite} /></div>
+          <div className="map-canvas"><MapView data={data} site={site} flyTo={flyTo} highlightZoneIds={result?.restriction.hits.flatMap((h) => h.zoneId ? [h.zoneId] : []) ?? []} onSelect={(lat, lng) => selectSite({ lat, lng, source: 'map' })} /></div>
+          <div className="map-caption"><span className="map-live-dot" />{site ? '선택 지점의 분석 결과를 오른쪽 패널에서 확인하세요' : '지도 위 원하는 지점을 눌러 분석을 시작하세요'}<span>공개자료 기반</span></div>
         </div>
         <PanelResizer
           width={panelWidth}
           min={PANEL_WIDTH.min}
           max={PANEL_WIDTH.max}
-          defaultWidth={PANEL_WIDTH.default}
-          onChange={resizePanel}
+          defaultWidth={defaultPanelWidth()}
+          onChange={(width) => { setPanelWidth(width); storePanelWidth(width); }}
         />
-        <aside
-          className="site-panel flex w-full min-h-0 flex-1 flex-col overflow-y-auto border-t border-gray-200 bg-white lg:flex-none lg:border-l lg:border-t-0"
-          style={{ '--panel-w': `${panelWidth}px` } as CSSProperties}
-        >
-          <SitePanel
-            data={data}
-            site={site}
-            landUse={landUse}
-            landUseSource={landUseSource}
-            zoning={zoning}
-            capexKrw={capex}
-            annualRate={rate}
-            projectType={projectType}
-            onPick={selectSite}
-            onLandUse={setManualLandUse}
-            onResetAuto={() => setManualLandUse(null)}
-            onCapex={setCapexKrw}
-            onRate={setAnnualRate}
-            onProjectType={(type) => {
-              setProjectType(type);
-              const profile = data.constants.scoring.projectProfiles[type];
-              setCapexKrw(profile.targetMw * data.constants.scoring.finance.capexPerMwKrw);
-            }}
-          />
-          {result && input && site && (
-            <>
-              <ScoreCard
-                result={result}
-                data={data}
-                onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
-              />
-              {result.site.eligible && (
-                <MemoPanel
-                  key={siteKey}
-                  data={data}
-                  input={input}
-                  result={result}
-                  site={site}
-                  landUseSource={landUseSource}
-                  zoningName={zoningLookup?.found ? zoningLookup.name : null}
-                />
-              )}
-            </>
-          )}
-          <DisclaimerFooter data={data} />
+        <aside className="analysis-panel" aria-label="부지 분석 패널">
+          <div className="panel-scroll" ref={panelScroll}>
+            {result ? <ResultOverview result={result} loading={zoning.status === 'loading' || restrictions.status === 'loading' || disaster.status === 'loading'} incomplete={incomplete} missingEvidence={missingEvidence}>{scalePicker}</ResultOverview> :
+              <section className="empty-state"><span className="eyebrow">SITE ASSESSMENT</span><h2>좋은 부지의 시작,<br />명확한 판단에서.</h2><p>전력부터 인허가까지.<br />지도에서 후보지를 선택해 가능성을 확인하세요.</p><div className="empty-score"><strong>—</strong><span>종합 점수 · 부지 선택 대기</span></div>{scalePicker}<div className="empty-features"><span>01 <b>입지 조건 분석</b></span><span>02 <b>리스크 확인</b></span><span>03 <b>후보지 비교</b></span></div></section>}
+            {result && <AnalysisDetails result={result} data={data} onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })} />}
+            <details className="settings-section"><summary>용도지역 및 부지 정보 <span>{landUse === 'unknown' ? '용도지역 미확인' : '용도지역 확인됨'}</span></summary>
+              <SitePanel site={site} landUse={landUse} landUseSource={landUseSource} zoning={zoning} onLandUse={setManualLandUse} onResetAuto={() => setManualLandUse(null)} />
+            </details>
+            {result?.site.eligible && input && site && <details className="report-section"><summary>실사 체크리스트 · AI 검토 <span>PDF 저장 ↗</span></summary><MemoPanel key={siteKey} data={data} input={input} result={result} site={site} landUseSource={landUseSource} zoningName={zoningLookup?.found ? zoningLookup.name : null} /></details>}
+            <DisclaimerFooter data={data} />
+          </div>
+          <div className="panel-action">
+            <p role="status">{resolvedPins.length ? `${resolvedPins.length}곳 담김 · 최대 ${MAX_PINS}곳 비교` : pinHint}</p>
+            <div>{resolvedPins.length > 0 && <button className="secondary-action" disabled={!canPin || isPinned} title={pinHint} onClick={addCurrent}>{isPinned ? '✓ 담긴 지점' : '+ 현재지점 담기'}</button>}
+              <button className="primary-action" disabled={resolvedPins.length === 0 && !canPin} title={resolvedPins.length ? '담은 후보를 나란히 비교합니다' : pinHint} onClick={() => resolvedPins.length ? setCompareOpen(true) : addCurrent()}>{resolvedPins.length ? '후보지 비교하기' : '현재지점 담기'}<span aria-hidden="true">{resolvedPins.length ? '→' : '+'}</span></button></div>
+          </div>
         </aside>
-      </div>
+      </main>
+      <CompareDialog open={compareOpen} entries={pinEntries} onClose={() => setCompareOpen(false)} onOpen={openPin} onRemove={(id) => setPins(removePin(resolvedPins, id))} />
     </div>
   );
 }

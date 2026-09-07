@@ -23,7 +23,17 @@ export function useZoning(site: { lat: number; lng: number } | null): ZoningStat
     if (peekZoning(lat, lng)) return; // already answered; resolved during render
     const key = zoningCacheKey(lat, lng);
     const ctrl = new AbortController();
-    lookupZoning(lat, lng, ctrl.signal).then(
+    const lookupWithRetry = async () => {
+      try {
+        return await lookupZoning(lat, lng, ctrl.signal);
+      } catch (firstError) {
+        if (ctrl.signal.aborted) throw firstError;
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 350));
+        if (ctrl.signal.aborted) throw firstError;
+        return lookupZoning(lat, lng, ctrl.signal);
+      }
+    };
+    lookupWithRetry().then(
       (lookup) => {
         if (!ctrl.signal.aborted) setSettled({ key, state: { status: 'done', lookup } });
       },

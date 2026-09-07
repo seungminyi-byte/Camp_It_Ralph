@@ -193,8 +193,8 @@ LLM 설정 UI 삭제(서버 프록시 OpenRouter·MiniMax 단일 경로).
 2. ~~Vercel 배포~~ 완료 → 공유 URL https://grand-site-dc.vercel.app. 환경변수는 `OPENROUTER_API_KEY` +
    `LLM_MODEL=minimax/minimax-m3:free` (Production·Preview). 배포 자동화는 `.github/workflows/vercel-prod.yml`:
    이 브랜치의 `prototype/**` 푸시 시 GitHub Actions가 Vercel CLI로 프로덕션 배포 (저장소 시크릿 `VERCEL_TOKEN` 필요).
-   Vercel GitHub 앱 연동은 쓰지 않는다 — Hobby 플랜은 팀 소유자 커밋만 배포하고, 기본 브랜치(팀원)에 `prototype/`가
-   없어 실패 표시가 남는다. 수동 배포는 `cd prototype && vercel --prod` (처음이면 `vercel link --project grand-site-dc`).
+   Vercel GitHub 앱 연동은 쓰지 않는다 — Hobby 플랜의 커밋 작성자 제한을 피하기 위해 CLI 배포를 사용한다.
+   기본 브랜치는 `seungminyi-byte-prototype`을 사용한다. 수동 배포는 `cd prototype && vercel --prod` (처음이면 `vercel link --project grand-site-dc`).
    프리뷰 URL은 Vercel 로그인 사용자만 열 수 있다(기본 Deployment Protection).
 3. ~~P1 확장~~ 완료 (VWorld 용도지역 오버레이 · 건축HUB 허가→착공 통계 · 네이버 뉴스 갈등 시그널). 갱신은
    `data-pack/.env`에 키를 두고 `python data-pack/scripts/p05_permits_api.py`(법정동 단위 페이징, `raw/permits/` 캐시) ·
