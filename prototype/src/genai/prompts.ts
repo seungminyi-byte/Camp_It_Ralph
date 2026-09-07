@@ -1,3 +1,4 @@
+import { summarizeDisaster } from '../lib/disasterSummary';
 import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
 import { CONFLICT_LEVEL_LABEL, LAND_USE_LABEL } from '../scoring/engine';
 import { summarizeRestriction } from '../scoring/restriction';
@@ -56,8 +57,10 @@ export function buildMemoPrompt(
 
 [평가 대상]
 - 위치: ${loc}${ctx.site?.label ? ` (${ctx.site.label})` : ''}
+- 사업 유형: ${result.project.profile.label} (${result.project.profile.targetMw}MW급) · 공급가능 변전소 ${result.project.profile.minSubstations}곳 이상, 최근접 변전소 ${result.project.profile.maxSubstationKm}km 이내 권장
 - 용도지역: ${landUseLine(input, ctx)}
 - 부지 판정: ${result.site.label} — ${result.site.detail}
+- 재해위험지구: ${summarizeDisaster(result.disaster)} · 인허가 감점 ${result.disaster.deduction}점 (내부 예비 평가 기준). ${data.constants.scoring.disaster.reviewNote}
 - 법정 보호·규제구역: ${summarizeRestriction(result.restriction)}
 ${terrainLine}
 - 총사업비 가정: ${(input.capexKrw / 1e8).toLocaleString()}억원, 연 금리 ${(input.annualRate * 100).toFixed(1)}%
@@ -65,6 +68,7 @@ ${terrainLine}
 [스크리닝 결과]
 - 종합 등급: ${result.composite.grade} (${result.composite.score}점)${capNote ? ` · ${capNote}` : ''}
 - 전력 수전 가능성 ${result.power.score}점 · 인허가 여건 ${result.permit.score}점
+- 사업 규모별 전력 적합성 조정: −${result.project.powerDeduction}점
 - 주민 갈등 가능성: ${CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]} (갈등 사례·인근 사례·뉴스 감점 합 ${result.permit.conflictRisk.points}점)
 - 예상 인허가 지연: ${result.delay.minMonths}~${result.delay.maxMonths}개월 (대표값 ${result.delay.pointMonths}개월, 참조 사례: ${result.delay.anchor})
 - 지연 금융비용 추정: 월 ${Math.round(result.finance.monthlyCostKrw / 1e8)}억원, 총 약 ${Math.round(result.finance.delayCostKrw / 1e8)}억원

@@ -14,7 +14,7 @@ const CFG: TerrainConfig = {
     { maxP50Deg: 25, deduction: 20, label: '급경사' },
     { maxP50Deg: 999, deduction: 30, label: '산지' },
   ],
-  unsuitable: { minP50Deg: 25, minSteepPct: 70 },
+  unsuitable: { minP50Deg: 25, minSteepPct: 70, minDeduction: 20 },
   reclaimedOverrides: [{ name: '새만금', bbox: [35.68, 126.42, 35.98, 126.78] }],
 };
 
@@ -83,16 +83,17 @@ describe('decodeTerrain / lookupTerrain', () => {
 });
 
 describe('classifySite', () => {
-  const opts = { zoningFound: null, assumeLand: false };
+  const opts = { zoningFound: null };
 
   it('calls a missing sample nodata', () => {
     expect(classifySite(null, null, CFG, opts).status).toBe('nodata');
   });
 
   it('calls a mostly-dry cell land and a mixed cell coastal', () => {
-    expect(classifySite(sample({ landPct: 60 }), null, CFG, opts).status).toBe('ok');
-    expect(classifySite(sample({ landPct: 40 }), null, CFG, opts).status).toBe('coastal');
-    expect(classifySite(sample({ landPct: 21 }), null, CFG, opts).status).toBe('coastal');
+    expect(classifySite(sample({ landPct: 60 }), null, CFG, opts)).toMatchObject({ status: 'ok', eligible: true });
+    expect(classifySite(sample({ landPct: 40 }), null, CFG, opts)).toMatchObject({ status: 'coastal', eligible: false });
+    expect(classifySite(sample({ landPct: 21 }), null, CFG, { zoningFound: true })).toMatchObject({ status: 'coastal', eligible: true });
+    expect(classifySite(sample({ landPct: 40 }), null, CFG, { zoningFound: false })).toMatchObject({ status: 'coastal', eligible: false });
   });
 
   it('calls open water sea only when nothing rescues it', () => {
@@ -102,10 +103,13 @@ describe('classifySite', () => {
     const over = classifySite(wet, CFG.reclaimedOverrides[0], CFG, opts);
     expect(over.status).toBe('reclaimed');
     expect(over.override).toBe('새만금');
+    expect(classifySite(sample({ landPct: 40 }), CFG.reclaimedOverrides[0], CFG, opts)).toMatchObject({
+      status: 'reclaimed',
+      eligible: true,
+    });
 
-    expect(classifySite(wet, null, CFG, { zoningFound: true, assumeLand: false }).status).toBe('reclaimed');
-    expect(classifySite(wet, null, CFG, { zoningFound: false, assumeLand: true }).status).toBe('reclaimed');
-    expect(classifySite(wet, null, CFG, { zoningFound: false, assumeLand: false }).status).toBe('sea');
+    expect(classifySite(wet, null, CFG, { zoningFound: true })).toMatchObject({ status: 'reclaimed', eligible: true });
+    expect(classifySite(wet, null, CFG, { zoningFound: false })).toMatchObject({ status: 'sea', eligible: false });
   });
 });
 
@@ -130,7 +134,7 @@ describe('slopeDeduction', () => {
 
   it('flags unsuitable ground by median slope or by steep share', () => {
     expect(slopeDeduction(sample({ slopeP50Deg: 25, steepPct: 10 }), CFG).unsuitable).toBe(true);
-    expect(slopeDeduction(sample({ slopeP50Deg: 8, steepPct: 70 }), CFG).unsuitable).toBe(true);
+    expect(slopeDeduction(sample({ slopeP50Deg: 8, steepPct: 70 }), CFG)).toMatchObject({ unsuitable: true, points: 20 });
     expect(slopeDeduction(sample({ slopeP50Deg: 8, steepPct: 40 }), CFG).unsuitable).toBe(false);
   });
 });

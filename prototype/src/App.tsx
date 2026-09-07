@@ -1,9 +1,10 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useZoning } from './hooks/useZoning';
+import { useDisaster } from './hooks/useDisaster';
 import { useRestrictions } from './hooks/useRestrictions';
 import { scoreSite } from './scoring/engine';
-import type { LandUse, LandUseSource, ScoreInput, SiteSelection } from './types';
+import type { LandUse, LandUseSource, ProjectType, ScoreInput, SiteSelection } from './types';
 import { MAX_PINS, pinId, removePin, toScoreInput, togglePin, type PinnedSite } from './compare/pins';
 import { MapView, type FlyToTarget } from './components/MapView';
 import { SitePanel } from './components/SitePanel';
@@ -18,7 +19,7 @@ export default function App() {
   const { data, error } = useAppData();
   const [site, setSite] = useState<SiteSelection | null>(null);
   const [manualLandUse, setManualLandUse] = useState<LandUse | null>(null);
-  const [assumeLand, setAssumeLand] = useState(false);
+  const [projectType, setProjectType] = useState<ProjectType>('standard');
   const [capexKrw, setCapexKrw] = useState<number | null>(null);
   const [annualRate, setAnnualRate] = useState<number | null>(null);
   const [pins, setPins] = useState<PinnedSite[]>([]);
@@ -30,6 +31,8 @@ export default function App() {
   // Separate request from zoning so a VWorld hiccup on one never blanks the other.
   const restrictions = useRestrictions(site, data?.constants.scoring.restriction.heritageBufferM ?? 500);
   const restrictionLookup = restrictions.status === 'done' ? restrictions.lookup : null;
+  const disaster = useDisaster(site);
+  const disasterLookup = disaster.status === 'done' ? disaster.lookup : null;
 
   // The dropdown wins once the user touches it; otherwise VWorld fills it in.
   const auto = zoningLookup?.found ? zoningLookup : null;
@@ -46,23 +49,31 @@ export default function App() {
       lat: site.lat,
       lng: site.lng,
       landUse,
+      projectType,
       capexKrw: capex,
       annualRate: rate,
       zoning: zoningLookup,
-      assumeLand,
       restrictions: restrictionLookup,
+      disaster: disasterLookup,
     };
-  }, [data, site, landUse, capex, rate, zoningLookup, assumeLand, restrictionLookup]);
+  }, [data, site, landUse, projectType, capex, rate, zoningLookup, restrictionLookup, disasterLookup]);
 
   const result = useMemo(
     () => (data && input ? scoreSite(input, data) : null),
     [data, input],
   );
 
-  // Pinned sites are re-scored under the current capex and rate: same project, different place.
+  // Project the current settled evidence onto the opened pin; selection events persist this snapshot.
+  const resolvedPins = useMemo(() => {
+    if (!site || !result || zoning.status === 'loading' || restrictions.status === 'loading' || disaster.status === 'loading') return pins;
+    const id = pinId({ selection: site, landUse });
+    return pins.flatMap((pin) => pin.id !== id ? [pin] : result.site.eligible
+      ? [{ ...pin, zoning: zoningLookup, restrictions: restrictionLookup, disaster: disasterLookup }] : []);
+  }, [pins, site, result, landUse, zoning.status, restrictions.status, disaster.status, zoningLookup, restrictionLookup, disasterLookup]);
+  // Every chip is an engine result under the same current project assumptions.
   const pinEntries = useMemo(
-    () => (data ? pins.map((pin) => ({ pin, result: scoreSite(toScoreInput(pin, capex, rate), data) })) : []),
-    [data, pins, capex, rate],
+    () => (data ? resolvedPins.map((pin) => ({ pin, result: scoreSite(toScoreInput(pin, capex, rate, projectType), data) })) : []),
+    [data, resolvedPins, capex, rate, projectType],
   );
 
   if (error) {
@@ -81,44 +92,47 @@ export default function App() {
   }
 
   const selectSite = (selection: SiteSelection, zoom?: number) => {
+    setPins(resolvedPins);
     setSite(selection);
     setManualLandUse(null);
-    setAssumeLand(false);
     if (zoom !== undefined) setFlyTo({ lat: selection.lat, lng: selection.lng, zoom });
   };
 
   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
   const openPin = (pin: PinnedSite) => {
+    setPins(resolvedPins);
     setSite(pin.selection);
     setManualLandUse(pin.manualLandUse);
-    setAssumeLand(pin.assumeLand);
     setFlyTo({ lat: pin.selection.lat, lng: pin.selection.lng, zoom: 13 });
   };
 
   const currentPin: PinnedSite | null =
-    site && result && result.site.status !== 'sea' && result.site.status !== 'outside'
+    site && result && result.site.eligible
       ? (() => {
-          const base = { selection: site, landUse, assumeLand };
-          return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup, restrictions: restrictionLookup };
+          const base = { selection: site, landUse };
+          return { id: pinId(base), ...base, manualLandUse, zoning: zoningLookup, restrictions: restrictionLookup, disaster: disasterLookup };
         })()
       : null;
-  const isPinned = currentPin !== null && pins.some((p) => p.id === currentPin.id);
+  const isPinned = currentPin !== null && resolvedPins.some((p) => p.id === currentPin.id);
   const canPin =
     currentPin !== null &&
     zoning.status !== 'loading' &&
     restrictions.status !== 'loading' &&
-    (isPinned || pins.length < MAX_PINS);
+    disaster.status !== 'loading' &&
+    (isPinned || resolvedPins.length < MAX_PINS);
   const pinHint = !site
     ? '지도를 클릭하거나 주소를 검색하세요'
-    : result?.site.status === 'sea'
-      ? '해상·수역은 비교 대상이 아닙니다'
-      : result?.site.status === 'outside'
-        ? '자료 범위 밖 지점은 비교 대상이 아닙니다'
-        : zoning.status === 'loading'
+    : result?.site.status === 'outside'
+      ? '자료 범위 밖 지점은 비교 대상이 아닙니다'
+      : result && !result.site.eligible
+      ? `${result.site.label} 지점은 비교 대상이 아닙니다`
+      : zoning.status === 'loading'
         ? '용도지역 조회 중…'
         : restrictions.status === 'loading'
         ? '규제구역 조회 중…'
-        : !isPinned && pins.length >= MAX_PINS
+        : disaster.status === 'loading'
+          ? '재해위험지구 조회 중…'
+        : !isPinned && resolvedPins.length >= MAX_PINS
           ? `최대 ${MAX_PINS}곳까지 담을 수 있습니다`
           : isPinned
             ? '비교에서 해제'
@@ -149,11 +163,12 @@ export default function App() {
         pinHint={pinHint}
         capexKrw={capex}
         annualRate={rate}
+        projectLabel={`${data.constants.scoring.projectProfiles[projectType].label} · ${data.constants.scoring.projectProfiles[projectType].targetMw}MW`}
         onPinCurrent={() => {
-          if (currentPin) setPins((p) => togglePin(p, currentPin));
+          if (currentPin) setPins(togglePin(resolvedPins, currentPin));
         }}
         onOpen={openPin}
-        onRemove={(id) => setPins((p) => removePin(p, id))}
+        onRemove={(id) => setPins(removePin(resolvedPins, id))}
       />
       {/* Under lg the map sits on top at a fixed height and the panel scrolls beneath it. */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -185,21 +200,26 @@ export default function App() {
             zoning={zoning}
             capexKrw={capex}
             annualRate={rate}
+            projectType={projectType}
             onPick={selectSite}
             onLandUse={setManualLandUse}
             onResetAuto={() => setManualLandUse(null)}
             onCapex={setCapexKrw}
             onRate={setAnnualRate}
+            onProjectType={(type) => {
+              setProjectType(type);
+              const profile = data.constants.scoring.projectProfiles[type];
+              setCapexKrw(profile.targetMw * data.constants.scoring.finance.capexPerMwKrw);
+            }}
           />
           {result && input && site && (
             <>
               <ScoreCard
                 result={result}
                 data={data}
-                onAssumeLand={() => setAssumeLand(true)}
                 onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
               />
-              {result.site.status !== 'sea' && result.site.status !== 'outside' && (
+              {result.site.eligible && (
                 <MemoPanel
                   key={siteKey}
                   data={data}

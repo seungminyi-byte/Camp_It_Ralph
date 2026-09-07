@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { memoContextKey, sameMemoInput } from '../genai/memoContext';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AppData, LandUseSource, ScoreInput, ScoreResult, SiteSelection } from '../types';
 import { buildChecklist, type ChecklistRow } from '../report/checklist';
 import { buildMemoPrompt } from '../genai/prompts';
@@ -37,25 +38,12 @@ interface Props {
   zoningName: string | null;
 }
 
-function sameInput(a: ScoreInput, b: ScoreInput): boolean {
-  return (
-    a.lat === b.lat &&
-    a.lng === b.lng &&
-    a.landUse === b.landUse &&
-    a.capexKrw === b.capexKrw &&
-    a.annualRate === b.annualRate &&
-    (a.assumeLand ?? false) === (b.assumeLand ?? false) &&
-    // A late VWorld answer can flip the grade (규제구역 → E), so the memo must go stale with it.
-    (a.zoning ?? null) === (b.zoning ?? null) &&
-    (a.restrictions ?? null) === (b.restrictions ?? null)
-  );
-}
-
 /** The panel is keyed on the site in App, so a new point remounts it with a clean slate. */
 export function MemoPanel({ data, input, result, site, landUseSource, zoningName }: Props) {
   const [run, setRun] = useState<Run | null>(null);
   const [showRaw, setShowRaw] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
+  useEffect(() => () => ctrl.current?.abort(), []);
 
   const rows = useMemo(
     () => buildChecklist(result, data, { input, landUseSource, zoningName }),
@@ -63,7 +51,7 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
   );
 
   const busy = run?.status === 'streaming';
-  const stale = run !== null && !sameInput(run.snapshot.input, input);
+  const stale = run !== null && !sameMemoInput(run.snapshot.input, input);
   const shown = run?.snapshot ?? { input, result, rows, landUseSource, zoningName, site };
   const generatedBy =
     run && run.mode
@@ -92,7 +80,7 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
     try {
       await generateMemo(prompt, {
         signal: c.signal,
-        fallbackAt: { lat: input.lat, lng: input.lng },
+        fallbackAt: { lat: input.lat, lng: input.lng, contextKey: await memoContextKey(input, result, rows) },
         onText: (t) =>
           setRun((prev) => {
             if (!prev || c.signal.aborted) return prev;

@@ -1,4 +1,5 @@
 """Run the full data pipeline and sync outputs into the prototype app."""
+import argparse
 import json
 import shutil
 import subprocess
@@ -25,7 +26,10 @@ PIPELINE = [
 
 
 def main() -> int:
-    for name in PIPELINE:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sync-only", action="store_true", help="Validate and sync existing outputs without rebuilding or fetching")
+    args = parser.parse_args()
+    for name in ([] if args.sync_only else PIPELINE):
         print(f"== {name}")
         r = subprocess.run([sys.executable, str(SCRIPTS / name)])
         if r.returncode != 0:

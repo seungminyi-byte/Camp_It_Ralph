@@ -94,7 +94,8 @@ def main() -> int:
         )
 
     # constants.scoring.coverage decides 판독 불가 in the app; a rebuilt centroid set must stay inside it.
-    coverage = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"].get("coverage")
+    scoring = json.loads((CURATED / "constants.json").read_text(encoding="utf-8"))["scoring"]
+    coverage = scoring.get("coverage")
     check(coverage is not None, "constants.scoring.coverage present")
     if coverage:
         line = coverage["northernBoundary"]
@@ -225,6 +226,11 @@ def main() -> int:
         bands = [b["maxP50Deg"] for b in cfg["slopeDeduction"]]
         check(bands == sorted(bands) and bands[-1] >= 999, "terrain slope bands ascend to a catch-all")
         check(
+            cfg["unsuitable"]["minDeduction"] == 20,
+            "terrain unsuitable cells receive at least a 20-point deduction",
+        )
+
+        check(
             all(
                 b[0] < b[2] and b[1] < b[3] and in_korea(b[0], b[1]) and in_korea(b[2], b[3])
                 for b in (o["bbox"] for o in cfg["reclaimedOverrides"])
@@ -238,6 +244,20 @@ def main() -> int:
         check(bool(songdo), "송도 6·8공구 covered by a reclaimed override: {}".format(songdo))
     else:
         print("SKIP terrain_grid.json not present (terrain signal disabled)")
+
+    profiles = scoring.get("projectProfiles", {})
+    check(set(profiles) == {"small", "standard", "hyperscale"}, "three project profiles present")
+    if profiles:
+        ordered = [profiles[key] for key in ("small", "standard", "hyperscale")]
+        check([p["targetMw"] for p in ordered] == [10, 40, 100], "project profile MW presets are 10/40/100")
+        check(
+            [p["powerDeductionCap"] for p in ordered] == sorted(p["powerDeductionCap"] for p in ordered),
+            "project power deduction caps ascend with scale",
+        )
+        check(all(0 <= p["substationDeductionShare"] <= 1 for p in ordered), "project power deduction shares are bounded")
+    check(scoring["disaster"]["deduction"] == 15, "disaster deduction is 15 points")
+    check("LT_C_UP201" not in scoring["restriction"]["vworldLayers"], "disaster is not double-counted as a restriction")
+
 
     # 법정 보호·규제구역 polygons (p08) — the app caps a site inside a prohibited zone at grade E, so the demo
     # scenarios must stay clear of them and the well-known parks must register.

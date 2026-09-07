@@ -7,10 +7,10 @@ export type LlmMode = 'proxy' | 'fallback';
 export const FALLBACK_RADIUS_KM = 0.3;
 
 export interface PrecomputedFile {
-  version: 2;
+  version: 3;
   model: string;
   generatedAt: string;
-  memos: Record<string, { lat: number; lng: number; landUse: LandUse; text: string }>;
+  memos: Record<string, { lat: number; lng: number; landUse: LandUse; contextKey: string; text: string }>;
 }
 
 export interface GenerateMeta {
@@ -24,7 +24,7 @@ export interface GenerateOptions {
   onText: (t: string) => void;
   onMode: (mode: LlmMode, meta?: GenerateMeta) => void;
   /** Where to look for an offline memo when the proxy is unreachable. */
-  fallbackAt: { lat: number; lng: number } | null;
+  fallbackAt: { lat: number; lng: number; contextKey: string } | null;
 }
 
 async function streamViaProxy(
@@ -51,15 +51,17 @@ async function streamViaProxy(
 }
 
 async function loadPrecomputed(
-  at: { lat: number; lng: number },
+  at: { lat: number; lng: number; contextKey: string },
   signal: AbortSignal,
 ): Promise<{ id: string; text: string; distanceKm: number } | null> {
   try {
     const res = await fetch('data/precomputed_memos.json', { signal });
     if (!res.ok) return null;
     const file = (await res.json()) as PrecomputedFile;
+    if (file.version !== 3) return null;
     let best: { id: string; text: string; distanceKm: number } | null = null;
     for (const [id, memo] of Object.entries(file.memos ?? {})) {
+      if (memo.contextKey !== at.contextKey) continue;
       const distanceKm = haversineKm(at.lat, at.lng, memo.lat, memo.lng);
       if (distanceKm <= FALLBACK_RADIUS_KM && (!best || distanceKm < best.distanceKm)) {
         best = { id, text: memo.text, distanceKm };
@@ -103,6 +105,6 @@ export async function generateMemo(prompt: string, opts: GenerateOptions): Promi
 
   throw new Error(
     `검토 의견 생성 실패 (${proxyError}). 서버 환경변수 OPENROUTER_API_KEY를 확인하세요. ` +
-      `사전 생성 메모는 등록된 지점 반경 ${FALLBACK_RADIUS_KM * 1000}m 이내에서만 제공됩니다.`,
+      `사전 생성 메모는 등록된 지점 반경 ${FALLBACK_RADIUS_KM * 1000}m 이내이며 평가조건이 같은 경우에만 제공됩니다.`,
   );
 }

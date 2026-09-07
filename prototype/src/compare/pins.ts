@@ -1,4 +1,4 @@
-import type { LandUse, RestrictionLookup, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
+import type { DisasterLookup, LandUse, ProjectType, RestrictionLookup, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
 
 /** UI capacity, not a scoring threshold — so it lives here rather than in constants.json. */
 export const MAX_PINS = 4;
@@ -18,7 +18,7 @@ export interface PinnedSite {
   zoning: ZoningLookup | null;
   /** VWorld 규제구역 answer as pinned, so re-scoring the tray never refetches */
   restrictions: RestrictionLookup | null;
-  assumeLand: boolean;
+  disaster: DisasterLookup | null;
 }
 
 export interface CompareEntry {
@@ -27,9 +27,9 @@ export interface CompareEntry {
 }
 
 /** Same coordinates under a different land use are a legitimate what-if, so they get separate ids. */
-export function pinId(p: Pick<PinnedSite, 'selection' | 'landUse' | 'assumeLand'>): string {
+export function pinId(p: Pick<PinnedSite, 'selection' | 'landUse'>): string {
   const { lat, lng } = p.selection;
-  return `${lat.toFixed(5)},${lng.toFixed(5)}|${p.landUse}|${p.assumeLand ? 'land' : ''}`;
+  return `${lat.toFixed(5)},${lng.toFixed(5)}|${p.landUse}`;
 }
 
 /** Add when absent, remove when present; a full tray returns the same array so callers can bail. */
@@ -43,16 +43,22 @@ export function removePin(pins: PinnedSite[], id: string): PinnedSite[] {
   return pins.some((p) => p.id === id) ? pins.filter((p) => p.id !== id) : pins;
 }
 
-export function toScoreInput(pin: PinnedSite, capexKrw: number, annualRate: number): ScoreInput {
+export function toScoreInput(
+  pin: PinnedSite,
+  capexKrw: number,
+  annualRate: number,
+  projectType: ProjectType,
+): ScoreInput {
   return {
     lat: pin.selection.lat,
     lng: pin.selection.lng,
     landUse: pin.landUse,
+    projectType,
     capexKrw,
     annualRate,
     zoning: pin.zoning,
-    assumeLand: pin.assumeLand,
     restrictions: pin.restrictions,
+    disaster: pin.disaster,
   };
 }
 

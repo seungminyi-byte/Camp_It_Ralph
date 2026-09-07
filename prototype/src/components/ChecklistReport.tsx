@@ -4,6 +4,7 @@ import { VERDICT_GLYPH, VERDICT_LABEL, type ChecklistRow } from '../report/check
 import type { ParsedMemo } from '../genai/memoFormat';
 import { fmtKrw, gradeCapNote } from '../lib/format';
 import { summarizeRestriction } from '../scoring/restriction';
+import { summarizeDisaster } from '../lib/disasterSummary';
 
 const SOURCE_LABEL: Record<SiteSelection['source'], string> = {
   map: '지도 클릭',
@@ -50,6 +51,7 @@ export function ChecklistReport(props: ReportProps) {
     d.stats,
     d.terrain,
     d.restriction,
+    d.disaster,
     ...(data.permitDelay ? [d.permits] : []),
     ...(data.newsSignal ? [d.news] : []),
   ].filter(Boolean);
@@ -79,9 +81,12 @@ export function ChecklistReport(props: ReportProps) {
           <dd>{result.site.label} — {result.site.detail}</dd>
           <dt className="text-gray-500">보호·규제구역</dt>
           <dd>{summarizeRestriction(result.restriction)}</dd>
+          <dt className="text-gray-500">재해위험지구</dt>
+          <dd>{summarizeDisaster(result.disaster)}</dd>
           <dt className="text-gray-500">사업 가정</dt>
           <dd>
-            총사업비 {(input.capexKrw / 1e8).toLocaleString()}억원 · 연 금리{' '}
+            {result.project.profile.label} {result.project.profile.targetMw}MW급 · 총사업비{' '}
+            {(input.capexKrw / 1e8).toLocaleString()}억원 · 연 금리{' '}
             {(input.annualRate * 100).toFixed(1)}%
           </dd>
         </dl>
@@ -98,7 +103,8 @@ export function ChecklistReport(props: ReportProps) {
           {' · '}전력 수전 가능성 {result.power.score}점 · 인허가 여건 {result.permit.score}점
         </p>
         <p className={`mt-0.5 ${small}`}>
-          공급가능 변전소 {result.gate.substationCount}곳 · 확보 전력 추정 {result.power.capacityBand}
+          공급가능 변전소 {result.gate.substationCount}곳 · 확보 전력 추정 {result.power.capacityBand} · 사업
+          규모별 전력 적합성 조정 −{result.project.powerDeduction}점
         </p>
         <p className={`mt-0.5 ${small}`}>
           주민 갈등 가능성 <b>{CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]}</b> · 갈등 사례·뉴스

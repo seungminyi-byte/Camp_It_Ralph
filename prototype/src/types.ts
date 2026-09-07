@@ -94,6 +94,20 @@ export type LandUse =
   | 'residential'
   | 'unknown';
 
+export type ProjectType = 'small' | 'standard' | 'hyperscale';
+
+export interface ProjectProfile {
+  label: string;
+  description: string;
+  targetMw: number;
+  minSubstations: number;
+  maxSubstationKm: number;
+  powerDeductionCap: number;
+  substationDeductionShare: number;
+  populationSchoolMultiplier: number;
+  slopeMultiplier: number;
+}
+
 export interface PermitDelayStat {
   n: number;
   started: number;
@@ -300,6 +314,8 @@ export interface Constants {
       /** a nearest 읍면동 centroid farther than this means no land data (대마도, 독도, open sea) */
       emdOutsideKm: number;
     };
+    projectProfiles: Record<ProjectType, ProjectProfile>;
+    disaster: { deduction: number; label: string; law: string; sourceUrl: string; reviewNote: string };
     power: {
       weightSupply: number;
       weightRegion: number;
@@ -339,7 +355,7 @@ export interface Constants {
       seaMaxLandPct: number;
       coastalMaxLandPct: number;
       slopeDeduction: { maxP50Deg: number; deduction: number; label: string }[];
-      unsuitable: { minP50Deg: number; minSteepPct: number };
+      unsuitable: { minP50Deg: number; minSteepPct: number; minDeduction: number };
       reclaimedOverrides: ReclaimedOverride[];
     };
     /** 법정 보호·규제구역: bundled polygons (protected_zones.json) + VWorld point lookups (api/restrictions.ts) */
@@ -413,17 +429,41 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
+  projectType: ProjectType;
   capexKrw: number;
   annualRate: number;
   /** VWorld lookup for this point; lets the engine tell reclaimed land from open water. */
   zoning?: ZoningLookup | null;
-  /** User override: treat a water cell as buildable land. */
-  assumeLand?: boolean;
   /** VWorld 규제구역 lookup for this point (api/restrictions.ts); null while loading or when it failed. */
   restrictions?: RestrictionLookup | null;
+  /** A validated point lookup; absent while unconfirmed or failed. */
+  disaster?: DisasterLookup | null;
+}
+
+export interface DisasterRiskHit {
+  name: string | null;
+  attributes: Record<string, string | number | boolean | null>;
+}
+
+export interface DisasterLookup {
+  found: boolean;
+  layer: 'LT_C_UP201';
+  coordinate: { lat: number; lng: number };
+  hits: DisasterRiskHit[];
 }
 
 export interface ScoreResult {
+  disaster: { status: 'hit' | 'none' | 'unknown'; hits: DisasterRiskHit[]; deduction: number };
+  project: {
+    type: ProjectType;
+    profile: ProjectProfile;
+    powerDeduction: number;
+    substationDeduction: number;
+    distanceDeduction: number;
+    requirementsMet: boolean;
+    substationRequirementMet: boolean;
+    distanceRequirementMet: boolean;
+  };
   emd: { key: string; sido: string; sigungu: string; emd: string; distanceKm: number } | null;
   emdUncertain: boolean;
   gate: { pass: boolean; substationCount: number; substations: string[] };
@@ -473,7 +513,14 @@ export interface ScoreResult {
       newsPoints: number;
     };
   };
-  site: { status: SiteStatus; label: string; detail: string; override: string | null };
+  site: {
+    status: SiteStatus;
+    /** Only confirmed land or a corroborated reclaimed area may receive a score. */
+    eligible: boolean;
+    label: string;
+    detail: string;
+    override: string | null;
+  };
   terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;
   /** 법정 보호·규제구역 verdict; `checked` says which of the two layers actually answered */
   restriction: {

@@ -139,6 +139,41 @@
    ],
    "emdOutsideKm": 20
   },
+  "projectProfiles": {
+   "small": {
+    "label": "엣지·소형",
+    "description": "도심 접근성을 허용하는 10MW급 소형 데이터센터",
+    "targetMw": 10,
+    "minSubstations": 1,
+    "maxSubstationKm": 10,
+    "powerDeductionCap": 10,
+    "populationSchoolMultiplier": 0.8,
+    "slopeMultiplier": 1.0,
+    "substationDeductionShare": 0.6
+   },
+   "standard": {
+    "label": "일반 코로케이션",
+    "description": "전력과 인허가 여건을 균형 있게 보는 40MW급 데이터센터",
+    "targetMw": 40,
+    "minSubstations": 1,
+    "maxSubstationKm": 5,
+    "powerDeductionCap": 20,
+    "populationSchoolMultiplier": 1.0,
+    "slopeMultiplier": 1.0,
+    "substationDeductionShare": 0.6
+   },
+   "hyperscale": {
+    "label": "초대형·AI",
+    "description": "복수 전력경로와 넓고 평탄한 입지가 중요한 100MW급 데이터센터",
+    "targetMw": 100,
+    "minSubstations": 2,
+    "maxSubstationKm": 5,
+    "powerDeductionCap": 30,
+    "populationSchoolMultiplier": 1.25,
+    "slopeMultiplier": 1.25,
+    "substationDeductionShare": 0.6
+   }
+  },
   "power": {
    "weightSupply": 0.45,
    "weightRegion": 0.3,
@@ -341,7 +376,8 @@
    ],
    "unsuitable": {
     "minP50Deg": 25,
-    "minSteepPct": 70
+    "minSteepPct": 70,
+    "minDeduction": 20
    },
    "reclaimedOverrides": [
     {
@@ -619,6 +655,13 @@
     0.01,
     0.2
    ]
+  },
+  "disaster": {
+   "deduction": 15,
+   "label": "재해위험지구 검토 필요",
+   "law": "자연재해대책법 제12조·제15조",
+   "sourceUrl": "https://www.law.go.kr/법령/자연재해대책법/제15조",
+   "reviewNote": "지정구역 해당 사실을 확인했습니다. 침수·붕괴 등 위험 유형, 정비사업 및 관할기관의 행위 제한·예방대책을 확인해야 합니다. 지정 사실만으로 건축 전면 금지를 뜻하지 않습니다."
   }
  },
  "disclaimer": {
@@ -629,6 +672,7 @@
   "permits": "허가→착공 통계는 건축HUB 건축인허가 기본개요의 연면적 3,000㎡ 이상 신축 표본(시군구 전체 용도)으로, 데이터센터 전용 통계가 아닙니다.",
   "news": "뉴스 갈등 보도 지표는 네이버 뉴스 검색 결과를 지역명·데이터센터 언급과 반대 키워드 규칙으로 집계한 값입니다. 기사 수가 곧 사업 무산 가능성을 뜻하지 않으며, 동명 지역·중복 전재 기사가 포함될 수 있습니다.",
   "terrain": "지형·해상 판정은 Mapzen Terrain Tiles(SRTM 30m·2000년 촬영 + ETOPO1 수심)를 1km 격자로 집계한 참고치입니다. 2000년 이후 매립지는 수역으로, 내륙 호수는 육지로 나올 수 있어 매립지는 용도지역 조회와 수동 등재 목록으로 보정합니다.",
-  "restriction": "법정 보호·규제구역 판정은 국립공원공단 공원경계(2024.12)와 한국보호지역 데이터(KDPA, 2016.12.31 기준)를 50m(검토 유형 100m)로 단순화한 도형, VWorld 실시간 조회(개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역·도시자연공원구역)를 겹쳐 본 스크리닝 참고치입니다. 지정 해제·신규 지정이 반영되지 않았을 수 있고 경계는 근사치이며 공원 용도지구·조례별 예외를 구분하지 않으므로, 고시 도면과 토지이용계획확인서(토지이음)가 우선하고 법률 판단을 대체하지 않습니다."
+  "restriction": "법정 보호·규제구역 판정은 국립공원공단 공원경계(2024.12)와 한국보호지역 데이터(KDPA, 2016.12.31 기준)를 50m(검토 유형 100m)로 단순화한 도형, VWorld 실시간 조회(개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역·도시자연공원구역)를 겹쳐 본 스크리닝 참고치입니다. 지정 해제·신규 지정이 반영되지 않았을 수 있고 경계는 근사치이며 공원 용도지구·조례별 예외를 구분하지 않으므로, 고시 도면과 토지이용계획확인서(토지이음)가 우선하고 법률 판단을 대체하지 않습니다.",
+  "disaster": "재해위험지구는 VWorld 지정구역 점 조회 결과입니다. 해당 도형이 없어도 재해 안전을 보장하지 않으며, 조회 실패는 미확인으로 표시합니다. 해당 시 인허가 15점 감점은 내부 예비 평가 기준입니다."
  }
 }

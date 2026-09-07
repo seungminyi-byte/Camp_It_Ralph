@@ -1,4 +1,5 @@
 import { LAND_USE_LABEL } from '../scoring/engine';
+import { summarizeDisaster } from '../lib/disasterSummary';
 import { RESTRICTION_DEDUCTION_LABEL, describeRestrictionHits } from '../scoring/restriction';
 import type { AppData, LandUseSource, ScoreInput, ScoreResult } from '../types';
 
@@ -27,6 +28,7 @@ export type ChecklistKey =
   | 'permit.school'
   | 'permit.regulation'
   | 'permit.restriction'
+  | 'permit.disaster'
   | 'permit.cases'
   | 'permit.news'
   | 'permit.delayStat'
@@ -42,6 +44,7 @@ export const CHECKLIST_KEYS: readonly ChecklistKey[] = [
   'permit.school',
   'permit.regulation',
   'permit.restriction',
+  'permit.disaster',
   'permit.cases',
   'permit.news',
   'permit.delayStat',
@@ -90,7 +93,7 @@ function landUseSourceLabel(ctx: ChecklistContext): string {
 }
 
 /**
- * Fixed 13-row due-diligence checklist. Verdicts and evidence come straight from ScoreResult so
+ * Fixed 14-row due-diligence checklist. Verdicts and evidence come straight from ScoreResult so
  * the report is reproducible without the LLM; the model only fills the opinion column.
  */
 export function buildChecklist(
@@ -104,14 +107,21 @@ export function buildChecklist(
   const rows: Record<ChecklistKey, Omit<ChecklistRow, 'key' | 'group' | 'title'>> = {
     'power.gate': (() => {
       const n = result.gate.substationCount;
-      const verdict: Verdict = !result.emd ? 'na' : !result.gate.pass ? 'risk' : n === 1 ? 'caution' : 'good';
+      const verdict: Verdict = !result.emd
+        ? 'na'
+        : result.project.substationRequirementMet
+          ? 'good'
+          : result.gate.pass
+            ? 'caution'
+            : 'risk';
       const where = result.emd ? `${result.emd.sigungu} ${result.emd.emd}` : '행정구역 미확인';
       return {
         verdict,
-        points: null,
+        points: result.project.substationDeduction,
         evidence:
           `${where} 공급가능 변전소 ${n}곳` +
           (result.gate.substations.length ? ` (${result.gate.substations.join(', ')})` : '') +
+          ` · ${result.project.profile.label} ${result.project.profile.targetMw}MW급 권장조건 ${result.project.profile.minSubstations}곳 이상` +
           ` · 확보 전력 추정 "${result.power.capacityBand}"` +
           (result.emdUncertain && result.emd
             ? ` · 행정구역 판정 불확실 (가장 가까운 읍면동 중심점 ${fmtKm(result.emd.distanceKm)})`
@@ -124,10 +134,16 @@ export function buildChecklist(
       const near = result.power.nearestSubstation;
       const score = result.power.distanceScore;
       return {
-        verdict: (!near ? 'na' : score >= 80 ? 'good' : score >= 60 ? 'caution' : 'risk') as Verdict,
-        points: null,
+        verdict: (!near
+          ? 'na'
+          : result.project.distanceRequirementMet
+            ? 'good'
+            : score >= 60
+              ? 'caution'
+              : 'risk') as Verdict,
+        points: result.project.distanceDeduction,
         evidence: near
-          ? `최근접 변전소 ${near.name} ${fmtKm(near.distanceKm)} (OpenStreetMap 참고치)`
+          ? `최근접 변전소 ${near.name} ${fmtKm(near.distanceKm)} · ${result.project.profile.label} 권장거리 ${result.project.profile.maxSubstationKm}km 이내 (OpenStreetMap 참고치)`
           : '반경 내 변전소 정보 없음',
         sources: [],
       };
@@ -310,6 +326,14 @@ export function buildChecklist(
       };
     })(),
 
+    'permit.disaster': {
+      verdict: result.disaster.status === 'unknown' ? 'na' : result.disaster.status === 'hit' ? 'caution' : 'good',
+      points: result.disaster.status === 'unknown' ? null : result.disaster.deduction,
+      evidence: summarizeDisaster(result.disaster),
+      anchor: result.disaster.status === 'hit' ? `${data.constants.scoring.disaster.reviewNote} 감점은 내부 예비 평가 기준입니다.` : undefined,
+      sources: [data.constants.scoring.disaster.sourceUrl],
+    },
+
     'site.terrain': (() => {
       const t = result.terrain;
       if (!t) {
@@ -354,6 +378,7 @@ export function buildChecklist(
     'permit.school': { group: '인허가', title: '학교 근접' },
     'permit.regulation': { group: '인허가', title: '지자체 규제·조례' },
     'permit.restriction': { group: '인허가', title: '법정 보호·규제구역' },
+    'permit.disaster': { group: '인허가', title: '재해위험지구' },
     'permit.cases': { group: '인허가', title: '유사 갈등 사례' },
     'permit.news': { group: '인허가', title: '뉴스 갈등 보도' },
     'permit.delayStat': { group: '인허가', title: '허가→착공 지연 통계' },

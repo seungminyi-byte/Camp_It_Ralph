@@ -37,6 +37,10 @@ function fmtKm(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
 }
 
+function scaleDeduction(points: number, multiplier: number): number {
+  return Math.round(points * multiplier);
+}
+
 /**
  * Match a permit-delay row: exact sigungu → city roll-up (prefix) → sido-wide ('*').
  * The first candidate with at least `minPermits` samples wins; if none is large enough the most
@@ -76,6 +80,7 @@ function findNewsRow(
 
 export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const { scoring } = data.constants;
+  const projectProfile = scoring.projectProfiles[input.projectType];
   const { lat, lng } = input;
 
   const emdMatch = nearest(lat, lng, data.emdCentroids, (c) => [c.lat, c.lng]);
@@ -114,10 +119,15 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     : null;
   const reclaimed = findReclaimedOverride(terrainCfg.reclaimedOverrides, lat, lng);
   const site: ScoreResult['site'] = coverage.outside
-    ? { status: 'outside', label: '판독 불가', detail: coverage.detail, override: null }
+    ? {
+        status: 'outside',
+        eligible: false,
+        label: '판독 불가',
+        detail: coverage.detail,
+        override: null,
+      }
     : classifySite(terrainSample, reclaimed, terrainCfg, {
         zoningFound: input.zoning ? input.zoning.found : null,
-        assumeLand: input.assumeLand ?? false,
       });
 
   let emdPower = emdInfo
@@ -150,7 +160,20 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   let powerScore =
     p.weightSupply * supplyScore + p.weightRegion * regionScore + p.weightDistance * distanceScore;
   if (!gatePass) powerScore = Math.min(powerScore, p.gateFailCap);
-  powerScore = Math.round(powerScore);
+
+  const substationRequirementMet = subCount >= projectProfile.minSubstations;
+  const distanceRequirementMet = subDistKm <= projectProfile.maxSubstationKm;
+  const projectSubstationDeduction = substationRequirementMet
+    ? 0
+    : Math.round(projectProfile.powerDeductionCap * projectProfile.substationDeductionShare);
+  const projectDistanceDeduction = distanceRequirementMet
+    ? 0
+    : projectProfile.powerDeductionCap - Math.round(projectProfile.powerDeductionCap * projectProfile.substationDeductionShare);
+  const projectPowerDeduction = Math.min(
+    projectSubstationDeduction + projectDistanceDeduction,
+    projectProfile.powerDeductionCap,
+  );
+  powerScore = Math.max(0, Math.round(powerScore - projectPowerDeduction));
 
   const capacityBand = !gatePass
     ? p.capacityBands[3].label
@@ -166,7 +189,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const popNearby = Math.round(
     sumWithinKm(lat, lng, data.popGrid, (g) => [g[0], g[1]], q.popRadiusKm, (g) => g[2]),
   );
-  const popDed = q.populationDeduction.find((b) => popNearby <= b.maxPop)?.deduction ?? 0;
+  const basePopDed = q.populationDeduction.find((b) => popNearby <= b.maxPop)?.deduction ?? 0;
+  const popDed = scaleDeduction(basePopDed, projectProfile.populationSchoolMultiplier);
   if (popDed > 0) {
     deductions.push({
       label: '주거 인접',
@@ -178,7 +202,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
 
   const nearestSchool = nearest(lat, lng, data.schools, (s) => [s[2], s[3]]);
   const schoolDistKm = nearestSchool?.distanceKm ?? 999;
-  const schoolDed = q.schoolDeduction.find((b) => schoolDistKm <= b.maxKm)?.deduction ?? 0;
+  const baseSchoolDed = q.schoolDeduction.find((b) => schoolDistKm <= b.maxKm)?.deduction ?? 0;
+  const schoolDed = scaleDeduction(baseSchoolDed, projectProfile.populationSchoolMultiplier);
   if (schoolDed > 0 && nearestSchool) {
     deductions.push({
       label: '학교 근접',
@@ -202,22 +227,29 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
 
   // Reclaimed cells are flat by construction; their real risk is soft ground, not slope.
   let terrain: ScoreResult['terrain'] = null;
-  if (terrainSample && (site.status === 'ok' || site.status === 'coastal')) {
+  if (terrainSample && site.eligible && (site.status === 'ok' || site.status === 'coastal')) {
     const slope = slopeDeduction(terrainSample, terrainCfg);
+    const projectSlopeDeduction = scaleDeduction(slope.points, projectProfile.slopeMultiplier);
     terrain = {
       sample: terrainSample,
-      deduction: slope.points,
+      deduction: projectSlopeDeduction,
       band: slope.band,
       unsuitable: slope.unsuitable,
     };
-    if (slope.points > 0) {
+    if (projectSlopeDeduction > 0) {
       deductions.push({
         label: '지형·경사',
-        points: slope.points,
+        points: projectSlopeDeduction,
         evidence:
+          (slope.unsuitable
+            ? '급경사 구간이 확인되어 토목공사비, 사면 안정성 및 산지전용 인허가 위험이 높으므로 정밀측량 및 관할기관 검토가 필요합니다. '
+            : '') +
           `1km 격자 중앙값 경사 ${terrainSample.slopeP50Deg}°, ` +
           `${data.terrain?.steepThresholdDeg ?? 15}° 이상 비율 ${terrainSample.steepPct}%, ` +
-          `표고 약 ${terrainSample.elevM}m — ${slope.band} (SRTM 30m·Terrain Tiles)`,
+          `표고 약 ${terrainSample.elevM}m — ${slope.band} (SRTM 30m·Terrain Tiles)` +
+          (projectProfile.slopeMultiplier !== 1
+            ? ` · ${projectProfile.label} 규모 보정 ${projectProfile.slopeMultiplier}배`
+            : ''),
         anchor:
           '산지관리법 시행령 별표4: 산지전용허가 평균경사도 25° 이하 · 화성·성남 개발행위허가 조례 15° 미만',
       });
@@ -255,7 +287,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   }
 
   // 법정 보호·규제구역: bundled polygons (국립공원·KDPA) plus the VWorld lookup the caller passed in. Water and
-  // coastal cells are checked too — a 갯벌 습지보호지역 is exactly what a "매립 예정지로 간주" click should hit —
+  // coastal cells are checked too, since protected tidal wetlands can overlap those cells,
   // but a point beyond the bundled data is left unknown rather than judged from foreign geometry.
   const rCfg = scoring.restriction;
   const restriction: ScoreResult['restriction'] = coverage.outside
@@ -272,6 +304,21 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         restriction.level === 'prohibited'
           ? '자연공원법·수도법·개발제한구역법 등 법정 구역은 해제·지정 변경 없이는 신축 불가 — 스크리닝 판정이며 고시 도면 확인 필요'
           : undefined,
+    });
+  }
+
+  const disasterLookup = coverage.outside ? null : input.disaster;
+  const disaster: ScoreResult['disaster'] = {
+    status: !disasterLookup ? 'unknown' : disasterLookup.found ? 'hit' : 'none',
+    hits: disasterLookup?.hits ?? [],
+    deduction: disasterLookup?.found ? scoring.disaster.deduction : 0,
+  };
+  if (disaster.status === 'hit') {
+    deductions.push({
+      label: scoring.disaster.label,
+      points: disaster.deduction,
+      evidence: `${[...new Set(disaster.hits.map((h) => h.name ?? '재해위험지구'))].join(' · ')} — ${scoring.disaster.reviewNote}`,
+      anchor: `${scoring.disaster.law} · 감점은 내부 예비 평가 기준`,
     });
   }
 
@@ -437,6 +484,17 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const delayCostKrw = monthlyCostKrw * delay.point;
 
   return {
+    disaster,
+    project: {
+      type: input.projectType,
+      profile: projectProfile,
+      powerDeduction: projectPowerDeduction,
+      substationDeduction: projectSubstationDeduction,
+      distanceDeduction: projectDistanceDeduction,
+      requirementsMet: substationRequirementMet && distanceRequirementMet,
+      substationRequirementMet,
+      distanceRequirementMet,
+    },
     emd: emdInfo,
     emdUncertain,
     gate: { pass: gatePass, substationCount: subCount, substations: emdPower?.subs ?? [] },

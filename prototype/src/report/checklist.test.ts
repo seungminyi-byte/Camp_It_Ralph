@@ -47,6 +47,7 @@ function rowsFor(id: string, landUseSource: 'unknown' | 'auto' | 'manual' = 'man
   const sc = scenarios.find((s) => s.id === id)!;
   const input = {
     lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
+    projectType: 'standard' as const,
     capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
   };
   const result = scoreSite(input, data);
@@ -65,10 +66,10 @@ describe('verdictFromPoints', () => {
 });
 
 describe('buildChecklist', () => {
-  it('always returns the same 13 rows in order', () => {
+  it('always returns the same 14 rows in order', () => {
     const rows = rowsFor('goyang-deogi');
     expect(rows.map((r) => r.key)).toEqual([...CHECKLIST_KEYS]);
-    expect(new Set(rows.map((r) => r.key)).size).toBe(13);
+    expect(new Set(rows.map((r) => r.key)).size).toBe(14);
     expect(rows.every((r) => r.evidence.length > 0)).toBe(true);
   });
 
@@ -108,6 +109,7 @@ describe('buildChecklist', () => {
       expect(offline.evidence).toContain('미조회');
     }
     const input = {
+      projectType: 'standard' as const,
       lat: 37.66, lng: 126.98, landUse: 'green' as const,
       capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
       restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },
@@ -124,6 +126,7 @@ describe('buildChecklist', () => {
   it('법정 보호·규제구역: 도형과 VWorld를 모두 확인하고 히트가 없으면 양호', () => {
     const sc = scenarios.find((s) => s.id === 'sejong-contrast')!;
     const input = {
+      projectType: 'standard' as const,
       lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
       capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
       restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },

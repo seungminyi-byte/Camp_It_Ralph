@@ -1,3 +1,5 @@
+import { memoContextKey } from '../src/genai/memoContext';
+import type { PrecomputedFile } from '../src/genai/llmClient';
 // Pre-generate the 실사 체크리스트 opinions for the fixture points (offline fallback for MemoPanel).
 // Usage (the key never touches the repo):
 //   OPENROUTER_API_KEY="sk-or-..." node node_modules/tsx/dist/cli.mjs scripts/precompute_memos.ts
@@ -85,11 +87,12 @@ async function main() {
   // which coordinates get an offline memo.
   const scenarios = readJson<{ scenarios: Scenario[] }>('scenarios.json').scenarios;
   const fin = data.constants.scoring.finance;
-  const memos: Record<string, { lat: number; lng: number; landUse: string; text: string }> = {};
+  const memos: PrecomputedFile['memos'] = {};
 
   for (const sc of scenarios) {
     const input = {
       lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
+      projectType: 'standard' as const,
       capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
     };
     const result = scoreSite(input, data);
@@ -115,13 +118,13 @@ async function main() {
     if (!parsed.complete) {
       throw new Error(`${sc.id}: response missing item sections (${Object.keys(parsed.items).length}/${CHECKLIST_KEYS.length})`);
     }
-    memos[sc.id] = { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, text };
+    memos[sc.id] = { lat: sc.lat, lng: sc.lng, landUse: sc.landUse, contextKey: await memoContextKey(input, result, rows), text };
     console.log(`${text.length} chars`);
     await new Promise((r) => setTimeout(r, 4000));
   }
 
   const json = JSON.stringify(
-    { version: 2, model, generatedAt: new Date().toISOString(), memos },
+    { version: 3, model, generatedAt: new Date().toISOString(), memos },
     null,
     1,
   );

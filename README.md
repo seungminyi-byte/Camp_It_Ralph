@@ -63,7 +63,7 @@ Windows에서 저장소 경로에 `&`가 있으면 `npx`가 깨지므로
 ```bash
 cd prototype && npm run typecheck                # 타입 검사 (src + api + scripts)
 cd prototype && npm run lint                     # oxlint
-node node_modules/vitest/vitest.mjs run          # 테스트 95건 (엔진 골든 26 · 규제구역 14 · 지형 12 · 검색 11 · 체크리스트 9 · 메모 파서 8 · 비교 핀 7 · 자료 범위 3 · 숫자 입력 5)
+node node_modules/vitest/vitest.mjs run          # 엔진·지형·규제구역·재해 API·보고서·비교·메모 회귀 테스트
 python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·커버리지·지형·보호지역 도형·시나리오 스팟체크
 ```
 
@@ -73,25 +73,27 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
   (골든 테스트는 시나리오 좌표 기준으로 **D 45 / E 32 / B 75**. 검색은 읍면동 중심점이라 점수가 조금 다를 수 있다.)
 - **반응형**: lg(1024px) 미만에서는 지도가 위(42vh)·패널이 아래로 쌓이고, 지도 레이어 토글은 "레이어" 버튼으로 접힌다.
   체크리스트 표는 자체 가로 스크롤 박스 안에서만 넘치고(인쇄본은 A4 그대로), 모바일 브라우저 주소창을 고려해 `100dvh`를 쓴다.
-- 헤더 아래 **비교 트레이**: "현재 지점 담기"로 최대 4곳을 담으면 같은 사업 가정(총사업비·금리 입력값 공통 적용)으로
+- **사업 유형**은 엣지·소형 10MW / 일반 코로케이션 40MW / 초대형·AI 100MW 중 하나만 고른다. 유형을 바꾸면
+  총사업비 기본값도 MW당 125억원 기준으로 바뀌며, 요구 변전소 수·권장거리·주거/학교·경사 기준을 같은 부지에 다시 적용한다.
+- 헤더 아래 **비교 트레이**: "현재 지점 담기"로 최대 4곳을 담으면 같은 사업 가정(사업 유형·총사업비·금리 입력값 공통 적용)으로
   등급·예상 지연·지연 금융비용이 나란히 뜨고, 우측에 최대 차액이 표시된다. 칩을 누르면 그 지점으로 돌아간다.
-- `37.4, 126.2` → "해상·수역 — 평가 대상 아님" 카드 + "매립·간척 예정지로 간주" 버튼.
+- `37.4, 126.2` → "판정 부적합 — 해상·수역" 카드. 종합점수·등급·비교 담기·보고서를 제공하지 않는다.
 - `38.0, 126.5`(개성 인근)나 지도에서 북한·일본·먼바다를 클릭 → **"판독 불가 — 자료 범위 밖"** 카드. 등급·체크리스트가 뜨지 않고
   "현재 지점 담기"도 막힌다. 판정 규칙은 `constants.scoring.coverage`(bbox 33~38.7°/124.5~132° · 휴전선/NLL 폴리라인 21점 ·
   읍면동 중심점 20km 초과)이고, 폴리라인이 읍면동 중심점 5,471건을 하나도 자르지 않는지 `coverage.test.ts`·`validate_out.py`가
   감시한다. `35.6, 139.7`처럼 아예 범위 밖인 좌표는 검색창이 바로 알려준다.
 - 총사업비·연 금리는 슬라이더 대신 **직접 입력**(억원·%, "1.5조"도 인식) + 프리셋 칩 + −/+ 버튼·↑↓ 키(Shift는 ×10).
-  입력 범위는 100억~10조 · 1~20%이고 총사업비 옆에 "약 40MW급(MW당 125억원 기준)" 환산이 붙는다.
+  입력 범위는 100억~10조 · 1~20%이며 사업 유형을 바꾼 뒤에도 사용자가 직접 수정할 수 있다.
 - 우측 패널 하단 디스클레이머는 "스크리닝 참고용 · 한전 공식 검토·법률 판단 대체 불가" 한 줄만 보이고, 호버·키보드 포커스·탭(자세히)으로
   전문이 위로 펼쳐진다. 지도와 패널 사이 세로 핸들을 드래그하면 **패널 폭**(320~760px)이 바뀌고 새로고침 후에도 유지된다
   (더블클릭·Enter 초기화, ←/→ 키 조절, lg 미만 스택 레이아웃에서는 숨김).
-- `37.85, 128.45` → 지형 감점 −30, "급경사 산지" 배지, 중앙값 경사 28° (백두대간보호지역 도형에도 걸려 "법적 입지 제한 구역" 배지가 함께 뜬다).
+- `37.85, 128.45` → 지형 감점 −30, "급경사 구간 — 정밀 검토 필요" 배지, 중앙값 경사 28° (백두대간보호지역 도형에도 걸려 "법적 입지 제한 구역" 배지가 함께 뜬다).
 - `37.66, 126.98`(북한산) → **E등급 + 붉은 "법적 입지 제한 구역 — 북한산" 배지**, 감점 사유 "법적 입지 제한 구역 −40"(자연공원법 근거), "법정 보호·규제구역 해당으로
   E등급으로 제한" 문구, 체크리스트 `법정 보호·규제구역` 행 ✗ 위험, 지도에 공원 경계(빨간 실선). `37.52, 127.30`(팔당) → 상수원보호구역. 세종 반곡동은 해당 없음.
   개발제한구역·국가유산 보호구역·농업진흥지역·도시자연공원구역은 배포된 `api/restrictions.ts`(VWorld 점 조회)가 있어야 잡히고, 없으면 카드에 "VWorld 규제 레이어 미조회"로 남는다.
 - `부산 우동`(해운대) → 반경 1km 인구 수만 명·"주거 인접" 감점 표시. 2026-09-05 전국 격자 확장 전에는 수도권·일부 대조군 밖이
   전부 0명이었다.
-- "AI 검토 의견 생성" → 13행 체크리스트가 순서대로 채워지고 "PDF로 저장"으로 A4 보고서 인쇄.
+- "AI 검토 의견 생성" → 14행 체크리스트가 순서대로 채워지고 "PDF로 저장"으로 A4 보고서 인쇄.
 - 지도 우상단 "용도지역 (VWorld)"를 켜고 줌 12 이상에서 노랑(주거)·분홍(상업)·보라(공업)·연두(녹지) 색이 깔리면 프록시·키가 정상.
   "규제구역 (VWorld)"(기본 꺼짐)는 개발제한구역·상수원보호구역·국가유산·농업진흥지역 타일, "보호지역 도형 (국립공원·KDPA)"(기본 켬)는 줌 10 이상에서 번들 도형을
   빨간 실선(법적 입지 제한)·주황 점선(검토 필요)으로 그리고 클릭하면 이름·법령이 뜬다.
@@ -103,12 +105,12 @@ python data-pack/scripts/validate_out.py         # 데이터 스키마·좌표·
 | 키 | 발급 URL | 사용처 | 필요 시점 |
 |---|---|---|---|
 | **OpenRouter** (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=minimax/minimax-m3:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
-| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
+| VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/disaster.ts`(재해위험지구 점 조회) · `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | 로컬 `data-pack/.env`의 `DATA_GO_KR_API_KEY`(무시됨, Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json`. Vercel 환경변수에도 같은 이름으로 보관 | 허가→착공 통계 |
 | 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | 로컬 `data-pack/.env`의 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json`. Vercel 환경변수에도 같은 이름으로 보관 | 뉴스 갈등 시그널 |
 
 LLM 키는 **서버에만** 둔다. 브라우저에 키를 넣는 UI는 없앴고, 앱은 `POST /api/generate`(Vercel Edge → OpenRouter)만 호출한다.
-프록시가 실패하면 `public/data/precomputed_memos.json`의 사전 생성 메모로 폴백하는데, 등록된 지점 **반경 300m 이내**에서만 뜬다.
+프록시가 실패하면 `public/data/precomputed_memos.json`의 사전 생성 메모로 폴백하는데, 등록된 지점 **반경 300m 이내이면서 평가조건과 근거가 같은 경우**에만 뜬다.
 사전 생성은 사용자 키로 직접 실행한다(아직 파일 없음):
 
 ```bash
@@ -133,7 +135,7 @@ prototype/    Vite + React + TS. src/scoring/engine.ts 순수 스코어링 엔�
   src/scoring/coverage.ts  자료 범위 판정 (bbox·휴전선/NLL 폴리라인·읍면동 중심점 거리) → '판독 불가'
   src/scoring/restriction.ts 법정 보호·규제구역 판정 (번들 도형 짝수-홀수 점 포함 + VWorld 히트 → constants 유형 매핑, 입지 제한/검토 필요)
   src/search/emdSearch.ts  오프라인 읍면동 검색 (번들 센트로이드 5,471건)
-  src/report/checklist.ts  ScoreResult → 실사 체크리스트 13행
+  src/report/checklist.ts  ScoreResult → 실사 체크리스트 14행
   src/compare/pins.ts      비교 트레이 순수 로직(핀 추가·제거·상한·차액). 점수는 scoreSite 재호출로만 얻는다
   src/lib/format.ts        fmtKrw·등급 색·행정구역 라벨 공용
   src/lib/numberInput.ts   총사업비·금리 입력 파싱("1.5조")·클램프 (NumberField.tsx가 사용)
@@ -155,6 +157,16 @@ docs/         PLAN.md(전체 계획·일정) DATA.md(데이터 출처·제약·�
 .claude/      launch.json (Claude Code 브라우저 프리뷰용 dev 서버 정의)
 ```
 
+## ARIA 통합 (2026-09-07)
+
+- `93e35dd`의 사업 유형 3종·해상 판정·급경사 검토 개선과 `78a0e8d`의 보호·규제구역 기능을 함께 반영했다.
+- 재해위험지구(`LT_C_UP201`)는 서버 `GET /api/disaster`에서 조회한다. 해당 시 인허가 15점을 한 번만 감점하고,
+  별도 등급 상한 없이 검토 표시·14행 체크리스트·AI 의견·비교 결과에 반영한다. 주민 갈등 가능성에는 포함하지 않는다.
+- 연안 혼합 셀은 용도지역이 없거나 조회가 실패해도 해상으로 확정하지 않고 육지 근거 확인까지 판정을 보류한다.
+- 재해 조회 실패·비정상 응답은 미확인이다. 정상 조회의 해당 없음도 지정구역 자료에 한정되며 재해 안전을 뜻하지 않는다.
+- 사업 유형·총사업비·용도지역·규제 및 재해 조회 결과가 바뀌면 생성 의견을 갱신해야 한다. 사전 생성 의견은 v3의 평가조건 서명이 일치해야 사용하며 v2는 사용하지 않는다.
+- 원본 재수집 없이 검증·앱 데이터 동기화: `python3 data-pack/scripts/build_all.py --sync-only`.
+
 ## 현재 상태와 다음 단계
 
 완료: 데이터 확보·전처리·검증, 앱(지도·스코어카드·슬라이더·사례 레이어·통계 스트립), 골든 테스트, 프로덕션 빌드,
@@ -171,8 +183,8 @@ LLM 설정 UI 삭제(서버 프록시 OpenRouter·MiniMax 단일 경로).
 부산·울산·창원·제주·강원 동부·전남·경북에서도 '주거 인접' 감점이 계산된다.
 2026-09-05 후속 2: **법정 보호·규제구역 레이어** — 국립공원 공원경계(23곳)와 한국보호지역 KDPA(1,516 도형, 2016.12 기준)를 번들 도형으로,
 개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역·도시자연공원구역은 VWorld 점 조회(`api/restrictions.ts`)로 판정한다. 입지 제한 구역이면
-감점 40 + **E등급 상한**('법정 보호·규제구역 해당으로 E등급으로 제한'), 검토 구역이면 감점 15. 체크리스트 13행(`법정 보호·규제구역`), 지도에 도형·WMS 토글.
-'남한 자료 범위 밖' 문구는 **'자료 범위 밖'** 으로 통일.
+감점 40 + **E등급 상한**('법정 보호·규제구역 해당으로 E등급으로 제한'), 검토 구역이면 감점 15. 체크리스트 14행(`법정 보호·규제구역`), 지도에 도형·WMS 토글.
+'자료 범위 밖' 문구는 **'자료 범위 밖'** 으로 통일.
 
 남은 일 (PLAN.md P4~P6, 해커톤 9.21~22):
 

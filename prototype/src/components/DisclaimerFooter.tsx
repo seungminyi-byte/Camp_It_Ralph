@@ -14,6 +14,7 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
     d.stats,
     d.terrain,
     d.restriction,
+    d.disaster,
     data.permitDelay ? d.permits : '',
     data.newsSignal ? d.news : '',
   ].filter(Boolean);
