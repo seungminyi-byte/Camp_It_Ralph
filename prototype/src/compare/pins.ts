@@ -1,4 +1,4 @@
-import type { LandUse, ProjectType, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
+import type { DisasterLookup, LandUse, ProjectType, ScoreInput, ScoreResult, SiteSelection, ZoningLookup } from '../types';
 
 /** UI capacity, not a scoring threshold — so it lives here rather than in constants.json. */
 export const MAX_PINS = 4;
@@ -16,6 +16,7 @@ export interface PinnedSite {
   /** restored when the pin is reopened, so the card matches the chip */
   manualLandUse: LandUse | null;
   zoning: ZoningLookup | null;
+  disaster: DisasterLookup | null;
 }
 
 export interface CompareEntry {
@@ -54,6 +55,7 @@ export function toScoreInput(
     capexKrw,
     annualRate,
     zoning: pin.zoning,
+    disaster: pin.disaster,
   };
 }
 

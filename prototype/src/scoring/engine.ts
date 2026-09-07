@@ -284,6 +284,21 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     });
   }
 
+  const disasterLookup = coverage.outside ? null : input.disaster;
+  const disaster: ScoreResult['disaster'] = {
+    status: !disasterLookup ? 'unknown' : disasterLookup.found ? 'hit' : 'none',
+    hits: disasterLookup?.hits ?? [],
+    deduction: disasterLookup?.found ? scoring.disaster.deduction : 0,
+  };
+  if (disaster.status === 'hit') {
+    deductions.push({
+      label: scoring.disaster.label,
+      points: disaster.deduction,
+      evidence: `${[...new Set(disaster.hits.map((h) => h.name ?? '재해위험지구'))].join(' · ')} — ${scoring.disaster.reviewNote}`,
+      anchor: `${scoring.disaster.law} · 감점은 내부 예비 평가 기준`,
+    });
+  }
+
   const matchedCases: CaseRow[] = [];
   let caseDedSum = 0;
   if (emdInfo) {
@@ -437,6 +452,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const delayCostKrw = monthlyCostKrw * delay.point;
 
   return {
+    disaster,
     project: {
       type: input.projectType,
       profile: projectProfile,

@@ -19,7 +19,7 @@ const fin = data.constants.scoring.finance;
 
 function pin(lat: number, lng: number, landUse: LandUse = 'unknown'): PinnedSite {
   const base = { selection: { lat, lng, source: 'map' as const }, landUse };
-  return { id: pinId(base), ...base, manualLandUse: landUse === 'unknown' ? null : landUse, zoning: null };
+  return { id: pinId(base), ...base, manualLandUse: landUse === 'unknown' ? null : landUse, zoning: null, disaster: null };
 }
 
 describe('pinId', () => {

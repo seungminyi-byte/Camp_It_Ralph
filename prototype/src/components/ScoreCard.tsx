@@ -1,6 +1,7 @@
 import type { AppData, ConflictLevel, ScoreResult } from '../types';
 import { GRADE_COLOR, fmtKrw } from '../lib/format';
 import { CONFLICT_LEVEL_LABEL } from '../scoring/engine';
+import { summarizeDisaster } from '../lib/disasterSummary';
 
 // Soft tints only: solid red stays reserved for hard blockers (조례상 입지 불가, 급경사 산지).
 const CONFLICT_BADGE: Record<ConflictLevel, string> = {
@@ -167,6 +168,12 @@ export function ScoreCard({
           정밀측량 및 관할기관 검토가 필요합니다.
         </div>
       )}
+
+      <div className={`mb-3 rounded border p-2 text-xs ${r.disaster.status === 'hit' ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-gray-200 bg-gray-50 text-gray-700'}`}>
+        <div className="font-semibold">재해위험지구 {r.disaster.status === 'hit' ? `검토 필요 · 인허가 −${r.disaster.deduction}점` : ''}</div>
+        <p className="mt-1">{summarizeDisaster(r.disaster)}</p>
+        {r.disaster.status === 'hit' && <p className="mt-1">{data.constants.scoring.disaster.reviewNote}</p>}
+      </div>
 
       <div className="mb-3 flex flex-col gap-2">
         <Gauge label="전력 수전 가능성" score={r.power.score} />

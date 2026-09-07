@@ -196,6 +196,32 @@ describe('scoreSite golden cases', () => {
     expect(r.finance.delayCostKrw).toBeCloseTo(expected, 0);
   });
 
+  it('재해위험지구 조회 결과가 있으면 인허가 점수에 한 번만 감점한다', () => {
+    const sc = scenario('sejong-contrast');
+    const base = scoreSite({ lat: sc.lat, lng: sc.lng, landUse: sc.landUse, ...baseInput }, data);
+    const withDisaster = scoreSite({
+      lat: sc.lat,
+      lng: sc.lng,
+      landUse: sc.landUse,
+      disaster: {
+        found: true,
+        layer: 'LT_C_UP201',
+        coordinate: { lat: sc.lat, lng: sc.lng },
+        hits: [{ name: '테스트 자연재해위험개선지구', attributes: {} }],
+      },
+      ...baseInput,
+    }, data);
+
+    expect(withDisaster.disaster.status).toBe('hit');
+    expect(withDisaster.disaster.deduction).toBe(data.constants.scoring.disaster.deduction);
+    expect(withDisaster.permit.score).toBe(
+      Math.max(0, base.permit.score - data.constants.scoring.disaster.deduction),
+    );
+    expect(withDisaster.permit.deductions.filter(
+      (d) => d.label === data.constants.scoring.disaster.label,
+    )).toHaveLength(1);
+  });
+
   it('사업 유형에 따라 같은 부지의 전력·주변 영향 기준이 달라진다', () => {
     const sc = scenario('goyang-deogi');
     const at = (projectType: 'small' | 'standard' | 'hyperscale') =>

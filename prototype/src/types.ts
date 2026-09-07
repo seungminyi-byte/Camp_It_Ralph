@@ -319,6 +319,7 @@ export interface Constants {
       capexRangeKrw: [number, number];
       rateRange: [number, number];
     };
+    disaster: { deduction: number; label: string; law: string; sourceUrl: string; reviewNote: string };
   };
   disclaimer: Record<string, string>;
 }
@@ -357,9 +358,24 @@ export interface ScoreInput {
   annualRate: number;
   /** VWorld lookup for this point; lets the engine tell reclaimed land from open water. */
   zoning?: ZoningLookup | null;
+  /** Validated VWorld disaster-risk-zone point lookup. */
+  disaster?: DisasterLookup | null;
+}
+
+export interface DisasterRiskHit {
+  name: string | null;
+  attributes: Record<string, string | number | boolean | null>;
+}
+
+export interface DisasterLookup {
+  found: boolean;
+  layer: 'LT_C_UP201';
+  coordinate: { lat: number; lng: number };
+  hits: DisasterRiskHit[];
 }
 
 export interface ScoreResult {
+  disaster: { status: 'hit' | 'none' | 'unknown'; hits: DisasterRiskHit[]; deduction: number };
   project: {
     type: ProjectType;
     profile: ProjectProfile;

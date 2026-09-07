@@ -117,24 +117,28 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
   const areaLabel = result.emd ? `${result.emd.sigungu}${result.emd.emd}` : null;
 
   return (
-    <section className="border-b border-gray-200 p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-bold text-gray-700">실사 체크리스트</h2>
-        {generatedBy && <span className="text-[10px] text-gray-400">{generatedBy}</span>}
-      </div>
+    <section className="memo-panel">
+      <header className="report-tools-header">
+        <div>
+          <span>REPORT PREVIEW</span>
+          <h2>부지 검토 보고서</h2>
+        </div>
+        {generatedBy && <span className="report-generation-badge">{generatedBy}</span>}
+      </header>
 
-      <div className="flex gap-1">
+      <div className="report-actions">
         <button
           onClick={busy ? stop : () => void start()}
-          className="flex-1 rounded bg-blue-600 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+          className={`report-ai-button${busy ? ' is-stop' : ''}`}
         >
-          {busy ? '중지' : run ? 'AI 검토 의견 다시 생성' : 'AI 검토 의견 생성'}
+          <span aria-hidden="true">{busy ? '■' : '✦'}</span>
+          {busy ? '생성 중지' : run ? 'AI 검토 의견 다시 생성' : 'AI 검토 의견 생성'}
         </button>
         <button
           onClick={() => printWithTitle(reportFileTitle(areaLabel, new Date()))}
-          className="rounded border border-gray-300 px-2 py-1.5 text-sm hover:bg-gray-100"
+          className="report-pdf-button"
         >
-          PDF로 저장
+          PDF 저장 <span aria-hidden="true">↗</span>
         </button>
       </div>
 
@@ -145,7 +149,7 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
       )}
       {run?.status === 'error' && <p className="mt-2 text-xs text-red-600">{run.error}</p>}
 
-      <div className="mt-3 max-h-[32rem] overflow-y-auto rounded border border-gray-200 p-2">
+      <div className="report-preview-shell">
         <ChecklistReport
           data={data}
           input={shown.input}

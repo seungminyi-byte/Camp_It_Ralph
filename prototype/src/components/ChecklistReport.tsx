@@ -54,77 +54,93 @@ export function ChecklistReport(props: ReportProps) {
 
   const sources = Array.from(new Set(rows.flatMap((r) => r.sources).filter(Boolean)));
   const small = variant === 'print' ? 'text-[9pt]' : 'text-[11px]';
+  const gradeTone = ['A', 'B'].includes(result.composite.grade)
+    ? 'good'
+    : ['C', 'D'].includes(result.composite.grade)
+      ? 'caution'
+      : 'risk';
+  const decision = gradeTone === 'good' ? '검토 적합' : gradeTone === 'caution' ? '조건부 검토' : '부적합';
+  const riskRows = rows.filter((row) => row.verdict === 'risk' || row.verdict === 'caution');
 
   return (
-    <article className={`report ${variant === 'print' ? 'p-0 text-[10pt]' : 'text-xs'} text-gray-900`}>
-      <header className="avoid-break border-b border-gray-400 pb-2">
-        <h1 className={variant === 'print' ? 'text-[16pt] font-bold' : 'text-base font-bold'}>
-          데이터센터 부지 실사 체크리스트
-        </h1>
-        <dl className={`mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 ${small}`}>
-          <dt className="text-gray-500">작성</dt>
-          <dd>데이터센터팀 부지 실사 담당</dd>
-          <dt className="text-gray-500">작성일</dt>
-          <dd>{today.toLocaleDateString('ko-KR')}</dd>
-          <dt className="text-gray-500">위치</dt>
-          <dd>
-            {area} · {site.lat.toFixed(5)}, {site.lng.toFixed(5)} ({SOURCE_LABEL[site.source]})
-            {site.label ? ` · ${site.label}` : ''}
-          </dd>
-          <dt className="text-gray-500">용도지역</dt>
-          <dd>{landUseText(input, landUseSource, zoningName)}</dd>
-          <dt className="text-gray-500">부지 판정</dt>
-          <dd>{result.site.label} — {result.site.detail}</dd>
-          <dt className="text-gray-500">사업 가정</dt>
-          <dd>
-            {result.project.profile.label} {result.project.profile.targetMw}MW급 · 총사업비{' '}
-            {(input.capexKrw / 1e8).toLocaleString()}억원 · 연 금리{' '}
-            {(input.annualRate * 100).toFixed(1)}%
-          </dd>
-        </dl>
+    <article className={`report report-${variant} ${variant === 'print' ? 'p-0 text-[10pt]' : 'text-xs'}`}>
+      <header className="report-masthead avoid-break">
+        <div className="report-brand-line" />
+        <div className="report-title-row">
+          <div>
+            <p className="report-kicker">GS E&amp;C · DATA CENTER SITE INTELLIGENCE</p>
+            <h1>데이터센터 부지 사전검토 보고서</h1>
+          </div>
+          <div className="report-document-state">
+            <span>PRELIMINARY</span>
+            <b>{today.toLocaleDateString('ko-KR')}</b>
+          </div>
+        </div>
+        <div className="report-site-heading">
+          <div>
+            <span>검토 대상지</span>
+            <h2>{area}</h2>
+            <p>{site.lat.toFixed(5)}, {site.lng.toFixed(5)} · {SOURCE_LABEL[site.source]}{site.label ? ` · ${site.label}` : ''}</p>
+          </div>
+          <div className="report-project-tag">{result.project.profile.targetMw}<small>MW</small></div>
+        </div>
       </header>
 
-      <section className="avoid-break mt-3 border border-gray-300 p-2">
-        <h2 className="text-sm font-bold">종합 판정</h2>
-        <p className="mt-1">
-          <b className="text-base">{result.composite.grade}</b> 등급 · {result.composite.score}점
-          {result.composite.gradeCapped &&
-            ` (공급가능 변전소 미확인으로 ${data.constants.scoring.composite.gateFailGradeCap}등급 이하로 제한)`}
-          {' · '}전력 수전 가능성 {result.power.score}점 · 인허가 여건 {result.permit.score}점
-        </p>
-        <p className={`mt-0.5 ${small}`}>
-          공급가능 변전소 {result.gate.substationCount}곳 · 확보 전력 추정 {result.power.capacityBand} · 사업
-          규모별 전력 적합성 조정 −{result.project.powerDeduction}점
-        </p>
-        <p className={`mt-0.5 ${small}`}>
-          주민 갈등 가능성 <b>{CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]}</b> · 갈등 사례·뉴스
-          감점 합 −{result.permit.conflictRisk.points} (사례 {result.permit.matchedCases.length}건 · 기사{' '}
-          {result.permit.newsSignal?.row.conflictArticles ?? 0}건)
-        </p>
-        <p className="mt-1">
-          예상 인허가 지연 <b>{result.delay.minMonths}~{result.delay.maxMonths}개월</b> (대표값{' '}
-          {result.delay.pointMonths}개월) · 지연 금융비용 약{' '}
-          <b>{fmtKrw(result.finance.delayCostKrw)}</b> (월 {fmtKrw(result.finance.monthlyCostKrw)})
-        </p>
-        <p className={`mt-0.5 text-gray-500 ${small}`}>참조 사례: {result.delay.anchor}</p>
+      <section className="report-summary avoid-break">
+        <div className={`report-grade report-tone-${gradeTone}`}>
+          <span>종합 등급</span><strong>{result.composite.grade}</strong><small>{result.composite.score} / 100</small>
+        </div>
+        <div className="report-summary-copy">
+          <div><span>핵심 판단</span><b className={`report-decision report-tone-${gradeTone}`}>{decision}</b></div>
+          <p>{result.site.label} · {result.site.detail}</p>
+          {result.composite.gradeCapped && <p>공급가능 변전소 미확인으로 {data.constants.scoring.composite.gateFailGradeCap}등급 이하 제한</p>}
+        </div>
+      </section>
+
+      <section className="report-kpis avoid-break">
+        <div><span>전력 여건</span><strong>{result.power.score}<small>점</small></strong><p>{result.power.capacityBand}</p></div>
+        <div><span>인허가·부지</span><strong>{result.permit.score}<small>점</small></strong><p>갈등 {CONFLICT_LEVEL_LABEL[result.permit.conflictRisk.level]}</p></div>
+        <div><span>예상 지연</span><strong>{result.delay.pointMonths}<small>개월</small></strong><p>{result.delay.minMonths}~{result.delay.maxMonths}개월</p></div>
+        <div><span>지연 금융비용</span><strong>{fmtKrw(result.finance.delayCostKrw)}</strong><p>월 {fmtKrw(result.finance.monthlyCostKrw)}</p></div>
+      </section>
+
+      <section className="report-facts avoid-break">
+        <div><span>사업 가정</span><b>{result.project.profile.label} {result.project.profile.targetMw}MW · {(input.capexKrw / 1e8).toLocaleString()}억원 · 연 {(input.annualRate * 100).toFixed(1)}%</b></div>
+        <div><span>용도지역</span><b>{landUseText(input, landUseSource, zoningName)}</b></div>
+        <div><span>핵심 리스크</span><b>{riskRows.length}개 항목 주의·부적합</b></div>
+        <div><span>전력 접점</span><b>공급가능 변전소 {result.gate.substationCount}곳</b></div>
       </section>
 
       {memo?.error && (
         <p className="mt-2 text-red-700">검토 의견 생성 오류: {memo.error}</p>
       )}
 
-      <section className="mt-3">
-        <h2 className="text-sm font-bold">종합 의견</h2>
-        <p className="mt-1 whitespace-pre-wrap">
+      <section className="report-opinion avoid-break">
+        <div className="report-section-title"><span>01</span><h2>종합 검토 의견</h2></div>
+        <p className="whitespace-pre-wrap">
           {memo?.overall || <span className="text-gray-400">미작성 — AI 검토 의견을 생성하세요.</span>}
         </p>
       </section>
 
-      <section className="mt-3">
-        <h2 className="text-sm font-bold">점검 항목</h2>
-        <div className={variant === 'screen' ? 'mt-1 overflow-x-auto' : ''}>
+      <section className="report-checklist">
+        <div className="report-section-title"><span>02</span><h2>분야별 검토 항목</h2><small>총 {rows.length}개 항목</small></div>
+        {variant === 'screen' ? (
+          <div className="report-checklist-list">
+            {rows.map((row, i) => {
+              const opinion = memo?.items[row.key];
+              const writing = memo?.openSection?.includes(row.key) && !opinion;
+              return <article key={row.key} className="report-check-row">
+                <header><span>{String(i + 1).padStart(2, '0')} · {row.group}</span><b className={`report-verdict verdict-${row.verdict}`}>{VERDICT_GLYPH[row.verdict]} {VERDICT_LABEL[row.verdict]}{row.points ? ` −${row.points}` : ''}</b></header>
+                <h3>{row.title}</h3>
+                <p>{row.evidence}</p>
+                {row.anchor && <small>참조 · {row.anchor}</small>}
+                <div className="report-row-opinion"><span>검토 의견</span>{opinion ?? <i>{writing ? '작성 중…' : 'AI 의견 미작성'}</i>}</div>
+              </article>;
+            })}
+          </div>
+        ) : <div>
         <table
-          className={`w-full border-collapse ${small} ${variant === 'screen' ? 'min-w-[560px]' : 'mt-1'}`}
+          className={`w-full border-collapse ${small} mt-1`}
         >
           <colgroup>
             <col style={{ width: '5%' }} />
@@ -171,27 +187,27 @@ export function ChecklistReport(props: ReportProps) {
             })}
           </tbody>
         </table>
-        </div>
+        </div>}
       </section>
 
       {(memo?.actions.length ?? 0) > 0 && (
-        <section className="avoid-break mt-3">
-          <h2 className="text-sm font-bold">권고 조치</h2>
+        <section className="report-actions-list avoid-break">
+          <div className="report-section-title"><span>03</span><h2>우선 권고 조치</h2></div>
           <ul className="mt-1 list-disc pl-5">
             {memo?.actions.map((a, i) => <li key={i}>{a}</li>)}
           </ul>
         </section>
       )}
 
-      <section className="avoid-break mt-3">
-        <h2 className="text-sm font-bold">한계 고지</h2>
+      <section className="report-notes avoid-break">
+        <h2>검토 한계 및 유의사항</h2>
         <ul className={`mt-1 list-disc pl-5 ${small} text-gray-700`}>
           {caveats.map((c, i) => <li key={i}>{c}</li>)}
         </ul>
       </section>
 
-      <section className="sources avoid-break mt-3">
-        <h2 className="text-sm font-bold">출처</h2>
+      <section className="report-sources sources avoid-break">
+        <h2>데이터 출처</h2>
         <ul className={`mt-1 list-disc pl-5 ${small} text-gray-600`}>
           {sources.map((u) => (
             <li key={u}>{u}</li>
