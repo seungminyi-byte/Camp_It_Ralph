@@ -16,6 +16,7 @@ PIPELINE = [
     "p01_power.py",
     "p02_schools.py",
     "p03_population.py",
+    "p09_households.py",
     "p04_centroids_enrich.py",
     "p05_permits_api.py",
     "p06_news_api.py",

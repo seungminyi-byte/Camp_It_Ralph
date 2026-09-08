@@ -1,41 +1,23 @@
-import { LAND_USE_LABEL } from '../scoring/engine';
-import { summarizeDisaster } from '../lib/disasterSummary';
-import { RESTRICTION_DEDUCTION_LABEL, describeRestrictionHits } from '../scoring/restriction';
 import type { AppData, LandUseSource, ScoreInput, ScoreResult } from '../types';
-
+import { LAND_USE_LABEL } from '../scoring/engine';
+import { summarizeRestriction } from '../scoring/restriction';
+import { summarizeDisaster } from '../lib/disasterSummary';
+import { fmtArea, fmtCount, fmtKrw } from '../lib/format';
+import { CONSULTATION_LABELS, CONSULTATION_STATUS } from '../lib/reviewInputs';
 export type Verdict = 'good' | 'caution' | 'risk' | 'na';
-
 export const VERDICT_GLYPH: Record<Verdict, string> = {
   good: '○',
   caution: '△',
-  risk: '✗',
+  risk: '!',
   na: '—',
 };
-
 export const VERDICT_LABEL: Record<Verdict, string> = {
-  good: '양호',
-  caution: '주의',
-  risk: '위험',
+  good: '자료 확인',
+  caution: '검토 필요',
+  risk: '제약 확인',
   na: '미확인',
 };
-
-export type ChecklistKey =
-  | 'power.gate'
-  | 'power.distance'
-  | 'power.region'
-  | 'permit.landUse'
-  | 'permit.population'
-  | 'permit.school'
-  | 'permit.regulation'
-  | 'permit.restriction'
-  | 'permit.disaster'
-  | 'permit.cases'
-  | 'permit.news'
-  | 'permit.delayStat'
-  | 'site.terrain'
-  | 'site.landWater';
-
-export const CHECKLIST_KEYS: readonly ChecklistKey[] = [
+export const CHECKLIST_KEYS = [
   'power.gate',
   'power.distance',
   'power.region',
@@ -50,341 +32,236 @@ export const CHECKLIST_KEYS: readonly ChecklistKey[] = [
   'permit.delayStat',
   'site.terrain',
   'site.landWater',
-];
-
+  'site.area',
+  'cost.business',
+  'cost.finance',
+  'infra.consultation',
+] as const;
+export type ChecklistKey = (typeof CHECKLIST_KEYS)[number];
 export interface ChecklistRow {
   key: ChecklistKey;
-  group: '전력' | '인허가' | '부지';
+  group: '전력' | '인허가' | '부지' | '비용' | '기반시설';
   title: string;
   verdict: Verdict;
-  /** deducted points where the row maps to a deduction, else null */
   points: number | null;
   evidence: string;
   anchor?: string;
   sources: string[];
 }
-
 export interface ChecklistContext {
   input: ScoreInput;
   landUseSource: LandUseSource;
   zoningName: string | null;
 }
-
-/** Shared severity scale so every row reads the same way. */
 export function verdictFromPoints(points: number): Verdict {
-  if (points <= 0) return 'good';
-  return points < 10 ? 'caution' : 'risk';
+  return points > 0 ? 'caution' : 'good';
 }
-
-function fmtKm(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
-}
-
-function dedPoints(result: ScoreResult, ...labels: string[]): number {
-  return result.permit.deductions
-    .filter((d) => labels.includes(d.label))
-    .reduce((s, d) => s + d.points, 0);
-}
-
-function landUseSourceLabel(ctx: ChecklistContext): string {
-  if (ctx.landUseSource === 'auto') return `VWorld 자동 판정${ctx.zoningName ? `: ${ctx.zoningName}` : ''}`;
-  if (ctx.landUseSource === 'manual') return '수동 선택';
-  return '미확인 (기본 감점 적용)';
-}
-
-/**
- * Fixed 14-row due-diligence checklist. Verdicts and evidence come straight from ScoreResult so
- * the report is reproducible without the LLM; the model only fills the opinion column.
- */
+/** The report formats engine evidence and never infers capacity, consent or delay. */
 export function buildChecklist(
-  result: ScoreResult,
+  r: ScoreResult,
   data: AppData,
   ctx: ChecklistContext,
 ): ChecklistRow[] {
-  const s = data.constants.stats;
-  const q = data.constants.scoring.permit;
-
-  const rows: Record<ChecklistKey, Omit<ChecklistRow, 'key' | 'group' | 'title'>> = {
-    'power.gate': (() => {
-      const n = result.gate.substationCount;
-      const verdict: Verdict = !result.emd
-        ? 'na'
-        : result.project.substationRequirementMet
+  const rows: ChecklistRow[] = [];
+  const add = (
+    key: ChecklistKey,
+    group: ChecklistRow['group'],
+    title: string,
+    verdict: Verdict,
+    evidence: string,
+    sources: string[] = [],
+    points: number | null = null,
+  ) =>
+    rows.push({
+      key,
+      group,
+      title,
+      verdict: r.site.eligible ? verdict : 'na',
+      evidence,
+      sources,
+      points,
+    });
+  const source = (key: string) =>
+    r.evidence.filter((e) => e.key === key).map((e) => e.sourceUrl);
+  add(
+    'power.gate',
+    '전력',
+    '읍면동 공개 변전소 목록',
+    r.power.listedCount === null ? 'na' : 'good',
+    `목록 등재 ${fmtCount(r.power.listedCount, '곳')} · 실제 공급 가능 용량 미확인. 목록 미등재로 부지를 제외하지 않음.`,
+    source('power'),
+  );
+  add(
+    'power.distance',
+    '전력',
+    'OSM 변전소 위치',
+    r.power.nearestSubstation ? 'good' : 'na',
+    r.power.nearestSubstation
+      ? `${r.power.nearestSubstation.name} · 직선 ${r.power.nearestSubstation.distanceKm.toFixed(2)}km. 실제 연결 변전소·공사 경로가 아님.`
+      : '위치자료 미확인',
+    source('substations'),
+  );
+  add(
+    'power.region',
+    '전력',
+    '지역 참고점수',
+    r.power.score === null ? 'na' : 'good',
+    `${r.emd?.sido ?? '지역 미확인'} · 지역 참고값 ${r.power.regionScore}. 개별 사업의 심사 결과를 예측하지 않음.`,
+  );
+  add(
+    'permit.landUse',
+    '인허가',
+    '용도지역',
+    ctx.input.landUse === 'unknown' ? 'na' : 'good',
+    `${LAND_USE_LABEL[ctx.input.landUse]} · ${ctx.landUseSource === 'manual' ? '사용자 선택' : ctx.landUseSource === 'auto' ? `VWorld 자동 조회: ${ctx.zoningName ?? LAND_USE_LABEL[ctx.input.landUse]}` : '자동 조회 미확인'} · 건축 가능 여부·적용 용적률은 별도 확인.`,
+    source('zoning'),
+  );
+  add(
+    'permit.population',
+    '인허가',
+    '주변 인구·가구',
+    r.permit.popNearby === null ||
+      r.permit.householdsNearby === null ||
+      r.permit.householdMissingCells > 0
+      ? 'na'
+      : 'good',
+    `반경 ${data.constants.scoring.permit.popRadiusKm}km 내 1km 격자 중심점 합계: 인구 ${fmtCount(r.permit.popNearby, '명')}, 가구 ${fmtCount(r.permit.householdsNearby, '가구')}. 가구 결측 격자 ${r.permit.householdMissingCells}개. 비밀보호 조정이 있는 참고값이며 주민등록 세대수·수용성 평가와 다름.`,
+    [...source('population'), ...source('households')],
+  );
+  add(
+    'permit.school',
+    '인허가',
+    '학교 지점 거리',
+    r.permit.nearestSchool ? 'good' : 'na',
+    r.permit.nearestSchool
+      ? `${r.permit.nearestSchool.name} · 직선 ${r.permit.nearestSchool.distanceKm.toFixed(2)}km. 법정 보호구역 경계거리가 아님.`
+      : '학교 위치자료 미확인',
+    source('schools'),
+  );
+  add(
+    'permit.regulation',
+    '인허가',
+    '수집된 지역 규제·조례',
+    r.permit.matchedRegulations.length ? 'caution' : 'na',
+    r.permit.matchedRegulations.map((x) => x.detail).join(' / ') ||
+      '수집된 관련 조례 없음 · 규제가 없다는 의미가 아니므로 최신 조례 확인 필요',
+    r.permit.matchedRegulations.map((x) => x.source_url),
+  );
+  add(
+    'permit.restriction',
+    '인허가',
+    '법정 보호·규제구역',
+    r.restriction.level === 'prohibited'
+      ? 'risk'
+      : r.restriction.level === 'conditional'
+        ? 'caution'
+        : r.restriction.checked.bundled && r.restriction.checked.vworld === 'ok'
           ? 'good'
-          : result.gate.pass
-            ? 'caution'
-            : 'risk';
-      const where = result.emd ? `${result.emd.sigungu} ${result.emd.emd}` : '행정구역 미확인';
-      return {
-        verdict,
-        points: result.project.substationDeduction,
-        evidence:
-          `${where} 공급가능 변전소 ${n}곳` +
-          (result.gate.substations.length ? ` (${result.gate.substations.join(', ')})` : '') +
-          ` · ${result.project.profile.label} ${result.project.profile.targetMw}MW급 권장조건 ${result.project.profile.minSubstations}곳 이상` +
-          ` · 확보 전력 추정 "${result.power.capacityBand}"` +
-          (result.emdUncertain && result.emd
-            ? ` · 행정구역 판정 불확실 (가장 가까운 읍면동 중심점 ${fmtKm(result.emd.distanceKm)})`
-            : ''),
-        sources: [],
-      };
-    })(),
-
-    'power.distance': (() => {
-      const near = result.power.nearestSubstation;
-      const score = result.power.distanceScore;
-      return {
-        verdict: (!near
-          ? 'na'
-          : result.project.distanceRequirementMet
-            ? 'good'
-            : score >= 60
-              ? 'caution'
-              : 'risk') as Verdict,
-        points: result.project.distanceDeduction,
-        evidence: near
-          ? `최근접 변전소 ${near.name} ${fmtKm(near.distanceKm)} · ${result.project.profile.label} 권장거리 ${result.project.profile.maxSubstationKm}km 이내 (OpenStreetMap 참고치)`
-          : '반경 내 변전소 정보 없음',
-        sources: [],
-      };
-    })(),
-
-    'power.region': (() => {
-      const score = result.power.regionScore;
-      return {
-        verdict: (score >= 70 ? 'good' : score >= 40 ? 'caution' : 'risk') as Verdict,
-        points: null,
-        evidence:
-          `${result.emd?.sido ?? '지역 미상'} 지역 여건 ${score}점 · ` +
-          `수도권 최종 공급가능 승인률 ${((s.capitalFinalApprovalRate.value ?? 0) * 100).toFixed(1)}%, ` +
-          `비수도권 통과율 ${((s.nonCapitalPassRate.value ?? 0) * 100).toFixed(1)}%`,
-        sources: [s.capitalFinalApprovalRate.sourceUrl, s.techReviewTotal.sourceUrl].filter(
-          (u): u is string => !!u,
-        ),
-      };
-    })(),
-
-    'permit.landUse': (() => {
-      const blocked = result.permit.deductions.some((d) => d.label === '조례상 입지 불가');
-      const verdict: Verdict = blocked
-        ? 'risk'
-        : ctx.input.landUse === 'unknown'
-          ? 'na'
-          : verdictFromPoints(dedPoints(result, `용도지역: ${LAND_USE_LABEL[ctx.input.landUse]}`));
-      return {
-        verdict,
-        points: dedPoints(result, `용도지역: ${LAND_USE_LABEL[ctx.input.landUse]}`),
-        evidence:
-          `${LAND_USE_LABEL[ctx.input.landUse]} (${landUseSourceLabel(ctx)})` +
-          (blocked ? ' · 조례상 데이터센터 입지 불가 구역' : ''),
-        sources: [],
-      };
-    })(),
-
-    'permit.population': (() => {
-      const points = dedPoints(result, '주거 인접');
-      return {
-        verdict: verdictFromPoints(points),
-        points,
-        evidence: `반경 ${q.popRadiusKm}km 인구 약 ${result.permit.popNearby.toLocaleString()}명 (SGIS 1km 격자)`,
-        anchor: '김포 구래동: 아파트 인접 반발로 허가 후 착공까지 4년',
-        sources: [],
-      };
-    })(),
-
-    'permit.school': (() => {
-      const points = dedPoints(result, '학교 근접');
-      const near = result.permit.nearestSchool;
-      return {
-        verdict: verdictFromPoints(points),
-        points,
-        evidence: near
-          ? `최근접 학교 ${near.name} ${fmtKm(near.distanceKm)} (교육환경보호구역 200m)`
-          : '반경 내 학교 없음',
-        anchor: '금천 독산동: 학교 인접 민원으로 공사 1.5개월 중단',
-        sources: [],
-      };
-    })(),
-
-    'permit.regulation': (() => {
-      const points = dedPoints(
-        result,
-        ...result.permit.deductions
-          .map((d) => d.label)
-          .filter((l) => l.startsWith('지자체 규제') || l === '조례상 입지 불가'),
-      );
-      const regs = result.permit.matchedRegulations;
-      return {
-        verdict: verdictFromPoints(points),
-        points,
-        evidence: regs.length
-          ? regs.map((r) => `${r.sido} ${r.sigungu} ${r.reg_type}: ${r.detail}`).join(' / ')
-          : '확인된 특이 규제 없음',
-        sources: regs.map((r) => r.source_url).filter(Boolean),
-      };
-    })(),
-
-    'permit.restriction': (() => {
-      const rs = result.restriction;
-      if (rs.level === 'unknown') {
-        return {
-          verdict: 'na' as Verdict,
-          points: null,
-          evidence: '보호·규제구역 자료 없음 — 토지이용계획확인서(토지이음)에서 확인 필요',
-          sources: [],
-        };
-      }
-      // The VWorld half can be missing (offline, undeployed) or partial; say so instead of calling it clean.
-      const hedge =
-        rs.checked.vworld === 'partial'
-          ? ' · VWorld 일부 레이어 조회 실패(미확인 항목 있음)'
-          : rs.checked.vworld === 'none'
-            ? ' · VWorld 규제 레이어 미조회(개발제한구역·상수원보호구역·국가유산·농업진흥지역·도시자연공원구역 미확인)'
-            : '';
-      if (rs.hits.length === 0) {
-        const full = rs.checked.bundled && rs.checked.vworld === 'ok';
-        const layers = [
-          rs.checked.bundled ? '공원경계·보호지역 도형' : '',
-          rs.checked.vworld === 'ok' ? 'VWorld 규제 레이어' : '',
-        ].filter(Boolean);
-        return {
-          verdict: (full ? 'good' : 'na') as Verdict,
-          points: full ? 0 : null,
-          evidence: `확인된 법정 보호·규제구역 없음 (${layers.join(' + ')})${hedge}`,
-          sources: [],
-        };
-      }
-      return {
-        verdict: (rs.level === 'prohibited' ? 'risk' : 'caution') as Verdict,
-        points: dedPoints(result, RESTRICTION_DEDUCTION_LABEL.prohibited, RESTRICTION_DEDUCTION_LABEL.conditional),
-        evidence: describeRestrictionHits(rs.hits) + hedge,
-        sources: [
-          ...(rs.hits.some((h) => h.source === 'bundled') ? (data.protectedZones?.sourceUrls ?? []) : []),
-          ...(rs.hits.some((h) => h.source === 'vworld') ? ['https://www.vworld.kr'] : []),
-        ],
-      };
-    })(),
-
-    'permit.cases': (() => {
-      const points = result.permit.conflictRisk.casePoints + result.permit.conflictRisk.nearbyPoints;
-      const cases = result.permit.matchedCases;
-      return {
-        verdict: verdictFromPoints(points),
-        points,
-        evidence: cases.length
-          ? cases.map((c) => `${c.name} (${c.status}, 지연 ${c.delay_months}개월)`).join(' / ')
-          : '동일·인근 시군구 사례 없음',
-        sources: cases.map((c) => c.source_url).filter(Boolean),
-      };
-    })(),
-
-    'permit.news': (() => {
-      const ns = result.permit.newsSignal;
-      if (!ns) {
-        return { verdict: 'na' as Verdict, points: null, evidence: '뉴스 갈등 보도 자료 없음', sources: [] };
-      }
-      const months = data.newsSignal?.window.months ?? 24;
-      const head = ns.row.top[0];
-      return {
-        verdict: verdictFromPoints(ns.deduction),
-        points: ns.deduction,
-        evidence:
-          `${ns.areaLabel} 최근 ${months}개월 반대·갈등 기사 ${ns.row.conflictArticles}건` +
-          ` (데이터센터 기사 전체 ${ns.row.articles}건)` +
-          (head ? ` · 대표 기사 "${head.title}" (${head.date})` : ''),
-        anchor: '안양 호계동: 주민 반대 여론 속 2년 정체 끝에 사업 무산',
-        sources: head ? [head.link] : [],
-      };
-    })(),
-
-    'permit.delayStat': (() => {
-      const ds = result.permit.delayStat;
-      if (!ds) {
-        return { verdict: 'na' as Verdict, points: null, evidence: '허가 통계 데이터 없음', sources: [] };
-      }
-      if (!ds.enough) {
-        return {
-          verdict: 'na' as Verdict,
-          points: null,
-          evidence: `${ds.areaLabel} 표본 ${ds.row.n}건으로 부족 — 감점 미적용`,
-          sources: [],
-        };
-      }
-      return {
-        verdict: verdictFromPoints(ds.deduction),
-        points: ds.deduction,
-        evidence:
-          `${ds.areaLabel} 대형 신축 ${ds.row.n}건: 허가→착공 중앙값 ${ds.row.medianMonths}개월` +
-          (ds.baselineMedianMonths !== null
-            ? ` (조사 시군구 전체 ${ds.baselineMedianMonths}개월${ds.ratio !== null ? `, ${ds.ratio.toFixed(1)}배` : ''})`
-            : '') +
-          (ds.row.stalled12mShare !== null
-            ? ` · 12개월 이상 미착공 ${Math.round(ds.row.stalled12mShare * 100)}%`
-            : ''),
-        anchor: '국토부: 수도권 건축허가 DC 33곳 중 17곳(51.5%) 지연·차질',
-        sources: [],
-      };
-    })(),
-
-    'permit.disaster': {
-      verdict: result.disaster.status === 'unknown' ? 'na' : result.disaster.status === 'hit' ? 'caution' : 'good',
-      points: result.disaster.status === 'unknown' ? null : result.disaster.deduction,
-      evidence: summarizeDisaster(result.disaster),
-      anchor: result.disaster.status === 'hit' ? `${data.constants.scoring.disaster.reviewNote} 감점은 내부 예비 평가 기준입니다.` : undefined,
-      sources: [data.constants.scoring.disaster.sourceUrl],
-    },
-
-    'site.terrain': (() => {
-      const t = result.terrain;
-      if (!t) {
-        return { verdict: 'na' as Verdict, points: null, evidence: '지형 데이터 없음', sources: [] };
-      }
-      const steepAt = data.terrain?.steepThresholdDeg ?? 15;
-      return {
-        verdict: t.unsuitable ? ('risk' as Verdict) : verdictFromPoints(t.deduction),
-        points: t.deduction,
-        evidence:
-          `1km 격자 중앙값 경사 ${t.sample.slopeP50Deg}° · ${steepAt}° 이상 비율 ${t.sample.steepPct}%` +
-          ` · 표고 약 ${t.sample.elevM}m — ${t.band}`,
-        anchor: '산지관리법 시행령 별표4: 산지전용허가 평균경사도 25° 이하',
-        sources: [],
-      };
-    })(),
-
-    'site.landWater': (() => {
-      const verdict: Verdict =
-        result.site.status === 'ok'
-          ? 'good'
-          : result.site.status === 'nodata' || result.site.status === 'outside'
-            ? 'na'
-            : result.site.status === 'sea'
-              ? 'risk'
-              : 'caution';
-      return {
-        verdict,
-        points: null,
-        evidence: `${result.site.label} — ${result.site.detail}`,
-        sources: [],
-      };
-    })(),
-  };
-
-  const meta: Record<ChecklistKey, { group: ChecklistRow['group']; title: string }> = {
-    'power.gate': { group: '전력', title: '읍면동 공급가능 변전소' },
-    'power.distance': { group: '전력', title: '최근접 변전소 거리' },
-    'power.region': { group: '전력', title: '지역 승인 여건' },
-    'permit.landUse': { group: '인허가', title: '용도지역' },
-    'permit.population': { group: '인허가', title: '주거 인접 (반경 1km 인구)' },
-    'permit.school': { group: '인허가', title: '학교 근접' },
-    'permit.regulation': { group: '인허가', title: '지자체 규제·조례' },
-    'permit.restriction': { group: '인허가', title: '법정 보호·규제구역' },
-    'permit.disaster': { group: '인허가', title: '재해위험지구' },
-    'permit.cases': { group: '인허가', title: '유사 갈등 사례' },
-    'permit.news': { group: '인허가', title: '뉴스 갈등 보도' },
-    'permit.delayStat': { group: '인허가', title: '허가→착공 지연 통계' },
-    'site.terrain': { group: '부지', title: '지형·경사' },
-    'site.landWater': { group: '부지', title: '육지·수역 판정' },
-  };
-
-  return CHECKLIST_KEYS.map((key) => ({ key, ...meta[key], ...rows[key] }));
+          : 'na',
+    summarizeRestriction(r.restriction),
+    source('restrictions'),
+    r.permit.deductions.find(
+      (x) =>
+        x.label === '법적 입지 제한 구역' || x.label === '규제구역 검토 필요',
+    )?.points ?? null,
+  );
+  add(
+    'permit.disaster',
+    '인허가',
+    '재해위험지구',
+    r.disaster.status === 'unknown'
+      ? 'na'
+      : r.disaster.status === 'hit'
+        ? 'caution'
+        : 'good',
+    summarizeDisaster(r.disaster),
+    source('disaster'),
+    r.disaster.status === 'unknown' ? null : r.disaster.deduction,
+  );
+  add(
+    'permit.cases',
+    '인허가',
+    '언론 보도 참조 사례',
+    r.permit.matchedCases.length ? 'good' : 'na',
+    r.permit.matchedCases.map((x) => `${x.name}: ${x.summary}`).join(' / ') ||
+      '등록된 인근 참조 사례 없음 · 감점 제외',
+    r.permit.matchedCases.map((x) => x.source_url),
+  );
+  add(
+    'permit.news',
+    '인허가',
+    '뉴스 참고 목록',
+    r.permit.newsSignal ? 'good' : 'na',
+    r.permit.newsSignal
+      ? `${r.permit.newsSignal.areaLabel}: 수집 범위 내 갈등 보도 ${r.permit.newsSignal.row.conflictArticles}건. 0건도 수용성을 뜻하지 않으며 감점 제외.`
+      : '지역 뉴스 자료 미수집·미확인',
+    r.permit.newsSignal?.row.top.map((x) => x.link) ?? [],
+  );
+  const ds = r.permit.delayStat;
+  add(
+    'permit.delayStat',
+    '인허가',
+    '허가→착공 참고 통계',
+    ds?.enough ? 'good' : 'na',
+    ds
+      ? `${ds.areaLabel} 대형 신축 표본 ${ds.row.n}건, 중앙값 ${ds.row.medianMonths ?? '미확인'}개월. ${ds.enough ? '집계 자료' : '표본 부족'}. 이 부지의 예상 지연기간으로 사용하지 않음.`
+      : '허가 통계 미확인',
+  );
+  add(
+    'site.terrain',
+    '부지',
+    '지형·경사',
+    !r.terrain ? 'na' : r.terrain.deduction > 0 ? 'caution' : 'good',
+    r.terrain
+      ? `격자 중앙값 경사 ${r.terrain.sample.slopeP50Deg}°, 표고 약 ${r.terrain.sample.elevM}m · ${r.terrain.band}. 실측 자료가 아님.`
+      : '지형 자료 미확인',
+    source('terrain'),
+  );
+  add(
+    'site.landWater',
+    '부지',
+    '육지·수역 및 자료 범위',
+    r.site.eligible ? 'good' : 'na',
+    `${r.site.label} · ${r.site.detail}`,
+  );
+  add(
+    'site.area',
+    '부지',
+    '면적 검토',
+    r.area.status === 'unknown'
+      ? 'na'
+      : r.area.status === 'shortfall'
+        ? 'caution'
+        : 'good',
+    `${r.area.label}. 필요 연면적 ${fmtArea(r.area.requiredAreaM2)}, 이론상 최소 대지 ${fmtArea(r.area.minimumLandM2)}. ${r.area.note}`,
+  );
+  add(
+    'cost.business',
+    '비용',
+    '사업비 범위',
+    r.businessCost.complete ? 'good' : 'na',
+    `${r.businessCost.label} ${fmtKrw(r.businessCost.amountKrw)}. 미입력·유효값 확인: ${r.businessCost.missing.join(' · ') || '없음'}. 지연 금융비용 별도.`,
+  );
+  add(
+    'cost.finance',
+    '비용',
+    '금리·지연기간 민감도',
+    r.finance.missing.length ? 'na' : 'good',
+    `평균 차입잔액 ${fmtKrw(r.finance.debtKrw)}. 잔액 × 연 금리 × 지연개월 ÷ 12. 시장 예측이 아닌 계산 가정.`,
+  );
+  add(
+    'infra.consultation',
+    '기반시설',
+    '전력·용수·통신 협의',
+    r.review.issues.some((i) => i.title.includes('공급조건 확인'))
+      ? 'na'
+      : 'good',
+    (Object.keys(CONSULTATION_LABELS) as (keyof typeof CONSULTATION_LABELS)[])
+      .map(
+        (k) =>
+          `${CONSULTATION_LABELS[k]}: ${CONSULTATION_STATUS[r.conditions.consultations[k].status]} / ${r.conditions.consultations[k].date || '날짜 미입력'} / ${r.conditions.consultations[k].note || '내용 미입력'}`,
+      )
+      .join('\n'),
+  );
+  return rows;
 }

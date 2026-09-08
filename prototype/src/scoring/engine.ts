@@ -2,7 +2,6 @@ import type {
   AppData,
   CapReason,
   CaseRow,
-  ConflictLevel,
   Deduction,
   LandUse,
   TerrainSample,
@@ -12,11 +11,30 @@ import type {
   PermitDelayRow,
   ScoreInput,
   ScoreResult,
+  ProjectAssumptions,
+  SiteConditions,
+  ReviewIssue,
+  CostItem,
 } from '../types';
+import {
+  defaultProject,
+  emptyConditions,
+  COST_LABELS,
+  CONSULTATION_LABELS,
+} from '../lib/reviewInputs';
 import { haversineKm, nearest, sumWithinKm } from './geo';
-import { classifySite, findReclaimedOverride, lookupTerrain, slopeDeduction } from './terrain';
+import {
+  classifySite,
+  findReclaimedOverride,
+  lookupTerrain,
+  slopeDeduction,
+} from './terrain';
 import { classifyCoverage } from './coverage';
-import { RESTRICTION_DEDUCTION_LABEL, describeRestrictionHits, lookupRestrictions } from './restriction';
+import {
+  RESTRICTION_DEDUCTION_LABEL,
+  describeRestrictionHits,
+  lookupRestrictions,
+} from './restriction';
 
 export const LAND_USE_LABEL: Record<LandUse, string> = {
   industrial: '공업지역',
@@ -27,18 +45,8 @@ export const LAND_USE_LABEL: Record<LandUse, string> = {
   unknown: '미확인',
 };
 
-export const CONFLICT_LEVEL_LABEL: Record<ConflictLevel, string> = {
-  low: '낮음',
-  medium: '주의',
-  high: '높음',
-};
-
 function fmtKm(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
-}
-
-function scaleDeduction(points: number, multiplier: number): number {
-  return Math.round(points * multiplier);
 }
 
 /**
@@ -59,7 +67,11 @@ function findPermitRow(
     rows.find((r) => r.level === 'city' && sigungu.startsWith(r.sigungu)),
     rows.find((r) => r.sigungu === '*'),
   ].filter((r): r is PermitDelayRow => r !== undefined);
-  return candidates.find((r) => r.n >= minPermits && r.medianMonths !== null) ?? candidates[0] ?? null;
+  return (
+    candidates.find((r) => r.n >= minPermits && r.medianMonths !== null) ??
+    candidates[0] ??
+    null
+  );
 }
 
 /** Same fallback chain for the news rows: exact sigungu → city roll-up (prefix) → sido-wide ('*'). */
@@ -80,12 +92,22 @@ function findNewsRow(
 
 export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const { scoring } = data.constants;
-  const projectProfile = scoring.projectProfiles[input.projectType];
+  const project = input.project ?? {
+    ...defaultProject(data.constants),
+    type: input.projectType ?? 'standard',
+  };
+  const conditions = input.conditions ?? {
+    ...emptyConditions(),
+    costMode: 'total',
+    totalCostKrw: input.capexKrw ?? null,
+  };
+  const projectProfile = scoring.projectProfiles[project.type];
   const { lat, lng } = input;
 
   const emdMatch = nearest(lat, lng, data.emdCentroids, (c) => [c.lat, c.lng]);
   const emdUncertain =
-    emdMatch === null || emdMatch.distanceKm > scoring.power.emdMatchUncertainKm;
+    emdMatch === null ||
+    emdMatch.distanceKm > scoring.power.emdMatchUncertainKm;
   const emdInfo = emdMatch
     ? {
         key: `${emdMatch.item.sido}|${emdMatch.item.sigungu}|${emdMatch.item.emd}`,
@@ -117,12 +139,16 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const terrainSample: TerrainSample | null = data.terrain
     ? lookupTerrain(data.terrain, lat, lng)
     : null;
-  const reclaimed = findReclaimedOverride(terrainCfg.reclaimedOverrides, lat, lng);
+  const reclaimed = findReclaimedOverride(
+    terrainCfg.reclaimedOverrides,
+    lat,
+    lng,
+  );
   const site: ScoreResult['site'] = coverage.outside
     ? {
         status: 'outside',
         eligible: false,
-        label: '판독 불가',
+        label: '판독 불가 · 자료 범위 밖',
         detail: coverage.detail,
         override: null,
       }
@@ -133,7 +159,9 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   let emdPower = emdInfo
     ? data.emdPower.find(
         (p) =>
-          p.sido === emdInfo.sido && p.sigungu === emdInfo.sigungu && p.emd === emdInfo.emd,
+          p.sido === emdInfo.sido &&
+          p.sigungu === emdInfo.sigungu &&
+          p.emd === emdInfo.emd,
       )
     : undefined;
   if (!emdPower && emdInfo) {
@@ -158,39 +186,28 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const distanceScore =
     p.distanceScoreKm.find((b) => subDistKm <= b.maxKm)?.score ?? 20;
   let powerScore =
-    p.weightSupply * supplyScore + p.weightRegion * regionScore + p.weightDistance * distanceScore;
-  if (!gatePass) powerScore = Math.min(powerScore, p.gateFailCap);
+    p.weightSupply * supplyScore +
+    p.weightRegion * regionScore +
+    p.weightDistance * distanceScore;
 
-  const substationRequirementMet = subCount >= projectProfile.minSubstations;
-  const distanceRequirementMet = subDistKm <= projectProfile.maxSubstationKm;
-  const projectSubstationDeduction = substationRequirementMet
-    ? 0
-    : Math.round(projectProfile.powerDeductionCap * projectProfile.substationDeductionShare);
-  const projectDistanceDeduction = distanceRequirementMet
-    ? 0
-    : projectProfile.powerDeductionCap - Math.round(projectProfile.powerDeductionCap * projectProfile.substationDeductionShare);
-  const projectPowerDeduction = Math.min(
-    projectSubstationDeduction + projectDistanceDeduction,
-    projectProfile.powerDeductionCap,
-  );
-  powerScore = Math.max(0, Math.round(powerScore - projectPowerDeduction));
-
-  const capacityBand = !gatePass
-    ? p.capacityBands[3].label
-    : subCount >= 2 && subDistKm <= 5
-      ? p.capacityBands[0].label
-      : subCount >= 1 && subDistKm <= 10
-        ? p.capacityBands[1].label
-        : p.capacityBands[2].label;
+  powerScore = Math.max(0, Math.round(powerScore));
 
   const q = scoring.permit;
   const deductions: Deduction[] = [];
 
   const popNearby = Math.round(
-    sumWithinKm(lat, lng, data.popGrid, (g) => [g[0], g[1]], q.popRadiusKm, (g) => g[2]),
+    sumWithinKm(
+      lat,
+      lng,
+      data.popGrid,
+      (g) => [g[0], g[1]],
+      q.popRadiusKm,
+      (g) => g[2],
+    ),
   );
-  const basePopDed = q.populationDeduction.find((b) => popNearby <= b.maxPop)?.deduction ?? 0;
-  const popDed = scaleDeduction(basePopDed, projectProfile.populationSchoolMultiplier);
+  const basePopDed =
+    q.populationDeduction.find((b) => popNearby <= b.maxPop)?.deduction ?? 0;
+  const popDed = basePopDed;
   if (popDed > 0) {
     deductions.push({
       label: '주거 인접',
@@ -202,34 +219,38 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
 
   const nearestSchool = nearest(lat, lng, data.schools, (s) => [s[2], s[3]]);
   const schoolDistKm = nearestSchool?.distanceKm ?? 999;
-  const baseSchoolDed = q.schoolDeduction.find((b) => schoolDistKm <= b.maxKm)?.deduction ?? 0;
-  const schoolDed = scaleDeduction(baseSchoolDed, projectProfile.populationSchoolMultiplier);
+  const baseSchoolDed =
+    q.schoolDeduction.find((b) => schoolDistKm <= b.maxKm)?.deduction ?? 0;
+  const schoolDed = baseSchoolDed;
   if (schoolDed > 0 && nearestSchool) {
     deductions.push({
       label: '학교 근접',
       points: schoolDed,
-      evidence: `최근접 학교 ${nearestSchool.item[0]} ${fmtKm(schoolDistKm)} (교육환경보호구역 200m)`,
+      evidence: `최근접 학교 ${nearestSchool.item[0]} ${fmtKm(schoolDistKm)} (등록 지점까지 직선거리, 법정 경계거리 아님)`,
       anchor: '금천 독산동: 학교 인접 민원으로 공사 1.5개월 중단',
     });
   }
 
-  const landDed = q.landUseDeduction[input.landUse];
+  const landDed =
+    input.landUse === 'unknown' ? 0 : q.landUseDeduction[input.landUse];
   if (landDed > 0) {
     deductions.push({
       label: `용도지역: ${LAND_USE_LABEL[input.landUse]}`,
       points: landDed,
       evidence:
-        input.landUse === 'unknown'
-          ? '용도지역 미확인 (지도의 용도지역 표시 또는 토지이음에서 확인 필요)'
-          : '데이터센터는 공업·준공업 입지가 인허가 마찰 최소',
+        '용도지역별 내부 참고 기준입니다. 적용 조례와 건축 허용 여부를 별도 확인하세요.',
     });
   }
 
   // Reclaimed cells are flat by construction; their real risk is soft ground, not slope.
   let terrain: ScoreResult['terrain'] = null;
-  if (terrainSample && site.eligible && (site.status === 'ok' || site.status === 'coastal')) {
+  if (
+    terrainSample &&
+    site.eligible &&
+    (site.status === 'ok' || site.status === 'coastal')
+  ) {
     const slope = slopeDeduction(terrainSample, terrainCfg);
-    const projectSlopeDeduction = scaleDeduction(slope.points, projectProfile.slopeMultiplier);
+    const projectSlopeDeduction = slope.points;
     terrain = {
       sample: terrainSample,
       deduction: projectSlopeDeduction,
@@ -246,17 +267,19 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
             : '') +
           `1km 격자 중앙값 경사 ${terrainSample.slopeP50Deg}°, ` +
           `${data.terrain?.steepThresholdDeg ?? 15}° 이상 비율 ${terrainSample.steepPct}%, ` +
-          `표고 약 ${terrainSample.elevM}m — ${slope.band} (SRTM 30m·Terrain Tiles)` +
-          (projectProfile.slopeMultiplier !== 1
-            ? ` · ${projectProfile.label} 규모 보정 ${projectProfile.slopeMultiplier}배`
-            : ''),
+          `표고 약 ${terrainSample.elevM}m — ${slope.band} (SRTM 30m·Terrain Tiles)`,
         anchor:
           '산지관리법 시행령 별표4: 산지전용허가 평균경사도 25° 이하 · 화성·성남 개발행위허가 조례 15° 미만',
       });
     }
   } else if (terrainSample && site.status !== 'outside') {
     const slope = slopeDeduction(terrainSample, terrainCfg);
-    terrain = { sample: terrainSample, deduction: 0, band: slope.band, unsuitable: false };
+    terrain = {
+      sample: terrainSample,
+      deduction: 0,
+      band: slope.band,
+      unsuitable: false,
+    };
   }
 
   const matchedRegulations = emdInfo
@@ -282,7 +305,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     deductions.push({
       label: '조례상 입지 불가',
       points: q.incheonResidentialExtraDeduction,
-      evidence: '인천시 도시계획 조례: 일반주거지역 데이터센터 입지 금지 (2024.9 시행)',
+      evidence:
+        '인천시 도시계획 조례: 일반주거지역 데이터센터 입지 금지 (2024.9 시행)',
     });
   }
 
@@ -291,14 +315,29 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   // but a point beyond the bundled data is left unknown rather than judged from foreign geometry.
   const rCfg = scoring.restriction;
   const restriction: ScoreResult['restriction'] = coverage.outside
-    ? { level: 'unknown', hits: [], checked: { bundled: false, vworld: 'none' } }
-    : lookupRestrictions(data.protectedZones, input.restrictions, lat, lng, rCfg);
-  if (restriction.level === 'prohibited' || restriction.level === 'conditional') {
+    ? {
+        level: 'unknown',
+        hits: [],
+        checked: { bundled: false, vworld: 'none' },
+      }
+    : lookupRestrictions(
+        data.protectedZones,
+        input.restrictions,
+        lat,
+        lng,
+        rCfg,
+      );
+  if (
+    restriction.level === 'prohibited' ||
+    restriction.level === 'conditional'
+  ) {
     // One deduction per site at the highest level; the evidence still lists every hit.
     deductions.push({
       label: RESTRICTION_DEDUCTION_LABEL[restriction.level],
       points:
-        restriction.level === 'prohibited' ? rCfg.prohibitedDeduction : rCfg.conditionalDeduction,
+        restriction.level === 'prohibited'
+          ? rCfg.prohibitedDeduction
+          : rCfg.conditionalDeduction,
       evidence: describeRestrictionHits(restriction.hits),
       anchor:
         restriction.level === 'prohibited'
@@ -322,103 +361,59 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     });
   }
 
-  const matchedCases: CaseRow[] = [];
-  let caseDedSum = 0;
-  if (emdInfo) {
-    for (const c of data.cases) {
-      const sameSigungu =
-        c.sido === emdInfo.sido.slice(0, 2) && emdInfo.sigungu.startsWith(c.sigungu.slice(0, 2));
-      if (sameSigungu) {
-        matchedCases.push(c);
-        caseDedSum += q.caseDeduction[c.status] ?? 0;
-      }
-    }
-  }
-  caseDedSum = Math.min(caseDedSum, q.caseSameSigunguCap);
-  if (caseDedSum > 0) {
-    deductions.push({
-      label: '동일 시군구 갈등 사례',
-      points: caseDedSum,
-      evidence: matchedCases.map((c) => `${c.name}(${c.status})`).join(', '),
-    });
-  }
-  const nearbyCase = data.cases.find(
+  const matchedCases: CaseRow[] = data.cases.filter(
     (c) =>
-      !matchedCases.includes(c) && haversineKm(lat, lng, c.lat, c.lng) <= q.caseNearbyKm,
+      (emdInfo &&
+        c.sido === emdInfo.sido.slice(0, 2) &&
+        emdInfo.sigungu.startsWith(c.sigungu)) ||
+      haversineKm(lat, lng, c.lat, c.lng) <= q.caseNearbyKm,
   );
-  if (nearbyCase) {
-    matchedCases.push(nearbyCase);
-    deductions.push({
-      label: '인근 갈등 사례',
-      points: q.caseNearbyDeduction,
-      evidence: `${fmtKm(haversineKm(lat, lng, nearbyCase.lat, nearbyCase.lng))} 거리 ${nearbyCase.name}(${nearbyCase.status})`,
-    });
-  }
-
-  let newsSignal: ScoreResult['permit']['newsSignal'] = null;
-  const newsRow = emdInfo ? findNewsRow(data.newsSignal, emdInfo.sido, emdInfo.sigungu) : null;
-  if (newsRow && data.newsSignal) {
-    const count = newsRow.conflictArticles;
-    const band = q.newsDeduction.find((b) => count <= b.maxCount)?.deduction ?? 0;
-    const levelWeight = q.newsLevelWeight[newsRow.level] ?? 1;
-    const points = Math.round(band * levelWeight);
-    const areaLabel = newsRow.sigungu === '*' ? newsRow.sido : newsRow.sigungu;
-    newsSignal = { row: newsRow, areaLabel, deduction: points };
-    if (points > 0) {
-      const w = data.newsSignal.window;
-      const head = newsRow.top[0];
-      deductions.push({
-        label: '뉴스 갈등 보도',
-        points,
-        evidence:
-          `${areaLabel} 데이터센터 반대·갈등 기사 ${count}건` +
-          `(전체 ${newsRow.articles}건, 최근 ${w.months}개월 ${w.from}~${w.to}, 네이버 뉴스 검색)` +
-          (levelWeight < 1
-            ? ` · ${areaLabel} 전체 단위 검색이라 부지 특정성을 감안해 ${Math.round(levelWeight * 100)}%만 반영`
-            : '') +
-          (head ? ` · 대표 기사: "${head.title}" (${head.date})` : ''),
-        anchor: '안양 호계동: 주민 반대 여론 속 2년 정체 끝에 사업 무산',
-      });
-    }
-  }
-
-  // Named roll-up of the three conflict signals already deducted above; the score is unchanged.
-  const nearbyPoints = nearbyCase ? q.caseNearbyDeduction : 0;
-  const newsPoints = newsSignal?.deduction ?? 0;
-  const conflictPoints = caseDedSum + nearbyPoints + newsPoints;
-  const conflictLevel: ConflictLevel =
-    conflictPoints >= q.conflictRisk.highMin
-      ? 'high'
-      : conflictPoints >= q.conflictRisk.mediumMin
-        ? 'medium'
-        : 'low';
+  const newsRow = emdInfo
+    ? findNewsRow(data.newsSignal, emdInfo.sido, emdInfo.sigungu)
+    : null;
+  const newsSignal: ScoreResult['permit']['newsSignal'] = newsRow
+    ? {
+        row: newsRow,
+        areaLabel: newsRow.sigungu === '*' ? newsRow.sido : newsRow.sigungu,
+        deduction: 0,
+      }
+    : null;
 
   let delayStat: ScoreResult['permit']['delayStat'] = null;
   const permitRow = emdInfo
-    ? findPermitRow(data.permitDelay, emdInfo.sido, emdInfo.sigungu, q.delayStat.minPermits)
+    ? findPermitRow(
+        data.permitDelay,
+        emdInfo.sido,
+        emdInfo.sigungu,
+        q.delayStat.minPermits,
+      )
     : null;
   if (permitRow && data.permitDelay) {
     const cfg = q.delayStat;
     const base = data.permitDelay.baseline;
-    const enough = permitRow.n >= cfg.minPermits && permitRow.medianMonths !== null;
+    const enough =
+      permitRow.n >= cfg.minPermits && permitRow.medianMonths !== null;
     const ratio =
       permitRow.medianMonths !== null && base.medianMonths
         ? permitRow.medianMonths / base.medianMonths
         : null;
     let points = 0;
     if (enough && ratio !== null) {
-      points = cfg.relativeBands.find((b) => ratio <= b.maxRatio)?.deduction ?? 0;
+      points =
+        cfg.relativeBands.find((b) => ratio <= b.maxRatio)?.deduction ?? 0;
       if (
         permitRow.stalled12mShare !== null &&
         base.stalled12mShare !== null &&
         permitRow.eligible12mN >= cfg.minPermits &&
-        permitRow.stalled12mShare - base.stalled12mShare >= cfg.stalledExtra.minExcessShare
+        permitRow.stalled12mShare - base.stalled12mShare >=
+          cfg.stalledExtra.minExcessShare
       ) {
         points += cfg.stalledExtra.deduction;
       }
       points = Math.min(points, cfg.cap);
     }
-    const areaLabel = permitRow.sigungu === '*' ? permitRow.sido : permitRow.sigungu;
+    const areaLabel =
+      permitRow.sigungu === '*' ? permitRow.sido : permitRow.sigungu;
     delayStat = {
       row: permitRow,
       areaLabel,
@@ -433,7 +428,9 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       const stalledTxt =
         permitRow.stalled12mShare !== null
           ? `, 12개월 이상 미착공 ${Math.round(permitRow.stalled12mShare * 100)}%` +
-            (base.stalled12mShare !== null ? `(전체 ${Math.round(base.stalled12mShare * 100)}%)` : '')
+            (base.stalled12mShare !== null
+              ? `(전체 ${Math.round(base.stalled12mShare * 100)}%)`
+              : '')
           : '';
       deductions.push({
         label: '허가→착공 지연 통계',
@@ -462,7 +459,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   // Caps from mildest to strictest; grades[] is ordered best→worst, so a larger index is a lower grade.
   // capReason names the strictest cap in force even when the score already sat at or below it.
   const caps: { grade: string; reason: CapReason }[] = [];
-  if (!gatePass) caps.push({ grade: comp.gateFailGradeCap, reason: 'gate' });
+
   if (restriction.level === 'prohibited') {
     caps.push({ grade: comp.restrictionGradeCap, reason: 'restriction' });
   }
@@ -476,42 +473,226 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     capReason = cap.reason;
   }
 
-  const permitGrade =
-    comp.grades.find((g) => permitScore >= g.min)?.grade ?? 'E';
-  const delay = scoring.delayByPermitGrade[permitGrade];
-
-  const monthlyCostKrw = (input.capexKrw * input.annualRate) / 12;
-  const delayCostKrw = monthlyCostKrw * delay.point;
+  const popCells = data.popGrid.filter(
+    (g) => haversineKm(lat, lng, g[0], g[1]) <= q.popRadiusKm,
+  );
+  const householdCells = (data.households?.rows ?? []).filter(
+    (g) => haversineKm(lat, lng, g[0], g[1]) <= q.popRadiusKm,
+  );
+  const knownHouseholds = householdCells.filter(
+    (g) => g[2] !== null && Number.isFinite(g[2]) && g[2]! >= 0,
+  );
+  const householdsNearby = knownHouseholds.length
+    ? knownHouseholds.reduce((sum, g) => sum + g[2]!, 0)
+    : null;
+  const householdMissingCells = householdCells.length - knownHouseholds.length;
+  const powerKnown =
+    site.eligible &&
+    !emdUncertain &&
+    !!emdPower &&
+    subCount > 0 &&
+    !!nearestSub;
+  const permitKnown =
+    site.eligible &&
+    !emdUncertain &&
+    input.landUse !== 'unknown' &&
+    popCells.length > 0 &&
+    !!nearestSchool &&
+    !!terrainSample &&
+    restriction.checked.bundled &&
+    restriction.checked.vworld === 'ok' &&
+    disaster.status !== 'unknown';
+  const evidence = Object.entries(scoring.evidence).map(([key, meta]) => {
+    const availability: Record<string, boolean> = {
+      power: powerKnown,
+      substations: !!nearestSub,
+      population: popCells.length > 0,
+      households: householdsNearby !== null,
+      schools: !!nearestSchool,
+      zoning: input.landUse !== 'unknown',
+      restrictions:
+        restriction.checked.bundled && restriction.checked.vworld === 'ok',
+      disaster: disaster.status !== 'unknown',
+      terrain: !!terrainSample,
+      news: !!newsSignal,
+      permits: !!delayStat?.enough,
+    };
+    const titles: Record<string, string> = {
+      power: '한전 공개 목록',
+      substations: '변전소 참고 위치',
+      population: '주변 인구',
+      households: '주변 가구',
+      schools: '학교 거리',
+      zoning: '용도지역',
+      restrictions: '보호·규제구역',
+      disaster: '재해위험지구',
+      terrain: '지형',
+      news: '뉴스 참고 자료',
+      permits: '허가→착공 참고 통계',
+    };
+    const partial =
+      (key === 'households' &&
+        householdMissingCells > 0 &&
+        householdsNearby !== null) ||
+      (key === 'restrictions' &&
+        !availability[key] &&
+        (restriction.checked.bundled || restriction.hits.length > 0)) ||
+      (key === 'permits' && !!delayStat && !delayStat.enough);
+    const file =
+      key === 'news'
+        ? data.newsSignal
+        : key === 'permits'
+          ? data.permitDelay
+          : null;
+    const period = file
+      ? `${file.window.from}~${file.window.to} · 수집 ${file.fetchedAt}`
+      : meta.period;
+    const dataVersion =
+      key === 'households' && data.households
+        ? `${data.households.version}/${data.households.pipelineVersion ?? 'unknown'}/${data.households.sourceSha256 ?? 'unknown'}`
+        : undefined;
+    return {
+      ...meta,
+      period,
+      dataVersion,
+      key,
+      title: titles[key] ?? key,
+      status: !site.eligible
+        ? ('unknown' as const)
+        : partial
+          ? ('partial' as const)
+          : availability[key]
+            ? ('available' as const)
+            : ('unknown' as const),
+    };
+  });
+  const area = evaluateArea(project, conditions);
+  const businessCost = evaluateBusinessCost(conditions);
+  const finance = evaluateFinance(project, conditions);
+  const issues: ReviewIssue[] = [];
+  const add = (
+    title: string,
+    detail: string,
+    tone: ReviewIssue['tone'] = 'caution',
+  ) => issues.push({ title, detail, tone });
+  if (!site.eligible)
+    add(site.label, site.detail, site.status === 'sea' ? 'risk' : 'caution');
+  if (restriction.level === 'prohibited')
+    add(
+      '법적 입지 제한 구역',
+      describeRestrictionHits(restriction.hits) +
+        ' · 고시 도면·토지이용계획확인서 확인 필요',
+      'risk',
+    );
+  else if (restriction.level === 'conditional')
+    add('규제구역 검토 필요', describeRestrictionHits(restriction.hits));
+  if (deductions.some((d) => d.label === '조례상 입지 불가'))
+    add(
+      '조례상 입지 제한 검토',
+      '사용자 선택 또는 조회된 용도지역과 적용 조례를 관할기관에 확인하세요.',
+      'risk',
+    );
+  if (terrain?.unsuitable)
+    add('급경사 정밀 검토', '정밀측량·사면 안정성과 토목공사비를 확인하세요.');
+  if (disaster.status === 'hit')
+    add('재해위험지구 검토 필요', scoring.disaster.reviewNote);
+  if (area.status === 'shortfall')
+    add(
+      area.label,
+      `${area.shortfallM2!.toLocaleString()}㎡ 부족 · 입력 조건을 재검토하세요.`,
+    );
+  if (area.status === 'unknown')
+    add('면적 계산 보류', area.missing.join(' · '));
+  const missingSources = evidence.filter(
+    (e) => e.status !== 'available' && e.key !== 'news' && e.key !== 'permits',
+  );
+  if (missingSources.length)
+    add('공개자료 추가 확인', missingSources.map((e) => e.title).join(' · '));
+  if (!positive(project.targetMw))
+    add('목표 수전용량 미입력', '수전용량과 IT부하를 구분해 입력하세요.');
+  if (
+    positive(project.targetMw) &&
+    positive(project.itMw) &&
+    project.itMw! > project.targetMw!
+  )
+    add('전력 입력조건 재검토', 'IT부하가 목표 수전용량보다 큽니다.');
+  for (const [key, label] of Object.entries(CONSULTATION_LABELS)) {
+    const c =
+      conditions.consultations[key as keyof typeof conditions.consultations];
+    if (c.status !== 'confirmed' || !c.note.trim() || !validDate(c.date))
+      add(
+        `${label} 공급조건 확인`,
+        `${label} 협의 내용과 확인일을 기록하세요. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.`,
+      );
+  }
+  if (!businessCost.complete)
+    add('사업비 범위 확인', businessCost.missing.join(' · '));
+  if (finance.missing.length)
+    add('금융비용 계산 보류', finance.missing.join(' · '));
+  const risk = issues.some((i) => i.tone === 'risk');
+  const review: ScoreResult['review'] = {
+    label: !site.eligible
+      ? site.label
+      : risk
+        ? '중대 제약 확인'
+        : area.status === 'shortfall'
+          ? '입력 조건 재검토'
+          : issues.length
+            ? '추가 확인 필요'
+            : '후속 실사 검토',
+    tone: risk ? 'risk' : issues.length ? 'caution' : 'good',
+    reason:
+      issues[0]?.detail ??
+      '입력 조건의 단순 검토를 마쳤습니다. 실제 공급·설계·인허가는 후속 실사에서 확인하세요.',
+    issues,
+    actions: [
+      ...issues.map((i) => `${i.title}: ${i.detail}`),
+      project.development === 'conversion'
+        ? '기존 건물의 구조하중·층고·장비 반입·냉각설비 설치 가능성을 설계 담당자에게 확인하세요.'
+        : '옥외설비·이격거리·주차·높이 제한과 실제 배치 가능성을 설계 담당자에게 확인하세요.',
+      '실제 전력·통신 인입 경로, 도로점용과 주거지 통과 영향을 확인하세요.',
+    ],
+  };
 
   return {
     disaster,
     project: {
-      type: input.projectType,
+      type: project.type,
       profile: projectProfile,
-      powerDeduction: projectPowerDeduction,
-      substationDeduction: projectSubstationDeduction,
-      distanceDeduction: projectDistanceDeduction,
-      requirementsMet: substationRequirementMet && distanceRequirementMet,
-      substationRequirementMet,
-      distanceRequirementMet,
+      assumptions: project,
     },
+    conditions,
+    area,
+    businessCost,
+    finance,
+    evidence,
+    review,
     emd: emdInfo,
     emdUncertain,
-    gate: { pass: gatePass, substationCount: subCount, substations: emdPower?.subs ?? [] },
+    gate: {
+      pass: gatePass,
+      substationCount: subCount,
+      substations: emdPower?.subs ?? [],
+    },
     power: {
-      score: powerScore,
+      score: powerKnown ? powerScore : null,
       supplyScore,
       regionScore,
       distanceScore,
       nearestSubstation: nearestSub
-        ? { name: nearestSub.item.name || '(무명 변전소)', distanceKm: nearestSub.distanceKm }
+        ? {
+            name: nearestSub.item.name || '(무명 변전소)',
+            distanceKm: nearestSub.distanceKm,
+          }
         : null,
-      capacityBand,
+      listedCount: emdPower ? subCount : null,
     },
     permit: {
-      score: permitScore,
+      score: permitKnown ? permitScore : null,
       deductions,
-      popNearby,
+      popNearby: popCells.length ? popNearby : null,
+      householdsNearby,
+      householdMissingCells,
       nearestSchool: nearestSchool
         ? { name: nearestSchool.item[0], distanceKm: nearestSchool.distanceKm }
         : null,
@@ -519,24 +700,187 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       matchedRegulations,
       delayStat,
       newsSignal,
-      conflictRisk: {
-        level: conflictLevel,
-        points: conflictPoints,
-        casePoints: caseDedSum,
-        nearbyPoints,
-        newsPoints,
-      },
     },
     site,
     terrain,
     restriction,
-    composite: { score: compositeScore, grade, gradeCapped, capReason },
-    delay: {
-      minMonths: delay.minMonths,
-      maxMonths: delay.maxMonths,
-      pointMonths: delay.point,
-      anchor: delay.anchor,
+    composite: {
+      score: powerKnown && permitKnown ? compositeScore : null,
+      grade:
+        restriction.level === 'prohibited'
+          ? comp.restrictionGradeCap
+          : powerKnown && permitKnown
+            ? grade
+            : null,
+      gradeCapped,
+      capReason,
     },
-    finance: { delayCostKrw, monthlyCostKrw },
   };
+}
+
+function positive(n: number | null | undefined): n is number {
+  return typeof n === 'number' && Number.isFinite(n) && n > 0;
+}
+function nonnegative(n: number | null | undefined): n is number {
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0;
+}
+
+function validDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return (
+    Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
+}
+
+function evaluateArea(
+  p: ProjectAssumptions,
+  c: SiteConditions,
+): ScoreResult['area'] {
+  const missing: string[] = [];
+  let racks: number | null = null;
+  let requiredAreaM2: number | null = null;
+  if (p.areaMethod === 'racks') {
+    for (const [label, val] of [
+      ['IT부하', p.itMw],
+      ['랙당 전력', p.rackKw],
+      ['통로 포함 랙당 면적', p.rackAreaM2],
+      ['전산실 면적 비중', p.whiteSpacePct],
+    ] as const) {
+      if (!positive(val)) missing.push(label);
+    }
+    if (positive(p.whiteSpacePct) && p.whiteSpacePct > 100)
+      missing.push('전산실 면적 비중은 100% 이하');
+    if (!missing.length) {
+      racks = Math.ceil((p.itMw! * 1000) / p.rackKw!);
+      requiredAreaM2 = (racks * p.rackAreaM2!) / (p.whiteSpacePct! / 100);
+    }
+  } else if (positive(c.plannedAreaM2)) requiredAreaM2 = c.plannedAreaM2;
+  else missing.push('계획 연면적');
+  let minimumLandM2: number | null = null;
+  let shortfallM2: number | null = null;
+  if (p.development === 'conversion') {
+    if (!positive(c.existingAreaM2)) missing.push('기존 건물의 확보 면적');
+    if (!missing.length && requiredAreaM2 !== null)
+      shortfallM2 = Math.max(0, requiredAreaM2 - c.existingAreaM2!);
+  } else {
+    for (const [label, val] of [
+      ['대지면적', c.landAreaM2],
+      ['적용 용적률', c.farPct],
+      ['건폐율', c.coveragePct],
+      ['지상층수', c.floors],
+    ] as const)
+      if (!positive(val)) missing.push(label);
+    if (positive(c.coveragePct) && c.coveragePct > 100)
+      missing.push('건폐율은 100% 이하');
+    if (positive(c.floors) && !Number.isInteger(c.floors))
+      missing.push('지상층수는 정수');
+    if (
+      requiredAreaM2 !== null &&
+      positive(c.farPct) &&
+      positive(c.coveragePct) &&
+      c.coveragePct <= 100 &&
+      positive(c.floors) &&
+      Number.isInteger(c.floors)
+    ) {
+      minimumLandM2 = Math.max(
+        requiredAreaM2 / (c.farPct / 100),
+        requiredAreaM2 / c.floors / (c.coveragePct / 100),
+      );
+      if (positive(c.landAreaM2))
+        shortfallM2 = Math.max(0, minimumLandM2 - c.landAreaM2);
+    }
+  }
+  if (
+    (requiredAreaM2 !== null && !Number.isFinite(requiredAreaM2)) ||
+    (minimumLandM2 !== null && !Number.isFinite(minimumLandM2))
+  ) {
+    missing.push('면적 계산 범위 초과');
+    requiredAreaM2 = minimumLandM2 = shortfallM2 = racks = null;
+  }
+  const status =
+    missing.length || shortfallM2 === null
+      ? 'unknown'
+      : shortfallM2 > 0
+        ? 'shortfall'
+        : 'fits';
+  return {
+    status,
+    label:
+      status === 'unknown'
+        ? '계산 보류'
+        : status === 'shortfall'
+          ? '입력 조건상 면적 부족'
+          : '단순 면적조건 충족',
+    requiredAreaM2,
+    racks,
+    minimumLandM2,
+    shortfallM2,
+    missing,
+    note:
+      p.development === 'conversion'
+        ? '확보 면적과 필요 면적의 단순 비교입니다. 구조하중·층고·장비 반입·냉각설비를 별도 검토하세요.'
+        : '전 면적 지상·용적률 산입, 층별 동일 면적 가정입니다. 옥외설비·이격거리·주차·높이 제한은 별도 검토이며 건축 가능 면적의 확정값이 아닙니다.',
+  };
+}
+
+function evaluateBusinessCost(c: SiteConditions): ScoreResult['businessCost'] {
+  if (c.costMode === 'total') {
+    const valid = nonnegative(c.totalCostKrw);
+    return {
+      mode: c.costMode,
+      amountKrw: valid ? c.totalCostKrw : null,
+      complete: valid,
+      label: '직접 입력한 총사업비',
+      missing: valid ? [] : ['총사업비'],
+      comparisonKey: valid ? 'total-excluding-finance-v1' : null,
+    };
+  }
+  const keys = Object.keys(COST_LABELS) as CostItem[];
+  const missing = keys
+    .filter((k) => !nonnegative(c.costs[k]))
+    .map((k) => COST_LABELS[k]);
+  const known = keys.filter((k) => nonnegative(c.costs[k]));
+  const amount = known.reduce((sum, k) => sum + c.costs[k]!, 0);
+  const valid = Number.isFinite(amount);
+  if (!valid) missing.push('합계 계산 범위 초과');
+  const complete = missing.length === 0;
+  return {
+    mode: c.costMode,
+    amountKrw: known.length && valid ? amount : null,
+    complete,
+    label: complete ? '사업비 항목 합계' : '입력된 비용 합계',
+    missing,
+    comparisonKey: complete ? 'items-excluding-finance-v1' : null,
+  };
+}
+
+function evaluateFinance(
+  p: ProjectAssumptions,
+  c: SiteConditions,
+): ScoreResult['finance'] {
+  const debtKrw = nonnegative(c.averageDebtKrw) ? c.averageDebtKrw : null;
+  const missing: string[] = debtKrw === null ? ['지연 중 평균 차입잔액'] : [];
+  if (!p.rates.every(nonnegative)) missing.push('금리 가정');
+  if (!p.delays.every(nonnegative)) missing.push('지연기간 가정');
+  const cells = p.rates.flatMap((annualRate) =>
+    p.delays.map((months) => {
+      const cost =
+        debtKrw !== null && nonnegative(annualRate) && nonnegative(months)
+          ? (debtKrw * annualRate * months) / 12
+          : null;
+      if (
+        cost !== null &&
+        !Number.isFinite(cost) &&
+        !missing.includes('금융비용 계산 범위 초과')
+      )
+        missing.push('금융비용 계산 범위 초과');
+      return {
+        annualRate,
+        months,
+        costKrw: cost !== null && Number.isFinite(cost) ? cost : null,
+      };
+    }),
+  );
+  return { debtKrw, missing, cells };
 }

@@ -42,7 +42,8 @@ export interface CaseRow {
   summary: string;
 }
 
-export type CaseStatus = '무산' | '중단후재개' | '지연후준공' | '진행중분쟁' | '대응중';
+export type CaseStatus =
+  '무산' | '중단후재개' | '지연후준공' | '진행중분쟁' | '대응중';
 
 /** Banded sum of the conflict-related permit deductions (cases + nearby case + news). */
 export type ConflictLevel = 'low' | 'medium' | 'high';
@@ -99,13 +100,71 @@ export type ProjectType = 'small' | 'standard' | 'hyperscale';
 export interface ProjectProfile {
   label: string;
   description: string;
-  targetMw: number;
-  minSubstations: number;
-  maxSubstationKm: number;
-  powerDeductionCap: number;
-  substationDeductionShare: number;
-  populationSchoolMultiplier: number;
-  slopeMultiplier: number;
+}
+
+export interface ProjectAssumptions {
+  type: ProjectType;
+  targetMw: number | null;
+  development: 'new' | 'conversion';
+  areaMethod: 'manual' | 'racks';
+  itMw: number | null;
+  rackKw: number | null;
+  rackAreaM2: number | null;
+  whiteSpacePct: number | null;
+  rates: [number, number, number];
+  delays: [number, number, number];
+}
+
+export type CostItem =
+  'land' | 'building' | 'civil' | 'power' | 'telecom' | 'other';
+export interface Consultation {
+  status: 'unknown' | 'discussing' | 'confirmed';
+  note: string;
+  date: string;
+}
+export interface SiteConditions {
+  landAreaM2: number | null;
+  plannedAreaM2: number | null;
+  existingAreaM2: number | null;
+  farPct: number | null;
+  coveragePct: number | null;
+  floors: number | null;
+  costMode: 'total' | 'items';
+  totalCostKrw: number | null;
+  costs: Record<CostItem, number | null>;
+  averageDebtKrw: number | null;
+  consultations: Record<'power' | 'water' | 'telecom', Consultation>;
+}
+
+export interface HouseholdGridFile {
+  version: number;
+  indicator?: string;
+  pipelineVersion?: string;
+  sourceSha256?: string;
+  source: string;
+  sourceUrl: string;
+  year: number;
+  spatialUnit: string;
+  note: string;
+  rows: [lat: number, lng: number, households: number | null][];
+}
+
+export interface EvidenceItem {
+  key: string;
+  title: string;
+  status: 'available' | 'partial' | 'unknown';
+  source: string;
+  sourceUrl: string;
+  period: string;
+  spatialUnit: string;
+  detail: string;
+  dataVersion?: string;
+}
+
+export interface ReviewIssue {
+  title: string;
+  detail: string;
+  tone: 'risk' | 'caution';
 }
 
 export interface PermitDelayStat {
@@ -178,7 +237,12 @@ export interface TerrainGridFile {
   sourceUrl?: string;
   attribution: string;
   fetchedAt: string;
-  method: { sampleArcsec: number; slope: string; samplesPerCell: number; steepThresholdDeg: number };
+  method: {
+    sampleArcsec: number;
+    slope: string;
+    samplesPerCell: number;
+    steepThresholdDeg: number;
+  };
   grid: {
     lat0: number;
     lng0: number;
@@ -189,7 +253,12 @@ export interface TerrainGridFile {
     order?: string;
   };
   encoding: { type: 'base64-uint8'; nodata: number };
-  planes: { landPct: string; slopeP50Deg: string; steepPct: string; elevMean10m: string };
+  planes: {
+    landPct: string;
+    slopeP50Deg: string;
+    steepPct: string;
+    elevMean10m: string;
+  };
   tiles?: { requested: number; loaded: number; missing: string[] };
   stats?: Record<string, number>;
 }
@@ -224,7 +293,8 @@ export interface TerrainSample {
 }
 
 /** 'outside' = beyond the bundled data (north of the MDL, Japan, far islands): 판독 불가. */
-export type SiteStatus = 'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata' | 'outside';
+export type SiteStatus =
+  'ok' | 'coastal' | 'reclaimed' | 'sea' | 'nodata' | 'outside';
 
 /** Manually curated boxes for post-2000 reclamation that SRTM still reads as water. */
 export interface ReclaimedOverride {
@@ -243,9 +313,10 @@ export interface RestrictionLookup {
   complete: boolean;
 }
 
-export type RestrictionLevel = 'prohibited' | 'conditional' | 'none' | 'unknown';
+export type RestrictionLevel =
+  'prohibited' | 'conditional' | 'none' | 'unknown';
 /** Which cap is in force on the composite grade (the strictest one, whether or not it lowered the grade). */
-export type CapReason = 'gate' | 'restriction';
+export type CapReason = 'restriction';
 
 export interface RestrictionHit {
   /** canonical type — a key of constants.scoring.restriction.types */
@@ -303,7 +374,10 @@ export interface ZoningLookup {
 }
 
 export interface Constants {
-  stats: Record<string, { value?: number; label: string; source?: string; sourceUrl?: string }>;
+  stats: Record<
+    string,
+    { value?: number; label: string; source?: string; sourceUrl?: string }
+  >;
   scoring: {
     /** Where the bundled data can speak at all; anything else is reported as 판독 불가. */
     coverage: {
@@ -315,7 +389,28 @@ export interface Constants {
       emdOutsideKm: number;
     };
     projectProfiles: Record<ProjectType, ProjectProfile>;
-    disaster: { deduction: number; label: string; law: string; sourceUrl: string; reviewNote: string };
+    review: {
+      rates: [number, number, number];
+      delays: [number, number, number];
+      m2PerPyeong: number;
+    };
+    evidence: Record<
+      string,
+      {
+        source: string;
+        sourceUrl: string;
+        period: string;
+        spatialUnit: string;
+        detail: string;
+      }
+    >;
+    disaster: {
+      deduction: number;
+      label: string;
+      law: string;
+      sourceUrl: string;
+      reviewNote: string;
+    };
     power: {
       weightSupply: number;
       weightRegion: number;
@@ -323,9 +418,7 @@ export interface Constants {
       supplyScoreBySubstationCount: Record<string, number>;
       regionPrior: Record<string, number>;
       distanceScoreKm: { maxKm: number; score: number }[];
-      gateFailCap: number;
       emdMatchUncertainKm: number;
-      capacityBands: { cond: string; label: string }[];
     };
     permit: {
       popRadiusKm: number;
@@ -333,15 +426,7 @@ export interface Constants {
       schoolDeduction: { maxKm: number; deduction: number }[];
       landUseDeduction: Record<LandUse, number>;
       incheonResidentialExtraDeduction: number;
-      caseDeduction: Record<CaseStatus, number>;
-      caseSameSigunguCap: number;
       caseNearbyKm: number;
-      caseNearbyDeduction: number;
-      newsDeduction: { maxCount: number; deduction: number }[];
-      /** thresholds on the summed conflict deductions; below mediumMin is 'low' */
-      conflictRisk: { mediumMin: number; highMin: number };
-      /** 넓은 지역 행일수록 부지 특정성이 낮아 감점을 비율로 축소한다 */
-      newsLevelWeight: Record<NewsSignalRow['level'], number>;
       delayStat: {
         minPermits: number;
         /** ratio = 시군구 중앙값 / 조사 시군구 전체 중앙값 */
@@ -355,7 +440,11 @@ export interface Constants {
       seaMaxLandPct: number;
       coastalMaxLandPct: number;
       slopeDeduction: { maxP50Deg: number; deduction: number; label: string }[];
-      unsuitable: { minP50Deg: number; minSteepPct: number; minDeduction: number };
+      unsuitable: {
+        minP50Deg: number;
+        minSteepPct: number;
+        minDeduction: number;
+      };
       reclaimedOverrides: ReclaimedOverride[];
     };
     /** 법정 보호·규제구역: bundled polygons (protected_zones.json) + VWorld point lookups (api/restrictions.ts) */
@@ -365,34 +454,26 @@ export interface Constants {
       /** metres; the 국가유산 layer is queried again with this buffer for 역사문화환경 보존지역 */
       heritageBufferM: number;
       /** canonical zone type → verdict and the statute behind it; bundled zones and VWorld layers share it */
-      types: Record<string, { level: 'prohibited' | 'conditional'; law: string }>;
+      types: Record<
+        string,
+        { level: 'prohibited' | 'conditional'; law: string }
+      >;
       /** VWorld 2D Data API layer → canonical type; `buffered` names the type of the buffered query's hits */
       vworldLayers: Record<
         string,
-        { type: string; buffered?: string; nameRules?: { includes: string; type: string }[] }
+        {
+          type: string;
+          buffered?: string;
+          nameRules?: { includes: string; type: string }[];
+        }
       >;
     };
     composite: {
       weightPower: number;
       weightPermit: number;
       grades: { min: number; grade: string }[];
-      gateFailGradeCap: string;
       /** a 법적 입지 제한 hit caps the grade here (E) */
       restrictionGradeCap: string;
-    };
-    delayByPermitGrade: Record<
-      string,
-      { minMonths: number; maxMonths: number; point: number; anchor: string }
-    >;
-    finance: {
-      defaultCapexKrw: number;
-      capexLabel: string;
-      /** display-only 환산: 총사업비 ÷ 이 값 ≈ MW 규모 */
-      capexPerMwKrw: number;
-      defaultAnnualRate: number;
-      rateLabel: string;
-      capexRangeKrw: [number, number];
-      rateRange: [number, number];
     };
   };
   disclaimer: Record<string, string>;
@@ -404,6 +485,7 @@ export interface AppData {
   substations: Substation[];
   schools: SchoolRow[];
   popGrid: PopGridRow[];
+  households?: HouseholdGridFile | null;
   cases: CaseRow[];
   regulations: RegulationRow[];
   dcStats: DcStat[];
@@ -429,9 +511,12 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
-  projectType: ProjectType;
-  capexKrw: number;
-  annualRate: number;
+  /** Legacy input accepted by saved scenario scripts; never interpreted as a debt balance. */
+  projectType?: ProjectType;
+  capexKrw?: number;
+  annualRate?: number;
+  project?: ProjectAssumptions;
+  conditions?: SiteConditions;
   /** VWorld lookup for this point; lets the engine tell reclaimed land from open water. */
   zoning?: ZoningLookup | null;
   /** VWorld 규제구역 lookup for this point (api/restrictions.ts); null while loading or when it failed. */
@@ -453,32 +538,66 @@ export interface DisasterLookup {
 }
 
 export interface ScoreResult {
-  disaster: { status: 'hit' | 'none' | 'unknown'; hits: DisasterRiskHit[]; deduction: number };
+  disaster: {
+    status: 'hit' | 'none' | 'unknown';
+    hits: DisasterRiskHit[];
+    deduction: number;
+  };
   project: {
     type: ProjectType;
     profile: ProjectProfile;
-    powerDeduction: number;
-    substationDeduction: number;
-    distanceDeduction: number;
-    requirementsMet: boolean;
-    substationRequirementMet: boolean;
-    distanceRequirementMet: boolean;
+    assumptions: ProjectAssumptions;
   };
-  emd: { key: string; sido: string; sigungu: string; emd: string; distanceKm: number } | null;
+  conditions: SiteConditions;
+  area: {
+    status: 'shortfall' | 'fits' | 'unknown';
+    label: string;
+    requiredAreaM2: number | null;
+    racks: number | null;
+    minimumLandM2: number | null;
+    shortfallM2: number | null;
+    missing: string[];
+    note: string;
+  };
+  businessCost: {
+    mode: SiteConditions['costMode'];
+    amountKrw: number | null;
+    complete: boolean;
+    label: string;
+    missing: string[];
+    comparisonKey: string | null;
+  };
+  evidence: EvidenceItem[];
+  review: {
+    label: string;
+    tone: 'risk' | 'caution' | 'good';
+    reason: string;
+    issues: ReviewIssue[];
+    actions: string[];
+  };
+  emd: {
+    key: string;
+    sido: string;
+    sigungu: string;
+    emd: string;
+    distanceKm: number;
+  } | null;
   emdUncertain: boolean;
   gate: { pass: boolean; substationCount: number; substations: string[] };
   power: {
-    score: number;
+    score: number | null;
     supplyScore: number;
     regionScore: number;
     distanceScore: number;
     nearestSubstation: { name: string; distanceKm: number } | null;
-    capacityBand: string;
+    listedCount: number | null;
   };
   permit: {
-    score: number;
+    score: number | null;
     deductions: Deduction[];
-    popNearby: number;
+    popNearby: number | null;
+    householdsNearby: number | null;
+    householdMissingCells: number;
     nearestSchool: { name: string; distanceKm: number } | null;
     matchedCases: CaseRow[];
     matchedRegulations: RegulationRow[];
@@ -498,20 +617,6 @@ export interface ScoreResult {
       areaLabel: string;
       deduction: number;
     } | null;
-    /**
-     * 갈등 사례·인근 사례·뉴스 시그널 감점의 합을 등급화한 파생 지표. 점수 자체는 바꾸지 않는다.
-     * Component points are exposed so the UI never re-derives them from deduction labels.
-     */
-    conflictRisk: {
-      level: ConflictLevel;
-      points: number;
-      /** '동일 시군구 갈등 사례' after caseSameSigunguCap */
-      casePoints: number;
-      /** '인근 갈등 사례' */
-      nearbyPoints: number;
-      /** '뉴스 갈등 시그널' after level weighting */
-      newsPoints: number;
-    };
   };
   site: {
     status: SiteStatus;
@@ -521,14 +626,27 @@ export interface ScoreResult {
     detail: string;
     override: string | null;
   };
-  terrain: { sample: TerrainSample; deduction: number; band: string; unsuitable: boolean } | null;
+  terrain: {
+    sample: TerrainSample;
+    deduction: number;
+    band: string;
+    unsuitable: boolean;
+  } | null;
   /** 법정 보호·규제구역 verdict; `checked` says which of the two layers actually answered */
   restriction: {
     level: RestrictionLevel;
     hits: RestrictionHit[];
     checked: { bundled: boolean; vworld: 'ok' | 'partial' | 'none' };
   };
-  composite: { score: number; grade: string; gradeCapped: boolean; capReason: CapReason | null };
-  delay: { minMonths: number; maxMonths: number; pointMonths: number; anchor: string };
-  finance: { delayCostKrw: number; monthlyCostKrw: number };
+  composite: {
+    score: number | null;
+    grade: string | null;
+    gradeCapped: boolean;
+    capReason: CapReason | null;
+  };
+  finance: {
+    debtKrw: number | null;
+    cells: { annualRate: number; months: number; costKrw: number | null }[];
+    missing: string[];
+  };
 }

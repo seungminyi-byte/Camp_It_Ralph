@@ -1,22 +1,42 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EmdCentroid, SiteSelection } from '../types';
-import { buildEmdIndex, looksLikeLatLng, parseLatLng, searchEmd, type EmdHit } from '../search/emdSearch';
+import {
+  buildEmdIndex,
+  looksLikeLatLng,
+  parseLatLng,
+  searchEmd,
+  type EmdHit,
+} from '../search/emdSearch';
 import { GEOCODE_NOT_FOUND, geocodeAddress } from '../lib/geocode';
 
 const ZOOM = { emd: 13, coords: 15, address: 16 };
 
 interface Props {
   centroids: EmdCentroid[];
+  selection: SiteSelection | null;
   onPick: (selection: SiteSelection, zoom: number) => void;
 }
 
-export function SiteSearch({ centroids, onPick }: Props) {
-  const [query, setQuery] = useState('');
+export function SiteSearch({ centroids, selection, onPick }: Props) {
+  const [queryOverride, setQuery] = useState<string | null>(null);
+  const [querySite, setQuerySite] = useState(selection);
+  if (querySite !== selection) {
+    setQuerySite(selection);
+    setQuery(null);
+  }
+  const query =
+    queryOverride ??
+    selection?.label ??
+    (selection
+      ? `${selection.lat.toFixed(5)}, ${selection.lng.toFixed(5)}`
+      : '');
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(-1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const ctrl = useRef<AbortController | null>(null);
+
+  useEffect(() => () => ctrl.current?.abort(), []);
 
   const index = useMemo(() => buildEmdIndex(centroids), [centroids]);
   const results = useMemo(() => searchEmd(index, query), [index, query]);
@@ -28,7 +48,12 @@ export function SiteSearch({ centroids, onPick }: Props) {
     setHighlight(-1);
     setMessage(null);
     onPick(
-      { lat: r.lat, lng: r.lng, label: `${hit.entry.display} (읍면동 중심)`, source: 'emd' },
+      {
+        lat: r.lat,
+        lng: r.lng,
+        label: `${hit.entry.display} (읍면동 중심)`,
+        source: 'emd',
+      },
       ZOOM.emd,
     );
   };
@@ -42,7 +67,11 @@ export function SiteSearch({ centroids, onPick }: Props) {
     if (coords) {
       setOpen(false);
       onPick(
-        { ...coords, label: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`, source: 'coords' },
+        {
+          ...coords,
+          label: `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`,
+          source: 'coords',
+        },
         ZOOM.coords,
       );
       return;
@@ -51,10 +80,13 @@ export function SiteSearch({ centroids, onPick }: Props) {
       // A pair outside Korea would otherwise fall through to geocoding and read as "address not
       // found", which hides the real reason.
       setOpen(false);
-      setMessage('자료 범위 밖 좌표입니다 — 판독할 수 없습니다 (위도 33~39°, 경도 124~132° 안에서 입력하세요).');
+      setMessage(
+        '자료 범위 밖 좌표입니다 — 판독할 수 없습니다 (위도 33~39°, 경도 124~132° 안에서 입력하세요).',
+      );
       return;
     }
-    if (highlight >= 0 && results[highlight]) return pickEmd(results[highlight]);
+    if (highlight >= 0 && results[highlight])
+      return pickEmd(results[highlight]);
 
     const exact = results.filter((r) => r.exact);
     if (exact.length === 1) return pickEmd(exact[0]);
@@ -71,7 +103,10 @@ export function SiteSearch({ centroids, onPick }: Props) {
     try {
       const hit = await geocodeAddress(q, c.signal);
       setOpen(false);
-      onPick({ lat: hit.lat, lng: hit.lng, label: hit.label, source: 'geocode' }, ZOOM.address);
+      onPick(
+        { lat: hit.lat, lng: hit.lng, label: hit.label, source: 'geocode' },
+        ZOOM.address,
+      );
     } catch (e) {
       if (c.signal.aborted) return;
       setMessage(
@@ -147,7 +182,11 @@ export function SiteSearch({ centroids, onPick }: Props) {
           className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-300 bg-white shadow"
         >
           {results.map((hit, i) => (
-            <li key={`${hit.entry.display}-${hit.entry.row.lat}`} role="option" aria-selected={i === highlight}>
+            <li
+              key={`${hit.entry.display}-${hit.entry.row.lat}`}
+              role="option"
+              aria-selected={i === highlight}
+            >
               <button
                 type="button"
                 onMouseEnter={() => setHighlight(i)}
@@ -165,7 +204,8 @@ export function SiteSearch({ centroids, onPick }: Props) {
 
       {message && <p className="mt-1 text-xs text-red-600">{message}</p>}
       <p className="mt-1 text-xs text-gray-400">
-        읍면동명 · 도로명/지번 주소(온라인) · 위경도 "37.68, 126.74" · 또는 지도를 클릭하세요.
+        읍면동명 · 도로명/지번 주소(온라인) · 위경도 "37.68, 126.74" · 또는
+        지도를 클릭하세요.
       </p>
     </div>
   );

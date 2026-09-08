@@ -7,10 +7,19 @@ export type LlmMode = 'proxy' | 'fallback';
 export const FALLBACK_RADIUS_KM = 0.3;
 
 export interface PrecomputedFile {
-  version: 3;
+  version: 4;
   model: string;
   generatedAt: string;
-  memos: Record<string, { lat: number; lng: number; landUse: LandUse; contextKey: string; text: string }>;
+  memos: Record<
+    string,
+    {
+      lat: number;
+      lng: number;
+      landUse: LandUse;
+      contextKey: string;
+      text: string;
+    }
+  >;
 }
 
 export interface GenerateMeta {
@@ -58,12 +67,15 @@ async function loadPrecomputed(
     const res = await fetch('data/precomputed_memos.json', { signal });
     if (!res.ok) return null;
     const file = (await res.json()) as PrecomputedFile;
-    if (file.version !== 3) return null;
+    if (file.version !== 4) return null;
     let best: { id: string; text: string; distanceKm: number } | null = null;
     for (const [id, memo] of Object.entries(file.memos ?? {})) {
       if (memo.contextKey !== at.contextKey) continue;
       const distanceKm = haversineKm(at.lat, at.lng, memo.lat, memo.lng);
-      if (distanceKm <= FALLBACK_RADIUS_KM && (!best || distanceKm < best.distanceKm)) {
+      if (
+        distanceKm <= FALLBACK_RADIUS_KM &&
+        (!best || distanceKm < best.distanceKm)
+      ) {
         best = { id, text: memo.text, distanceKm };
       }
     }
@@ -77,7 +89,10 @@ async function loadPrecomputed(
  * Server proxy first (Vercel Edge -> OpenRouter), then the precomputed memo bundled for the demo
  * points. There is no browser-key path: the key lives only in the server environment.
  */
-export async function generateMemo(prompt: string, opts: GenerateOptions): Promise<void> {
+export async function generateMemo(
+  prompt: string,
+  opts: GenerateOptions,
+): Promise<void> {
   const { signal, onText, onMode, fallbackAt } = opts;
   let proxyError = '';
   try {

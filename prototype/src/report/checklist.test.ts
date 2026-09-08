@@ -1,145 +1,56 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseCsv } from '../lib/csv';
 import { scoreSite } from '../scoring/engine';
-import { decodeTerrain } from '../scoring/terrain';
-import { decodeProtectedZones } from '../scoring/restriction';
-import type {
-  AppData, CaseRow, NewsSignalFile, PermitDelayFile, ProtectedZonesFile, RegulationRow, Scenario, TerrainGridFile,
-} from '../types';
-import { CHECKLIST_KEYS, buildChecklist, verdictFromPoints } from './checklist';
-
-const DATA_DIR = join(__dirname, '..', '..', 'public', 'data');
-const readJson = <T,>(n: string): T => JSON.parse(readFileSync(join(DATA_DIR, n), 'utf-8')) as T;
-const readJsonOrNull = <T,>(n: string): T | null =>
-  existsSync(join(DATA_DIR, n)) ? readJson<T>(n) : null;
-
-function loadData(): AppData {
-  const terrainFile = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
-  const zonesFile = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
-  return {
-    emdPower: readJson('emd_power.json'),
-    emdCentroids: readJson('emd_centroids.json'),
-    substations: readJson('substations_osm.json'),
-    schools: readJson('schools.json'),
-    popGrid: readJson('pop_grid.json'),
-    dcStats: readJson('dc_stats.json'),
-    constants: readJson('constants.json'),
-    cases: parseCsv(readFileSync(join(DATA_DIR, 'cases.csv'), 'utf-8')).map((r) => ({
-      ...r, lat: Number(r.lat), lng: Number(r.lng), delay_months: Number(r.delay_months),
-    })) as unknown as CaseRow[],
-    regulations: parseCsv(readFileSync(join(DATA_DIR, 'regulations.csv'), 'utf-8')).map((r) => ({
-      ...r, deduction: Number(r.deduction),
-    })) as unknown as RegulationRow[],
-    permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
-    newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
-    terrain: terrainFile ? decodeTerrain(terrainFile) : null,
-    protectedZones: zonesFile ? decodeProtectedZones(zonesFile) : null,
-  };
-}
-
-const data = loadData();
-const scenarios = readJson<{ scenarios: Scenario[] }>('scenarios.json').scenarios;
-const fin = data.constants.scoring.finance;
-
-function rowsFor(id: string, landUseSource: 'unknown' | 'auto' | 'manual' = 'manual') {
-  const sc = scenarios.find((s) => s.id === id)!;
-  const input = {
-    lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
-    projectType: 'standard' as const,
-    capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
-  };
-  const result = scoreSite(input, data);
-  const source = sc.landUse === 'unknown' ? 'unknown' : landUseSource;
-  return buildChecklist(result, data, { input, landUseSource: source, zoningName: null });
-}
-
-const byKey = (rows: ReturnType<typeof rowsFor>, key: string) => rows.find((r) => r.key === key)!;
-
-describe('verdictFromPoints', () => {
-  it('splits at 0 and 10 points', () => {
-    expect(verdictFromPoints(0)).toBe('good');
-    expect(verdictFromPoints(9)).toBe('caution');
-    expect(verdictFromPoints(10)).toBe('risk');
+import { loadAppData, loadScenarios } from '../test/loadData';
+import { CHECKLIST_KEYS, buildChecklist } from './checklist';
+import type { ScoreInput } from '../types';
+const data = loadAppData();
+const sc = loadScenarios()[2];
+const input: ScoreInput = { lat: sc.lat, lng: sc.lng, landUse: sc.landUse };
+const rowsFor = (at = input, d = data) =>
+  buildChecklist(scoreSite(at, d), d, {
+    input: at,
+    landUseSource: 'manual',
+    zoningName: null,
   });
-});
-
-describe('buildChecklist', () => {
-  it('always returns the same 14 rows in order', () => {
-    const rows = rowsFor('goyang-deogi');
-    expect(rows.map((r) => r.key)).toEqual([...CHECKLIST_KEYS]);
-    expect(new Set(rows.map((r) => r.key)).size).toBe(14);
-    expect(rows.every((r) => r.evidence.length > 0)).toBe(true);
+const row = (key: string, at = input, d = data) =>
+  rowsFor(at, d).find((r) => r.key === key)!;
+describe('evidence report without AI', () => {
+  it('includes area, finance and consultations in a deterministic complete checklist', () => {
+    expect(rowsFor().map((r) => r.key)).toEqual([...CHECKLIST_KEYS]);
+    expect(rowsFor().every((r) => r.evidence.length > 0)).toBe(true);
+    expect(row('cost.finance').evidence).toContain('계산 가정');
   });
-
-  it('고양 덕이동: 용도지역 미확인은 판단 보류, 갈등 사례는 위험', () => {
-    const rows = rowsFor('goyang-deogi');
-    expect(byKey(rows, 'permit.landUse').verdict).toBe('na');
-    expect(byKey(rows, 'permit.cases').verdict).toBe('risk');
-    expect(byKey(rows, 'permit.news').verdict).not.toBe('na');
+  it('keeps absent news distinct from a collected zero and has no acceptance deduction', () => {
+    expect(
+      row('permit.news', input, { ...data, newsSignal: null }).verdict,
+    ).toBe('na');
+    expect(row('permit.news').points).toBeNull();
+    expect(row('permit.cases').points).toBeNull();
   });
-
-  it('인천 청천동: 주거지역과 조례 규제가 모두 위험', () => {
-    const rows = rowsFor('incheon-residential');
-    expect(byKey(rows, 'permit.landUse').verdict).toBe('risk');
-    expect(byKey(rows, 'permit.regulation').verdict).toBe('risk');
+  it('does not represent household gaps as a zero or an absence of residents', () => {
+    const h = row('permit.population', input, { ...data, households: null });
+    expect(h.evidence).toContain('가구 미확인');
+    expect(h.verdict).toBe('na');
+    expect(h.evidence).toContain('격자 중심점');
+    expect(row('permit.school').evidence).toContain(
+      '법정 보호구역 경계거리가 아님',
+    );
   });
-
-  it('세종 반곡동: 규제·사례 모두 양호', () => {
-    const rows = rowsFor('sejong-contrast');
-    expect(byKey(rows, 'permit.regulation').verdict).toBe('good');
-    expect(byKey(rows, 'permit.cases').verdict).toBe('good');
+  it('keeps failed restriction lookups unknown and a park restriction as a constraint', () => {
+    expect(row('permit.restriction').verdict).toBe('na');
+    const park = row('permit.restriction', {
+      ...input,
+      lat: 37.66,
+      lng: 126.98,
+      landUse: 'green',
+    });
+    expect(park.verdict).toBe('risk');
+    expect(park.points).toBe(40);
   });
-
-  it('지형 데이터가 있으면 부지 두 행이 판정을 갖는다', () => {
-    const rows = rowsFor('sejong-contrast');
-    if (data.terrain) {
-      expect(byKey(rows, 'site.terrain').verdict).not.toBe('na');
-      expect(byKey(rows, 'site.landWater').verdict).toBe('good');
-    } else {
-      expect(byKey(rows, 'site.terrain').verdict).toBe('na');
-    }
-  });
-
-  it('법정 보호·규제구역: VWorld 미조회면 판단 보류, 국립공원 안이면 위험', () => {
-    const offline = byKey(rowsFor('sejong-contrast'), 'permit.restriction');
-    if (data.protectedZones) {
-      expect(offline.verdict).toBe('na');
-      expect(offline.evidence).toContain('미조회');
-    }
-    const input = {
-      projectType: 'standard' as const,
-      lat: 37.66, lng: 126.98, landUse: 'green' as const,
-      capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
-      restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },
-    };
-    const result = scoreSite(input, data);
-    const row = byKey(buildChecklist(result, data, { input, landUseSource: 'manual', zoningName: null }), 'permit.restriction');
-    if (data.protectedZones) {
-      expect(row.verdict).toBe('risk');
-      expect(row.points).toBe(data.constants.scoring.restriction.prohibitedDeduction);
-      expect(row.evidence).toContain('북한산');
-    }
-  });
-
-  it('법정 보호·규제구역: 도형과 VWorld를 모두 확인하고 히트가 없으면 양호', () => {
-    const sc = scenarios.find((s) => s.id === 'sejong-contrast')!;
-    const input = {
-      projectType: 'standard' as const,
-      lat: sc.lat, lng: sc.lng, landUse: sc.landUse,
-      capexKrw: fin.defaultCapexKrw, annualRate: fin.defaultAnnualRate,
-      restrictions: { hits: [], queried: ['LT_C_UD801'], failed: [], complete: true },
-    };
-    const result = scoreSite(input, data);
-    const row = byKey(buildChecklist(result, data, { input, landUseSource: 'manual', zoningName: null }), 'permit.restriction');
-    expect(row.verdict).toBe(data.protectedZones ? 'good' : 'na');
-  });
-
-  it('용도지역 판정 출처를 근거 문구에 적는다', () => {
-    const auto = byKey(rowsFor('sejong-contrast', 'auto'), 'permit.landUse');
-    expect(auto.evidence).toContain('VWorld 자동 판정');
-    const manual = byKey(rowsFor('sejong-contrast', 'manual'), 'permit.landUse');
-    expect(manual.evidence).toContain('수동 선택');
+  it('never implies a missing power listing means that the site cannot proceed', () => {
+    const p = row('power.gate', input, { ...data, emdPower: [] });
+    expect(p.verdict).toBe('na');
+    expect(p.evidence).toContain('공급 가능 용량 미확인');
+    expect(p.evidence).not.toContain('권장조건');
   });
 });

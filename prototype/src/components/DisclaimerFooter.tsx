@@ -9,6 +9,7 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
   const d = data.constants.disclaimer;
   const [open, setOpen] = useState(false);
   const details = [
+    d.review,
     d.power,
     d.substation,
     d.stats,
@@ -61,7 +62,9 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
           <span className="min-w-0 flex-1 truncate font-semibold">
             스크리닝 참고용 · 한전 공식 검토·법률 판단 대체 불가
           </span>
-          <span className="flex-none underline">{open ? '닫기' : '자세히'}</span>
+          <span className="flex-none underline">
+            {open ? '닫기' : '자세히'}
+          </span>
         </button>
       </div>
     </footer>

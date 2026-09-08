@@ -14,7 +14,7 @@ import type {
   TerrainGridFile,
 } from '../types';
 
-const DATA_DIR = join(__dirname, '..', '..', 'public', 'data');
+const DATA_DIR = join(import.meta.dirname, '..', '..', 'public', 'data');
 
 export function readJson<T>(name: string): T {
   return JSON.parse(readFileSync(join(DATA_DIR, name), 'utf-8')) as T;
@@ -27,7 +27,9 @@ export function readJsonOrNull<T>(name: string): T | null {
 /** The bundled app data exactly as useAppData assembles it, for tests that need the real thing. */
 export function loadAppData(): AppData {
   const casesRaw = parseCsv(readFileSync(join(DATA_DIR, 'cases.csv'), 'utf-8'));
-  const regsRaw = parseCsv(readFileSync(join(DATA_DIR, 'regulations.csv'), 'utf-8'));
+  const regsRaw = parseCsv(
+    readFileSync(join(DATA_DIR, 'regulations.csv'), 'utf-8'),
+  );
   const terrainFile = readJsonOrNull<TerrainGridFile>('terrain_grid.json');
   const zonesFile = readJsonOrNull<ProtectedZonesFile>('protected_zones.json');
   return {
@@ -36,6 +38,7 @@ export function loadAppData(): AppData {
     substations: readJson('substations_osm.json'),
     schools: readJson('schools.json'),
     popGrid: readJson('pop_grid.json'),
+    households: readJsonOrNull('households_grid.json'),
     dcStats: readJson('dc_stats.json'),
     constants: readJson('constants.json'),
     cases: casesRaw.map((r) => ({
@@ -44,7 +47,10 @@ export function loadAppData(): AppData {
       lng: Number(r.lng),
       delay_months: Number(r.delay_months),
     })) as unknown as CaseRow[],
-    regulations: regsRaw.map((r) => ({ ...r, deduction: Number(r.deduction) })) as unknown as RegulationRow[],
+    regulations: regsRaw.map((r) => ({
+      ...r,
+      deduction: Number(r.deduction),
+    })) as unknown as RegulationRow[],
     permitDelay: readJsonOrNull<PermitDelayFile>('permit_delay.json'),
     newsSignal: readJsonOrNull<NewsSignalFile>('news_signal.json'),
     terrain: terrainFile ? decodeTerrain(terrainFile) : null,

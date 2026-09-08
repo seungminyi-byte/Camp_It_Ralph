@@ -20,7 +20,7 @@ Counting rules (all client-side; the API's totalCount is inflated and unusable):
   4. duplicates removed by normalized link and normalized title (뉴스 기사 재전재가 많다),
   5. conflictArticles = 3 + an opposition keyword (반대·반발·무산·백지화 …) in the TITLE.
      요약문에는 질의어("반대")가 그대로 실려 오므로 갈등 판정도 제목으로만 한다.
-The 감점은 conflictArticles 기준 (constants.json scoring.permit.newsDeduction).
+Articles are reference material only; counts do not affect scores or acceptance ratings.
 
 Usage:
   python p06_news_api.py                 # full run → out/news_signal.json
@@ -357,14 +357,14 @@ def main(argv: list[str]) -> int:
 
     conflicts = [r["conflictArticles"] for r in rows]
     out = {
-        "source": "네이버 검색 API (뉴스), openapi.naver.com/v1/search/news.json",
+        "source": "NAVER API HUB 뉴스 검색 (네이버 검색 API)",
         "fetchedAt": now.astimezone(timezone(timedelta(hours=9))).date().isoformat(),
         "window": {"months": WINDOW_MONTHS, "from": cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat(),
                    "to": now.astimezone(timezone(timedelta(hours=9))).date().isoformat()},
         "queries": QUERY_TEMPLATES,
         "conflictKeywords": CONFLICT_KEYWORDS,
         "note": ("행은 검색 지역 단위다(합산 아님): level=city 는 시 전체 검색, level=sido 는 시도 전체 검색으로 "
-                 "구별 행이 없을 때의 폴백이다. 감점은 conflictArticles 기준."),
+                 "구별 행이 없을 때의 참고 자료다. 기사 수는 주민수용성 평가와 감점에 사용하지 않는다."),
         "baseline": {
             "areas": len(rows),
             "articles": sum(r["articles"] for r in rows),

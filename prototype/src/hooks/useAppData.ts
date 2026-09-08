@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
   AppData,
+  HouseholdGridFile,
   CaseRow,
   NewsSignalFile,
   PermitDelayFile,
@@ -43,7 +44,9 @@ function safeDecodeTerrain(file: TerrainGridFile | null): TerrainGrid | null {
 }
 
 /** A malformed protected_zones.json disables the restriction layer instead of blanking the app. */
-function safeDecodeProtectedZones(file: ProtectedZonesFile | null): ProtectedZones | null {
+function safeDecodeProtectedZones(
+  file: ProtectedZonesFile | null,
+): ProtectedZones | null {
   if (!file) return null;
   try {
     return decodeProtectedZones(file);
@@ -81,6 +84,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           newsSignal,
           terrainFile,
           protectedZonesFile,
+          households,
         ] = await Promise.all([
           fetchJson<AppData['emdPower']>('data/emd_power.json'),
           fetchJson<AppData['emdCentroids']>('data/emd_centroids.json'),
@@ -95,6 +99,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchJsonOrNull<NewsSignalFile>('data/news_signal.json'),
           fetchJsonOrNull<TerrainGridFile>('data/terrain_grid.json'),
           fetchJsonOrNull<ProtectedZonesFile>('data/protected_zones.json'),
+          fetchJsonOrNull<HouseholdGridFile>('data/households_grid.json'),
         ]);
         const cases: CaseRow[] = casesRaw.map((r) => ({
           id: r.id,
@@ -121,6 +126,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
         }));
         if (!cancelled) {
           setData({
+            households: validHouseholds(households) ? households : null,
             emdPower,
             emdCentroids,
             substations,
@@ -146,4 +152,21 @@ export function useAppData(): { data: AppData | null; error: string | null } {
   }, []);
 
   return { data, error };
+}
+
+function validHouseholds(f: HouseholdGridFile | null): boolean {
+  return (
+    !!f &&
+    f.version === 1 &&
+    f.year === 2024 &&
+    Array.isArray(f.rows) &&
+    f.rows.every(
+      (r) =>
+        Array.isArray(r) &&
+        r.length === 3 &&
+        Number.isFinite(r[0]) &&
+        Number.isFinite(r[1]) &&
+        (r[2] === null || (Number.isInteger(r[2]) && r[2] >= 0)),
+    )
+  );
 }

@@ -247,14 +247,16 @@ def main() -> int:
 
     profiles = scoring.get("projectProfiles", {})
     check(set(profiles) == {"small", "standard", "hyperscale"}, "three project profiles present")
-    if profiles:
-        ordered = [profiles[key] for key in ("small", "standard", "hyperscale")]
-        check([p["targetMw"] for p in ordered] == [10, 40, 100], "project profile MW presets are 10/40/100")
-        check(
-            [p["powerDeductionCap"] for p in ordered] == sorted(p["powerDeductionCap"] for p in ordered),
-            "project power deduction caps ascend with scale",
-        )
-        check(all(0 <= p["substationDeductionShare"] <= 1 for p in ordered), "project power deduction shares are bounded")
+    check(all(set(p) == {'label', 'description'} for p in profiles.values()), 'project types do not impose MW or count presets')
+    household_file = json.loads((OUT / 'households_grid.json').read_text(encoding='utf-8'))
+    households = household_file['rows']
+    check(household_file['year'] == 2024 and household_file['version'] == 1, 'households year and version')
+    check(household_file.get('indicator') == 'to_ga_001' and household_file.get('pipelineVersion') == 'p09-v1' and len(household_file.get('sourceSha256', '')) == 64, 'household indicator and source checksum')
+    check(len(households) >= 50000, 'household grid nationwide')
+    check(all(len(r) == 3 and in_korea(r[0], r[1]) and (r[2] is None or isinstance(r[2], int) and r[2] >= 0) for r in households), 'household coordinates, counts and nulls valid')
+    check(len({(r[0], r[1]) for r in households}) == len(households), 'household grid has no duplicate centers')
+    for name, lat, lng in [('부산',35.18,129.08),('제주',33.5,126.5),('강릉',37.75,128.9)]:
+        check(any(abs(r[0]-lat)<0.1 and abs(r[1]-lng)<0.1 and r[2] is not None for r in households), 'households near ' + name)
     check(scoring["disaster"]["deduction"] == 15, "disaster deduction is 15 points")
     check("LT_C_UP201" not in scoring["restriction"]["vworldLayers"], "disaster is not double-counted as a restriction")
 

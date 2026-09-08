@@ -1,12 +1,12 @@
 export const config = { runtime: 'edge' };
 
-// Single provider: OpenRouter, with the model pinned by LLM_MODEL (production runs MiniMax).
+// Single provider: OpenRouter, with the model or router selected by LLM_MODEL.
 // The key never reaches the browser — there is no in-app LLM settings UI.
 // SSE is parsed by hand because the Edge runtime cannot bundle provider SDKs (they pull node:fs).
 
 declare const process: { env: Record<string, string | undefined> };
 
-const DEFAULT_MODEL = 'minimax/minimax-m3:free';
+const DEFAULT_MODEL = 'openrouter/free';
 const UPSTREAM_TIMEOUT_MS = 55_000;
 
 function sseToText(res: Response): ReadableStream<Uint8Array> {
