@@ -17,6 +17,10 @@ export function AnalysisDetails({
   data: AppData;
   onFlyTo: (lat: number, lng: number) => void;
 }) {
+  const permitDeduction = r.permit.deductions.reduce(
+    (sum, item) => sum + item.points,
+    0,
+  );
   if (!r.site.eligible)
     return (
       <section className="analysis-details">
@@ -27,13 +31,13 @@ export function AnalysisDetails({
   return (
     <section className="analysis-details" aria-label="분야별 상세 분석">
       <div className="section-heading">
-        <h3>상세 근거</h3>
-        <span>펼쳐서 확인</span>
+        <h3>점수 상세 근거</h3>
+        <span>필요한 항목만 펼쳐보기</span>
       </div>
-      <details className="detail-row" open>
+      <details className="detail-row">
         <summary>
           <span>면적 검토</span>
-          <b>{r.area.label}</b>
+          <b>{r.area.status === 'unknown' ? '선택 입력' : r.area.label}</b>
         </summary>
         <div className="detail-body">
           <AreaReview result={r} />
@@ -42,7 +46,7 @@ export function AnalysisDetails({
       <details className="detail-row">
         <summary>
           <span>전력</span>
-          <b>공급 가능 용량 미확인</b>
+          <b>{r.power.score === null ? '조회 중' : `공개지표 ${r.power.score}점`}</b>
         </summary>
         <div className="detail-body">
           <p>
@@ -63,10 +67,10 @@ export function AnalysisDetails({
           </p>
         </div>
       </details>
-      <details className="detail-row" open>
+      <details className="detail-row">
         <summary>
           <span>주변 주거·학교 현황</span>
-          <b>수용성 등급 없음</b>
+          <b>인허가 점수 반영</b>
         </summary>
         <div className="detail-body">
           <div className="surrounding-stats">
@@ -110,7 +114,7 @@ export function AnalysisDetails({
               ? '입지 제한 · E등급 상한'
               : r.disaster.status === 'hit'
                 ? '재해 검토 필요'
-                : '근거 확인'}
+                : `감점 ${permitDeduction}점`}
           </b>
         </summary>
         <div className="detail-body">
@@ -142,14 +146,16 @@ export function AnalysisDetails({
       <details className="detail-row">
         <summary>
           <span>전력·용수·통신 협의 기록</span>
+          <b>선택 기록</b>
         </summary>
         <div className="detail-body">
           <ConsultationReview result={r} />
         </div>
       </details>
-      <details className="detail-row" open>
+      <details className="detail-row">
         <summary>
           <span>사업비·지연 금융비용</span>
+          <b>선택 입력</b>
         </summary>
         <div className="detail-body">
           <CostReview result={r} />

@@ -48,6 +48,18 @@ describe('사업조건 면적·비용', () => {
     expect(r.review.issues.some((issue) => issue.title.includes('공급조건'))).toBe(
       false,
     );
+    expect(r.composite.breakdown.power.weight).toBe(
+      data.constants.scoring.composite.weightPower,
+    );
+    expect(r.composite.breakdown.permit.weight).toBe(
+      data.constants.scoring.composite.weightPermit,
+    );
+    expect(
+      Math.round(
+        (r.composite.breakdown.power.weightedPoints! +
+          r.composite.breakdown.permit.weightedPoints!),
+      ),
+    ).toBe(r.composite.score);
   });
   it('면적 30,000㎡ / 용적률 200% / 건폐율 50% / 4층 → 최소 대지 15,000㎡', () => {
     const c = {

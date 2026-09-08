@@ -674,6 +674,10 @@ export interface ScoreResult {
     grade: string | null;
     gradeCapped: boolean;
     capReason: CapReason | null;
+    breakdown: {
+      power: { score: number | null; weight: number; weightedPoints: number | null };
+      permit: { score: number | null; weight: number; weightedPoints: number | null };
+    };
   };
   finance: {
     debtKrw: number | null;

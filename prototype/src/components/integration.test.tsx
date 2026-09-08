@@ -129,6 +129,8 @@ describe('ARIA integration across summary surfaces', () => {
     });
     expect(rendered.result.composite.score).not.toBeNull();
     expect(rendered.overview).toContain('공공데이터 기반 1차 입지점수');
+    expect(rendered.overview).toContain('왜 이 점수인가요?');
+    expect(rendered.overview).toContain('주요 감점 요인');
     expect(rendered.overview).toContain('상세 설계 · 선택');
     expect(rendered.overview).toContain('선택 미입력');
     expect(rendered.overview).not.toContain('면적 계산 보류');

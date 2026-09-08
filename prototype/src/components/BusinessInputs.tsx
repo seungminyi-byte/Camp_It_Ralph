@@ -86,11 +86,15 @@ export function BusinessInputs({
     />
   );
   return (
-    <section className="business-inputs" aria-label="사업조건 입력">
-      <div className="section-heading">
-        <h3>사업조건</h3>
-        <span>유형·규모·설계 가정은 후보 공통</span>
-      </div>
+    <details className="business-inputs" aria-label="사업조건 입력">
+      <summary className="business-inputs-summary">
+        <span>
+          <strong>사업·설계 조건</strong>
+          <small>선택 입력</small>
+        </span>
+        <em>입력하면 면적·비용 검토가 정교해집니다</em>
+      </summary>
+      <div className="business-inputs-body">
       <div className="review-fields">
         <label className="review-field">
           <span>사업 유형</span>
@@ -390,6 +394,7 @@ export function BusinessInputs({
           ))}
         </div>
       </details>
-    </section>
+      </div>
+    </details>
   );
 }

@@ -349,7 +349,15 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 }
 
 /* Candidate review inputs and evidence. */
-.business-inputs { margin-top:20px; border-top:1px solid #e2e7eb; padding-top:14px; font-size:12px; }
+.business-inputs { margin-top:14px; border:1px solid #e2e4de; border-radius:9px; background:#fff; font-size:12px; overflow:hidden; }
+.business-inputs-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:56px; padding:12px 14px; cursor:pointer; list-style:none; }
+.business-inputs-summary::after { content:'⌄'; flex:none; color:#8f968e; font-size:14px; }
+.business-inputs[open]>.business-inputs-summary::after { transform:rotate(180deg); }
+.business-inputs-summary>span { display:flex; align-items:center; gap:7px; }
+.business-inputs-summary strong { color:#35413a; font-size:12px; }
+.business-inputs-summary small { padding:3px 6px; border-radius:999px; background:#f3f0e8; color:#8a6a2c; font-size:8px; font-weight:700; }
+.business-inputs-summary em { margin-left:auto; color:#858c84; font-size:9px; font-style:normal; text-align:right; }
+.business-inputs-body { padding:0 14px 14px; border-top:1px solid #ecece7; }
 .business-inputs fieldset { border:0; padding:12px 0 0; margin:0; min-width:0; }
 .business-inputs legend { font-weight:700; font-size:13px; padding-top:14px; }
 .business-inputs fieldset:disabled { opacity:.6; }
@@ -399,6 +407,24 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 .design-fit { flex:none; text-align:right; }
 .design-fit strong { font-size:17px; font-variant-numeric:tabular-nums; }
 .score-disclaimer { margin-top:15px; color:#8a908a; font-size:9px; line-height:1.6; }
+.score-explanation { margin-top:10px; padding:14px; border:1px solid #e1e4df; border-radius:10px; background:#fff; }
+.score-explanation-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.score-explanation-heading span { display:block; color:var(--brand); font-size:9px; font-weight:750; }
+.score-explanation-heading strong { display:block; margin-top:2px; color:#303d36; font-size:13px; }
+.score-explanation-heading>b { color:#29362f; font-size:20px; font-variant-numeric:tabular-nums; }
+.score-formula { display:grid; grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr); align-items:center; gap:5px; margin-top:12px; }
+.score-formula>div { padding:10px; border-radius:7px; background:#f6f7f4; }
+.score-formula>i { color:#92988f; text-align:center; font-style:normal; }
+.score-formula span { display:block; color:#798179; font-size:9px; }
+.score-formula strong { color:#334139; font-size:15px; }
+.score-formula small { margin-left:4px; color:#8b918a; font-size:8px; }
+.score-formula b { display:block; margin-top:5px; color:#59645e; font-size:10px; }
+.score-deductions { margin-top:12px; padding-top:10px; border-top:1px solid #eceeea; }
+.score-deductions>span { display:block; margin-bottom:4px; color:#848b83; font-size:9px; }
+.score-deductions>div { display:flex; justify-content:space-between; gap:10px; padding:5px 0; color:#4e5b54; font-size:10px; }
+.score-deductions>div strong { font-weight:600; }
+.score-deductions>div b { flex:none; color:#bd564b; }
+.score-deductions p,.score-waiting { color:#7d857d; font-size:10px; line-height:1.6; }
 .restriction-alert { background:#b82425; color:white; padding:10px 12px; border-radius:5px; font-size:12px; font-weight:700; margin:12px 0; }
 .restriction-text,.shortfall { color:#b02222; font-weight:700; }
 .review-facts { font-size:12px; line-height:1.7; }

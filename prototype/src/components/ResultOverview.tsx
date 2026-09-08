@@ -44,6 +44,11 @@ export function ResultOverview({
     r.area.status !== 'unknown' && availableArea && requiredArea
       ? Math.round((availableArea / requiredArea) * 100)
       : null;
+  const topDeductions = [...r.permit.deductions]
+    .filter((item) => item.points > 0)
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 3);
+  const { power: powerPart, permit: permitPart } = r.composite.breakdown;
   return (
     <section
       className="result-overview"
@@ -105,6 +110,51 @@ export function ResultOverview({
           </strong>
         </div>
       </div>
+      <section className="score-explanation" aria-label="점수 계산 근거">
+        <div className="score-explanation-heading">
+          <div>
+            <span>왜 이 점수인가요?</span>
+            <strong>분야별 점수와 반영비율</strong>
+          </div>
+          {score !== null && <b>{score}점</b>}
+        </div>
+        {score !== null ? (
+          <>
+            <div className="score-formula">
+              <div>
+                <span>전력 여건</span>
+                <strong>{powerPart.score}점</strong>
+                <small>× {Math.round(powerPart.weight * 100)}%</small>
+                <b>{powerPart.weightedPoints}점</b>
+              </div>
+              <i>+</i>
+              <div>
+                <span>인허가·부지</span>
+                <strong>{permitPart.score}점</strong>
+                <small>× {Math.round(permitPart.weight * 100)}%</small>
+                <b>{permitPart.weightedPoints}점</b>
+              </div>
+            </div>
+            <div className="score-deductions">
+              <span>주요 감점 요인</span>
+              {topDeductions.length ? (
+                topDeductions.map((item) => (
+                  <div key={`${item.label}-${item.points}`}>
+                    <strong>{item.label}</strong>
+                    <b>−{item.points}점</b>
+                  </div>
+                ))
+              ) : (
+                <p>현재 확인된 인허가·부지 감점 항목이 없습니다.</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="score-waiting">
+            필수 공공자료 조회가 완료되면 계산식과 감점 근거가 표시됩니다.
+          </p>
+        )}
+      </section>
       {hasDetailedInputs && (
         <div className={`design-assessment is-${r.area.status}`}>
           <div>
@@ -127,23 +177,22 @@ export function ResultOverview({
         <p>{r.review.reason}</p>
       </div>
       {children}
-      <div className="priority-issues">
-        {r.review.issues.slice(0, 4).map((issue, i) => (
-          <article key={i}>
-            <strong>{issue.title}</strong>
-            <p>{issue.detail}</p>
-          </article>
-        ))}
-      </div>
-      {r.review.issues.length > 4 && (
+      {r.review.issues.length > 0 && (
         <details className="verdict-reasons">
-          <summary>추가 확인사항 {r.review.issues.length - 4}개</summary>
-          {r.review.issues.slice(4).map((issue, i) => (
-            <article key={i}>
-              <strong>{issue.title}</strong>
-              <p>{issue.detail}</p>
-            </article>
-          ))}
+          <summary>
+            확인할 사항 <small>{r.review.issues.length}개 · 펼쳐보기</small>
+          </summary>
+          <div>
+            {r.review.issues.map((issue, i) => (
+              <article key={i}>
+                <span className={`reason-dot tone-${issue.tone}`} />
+                <div>
+                  <strong>{issue.title}</strong>
+                  <p>{issue.detail}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </details>
       )}
       <p className="score-disclaimer">
