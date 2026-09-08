@@ -281,6 +281,9 @@ interface Props {
 export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
   const [showSubs, setShowSubs] = useState(true);
   const [showDataCenters, setShowDataCenters] = useState(true);
+  const [dataCenterCategories, setDataCenterCategories] = useState<
+    Record<DataCenterCategory, boolean>
+  >({ edgeSmall: true, colocation: true, hyperscale: true });
   const [showCases, setShowCases] = useState(true);
   const [showSchools, setShowSchools] = useState(false);
   const [showZoning, setShowZoning] = useState(true);
@@ -306,6 +309,28 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
     [data.substations],
+  );
+  const visibleDataCenters = useMemo(
+    () =>
+      (data.dataCenters?.sites ?? [])
+        .filter((dc) => dataCenterCategories[dc.category])
+        // Larger markers are drawn first so a nearby smaller category remains visible on top.
+        .sort(
+          (a, b) =>
+            DATA_CENTER_META[b.category].size - DATA_CENTER_META[a.category].size,
+        ),
+    [data.dataCenters, dataCenterCategories],
+  );
+  const dataCenterCount = useMemo(
+    () =>
+      (data.dataCenters?.sites ?? []).reduce(
+        (counts, dc) => ({ ...counts, [dc.category]: counts[dc.category] + 1 }),
+        { edgeSmall: 0, colocation: 0, hyperscale: 0 } as Record<
+          DataCenterCategory,
+          number
+        >,
+      ),
+    [data.dataCenters],
   );
   const zoneTypes = data.constants.scoring.restriction.types;
 
@@ -356,7 +381,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             </CircleMarker>
           ))}
         {showDataCenters &&
-          (data.dataCenters?.sites ?? []).map((dc) => {
+          visibleDataCenters.map((dc) => {
             const meta = DATA_CENTER_META[dc.category];
             const capacity = capacityText(dc);
             return (
@@ -366,6 +391,14 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                 alt={dc.name}
                 position={[dc.lat, dc.lng]}
                 icon={dataCenterIcon(dc.category)}
+                zIndexOffset={
+                  dc.category === 'edgeSmall'
+                    ? 300
+                    : dc.category === 'colocation'
+                      ? 200
+                      : 100
+                }
+                riseOnHover
                 eventHandlers={{ click: () => setLayersOpen(false) }}
               >
                 <Popup
@@ -462,17 +495,28 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             checked={showDataCenters}
             onChange={(e) => setShowDataCenters(e.target.checked)}
           />
-          인근 데이터센터
+          인근 데이터센터 ({data.dataCenters?.sites.length ?? 0})
         </label>
         {showDataCenters && (
           <div className="dc-layer-legend">
             {(Object.keys(DATA_CENTER_META) as DataCenterCategory[]).map((category) => {
               const meta = DATA_CENTER_META[category];
               return (
-                <span key={category}>
+                <label key={category}>
+                  <input
+                    type="checkbox"
+                    checked={dataCenterCategories[category]}
+                    onChange={(event) =>
+                      setDataCenterCategories((current) => ({
+                        ...current,
+                        [category]: event.target.checked,
+                      }))
+                    }
+                  />
                   <i style={{ backgroundColor: meta.color }} />
-                  {meta.label}
-                </span>
+                  <span>{meta.label}</span>
+                  <b>{dataCenterCount[category]}</b>
+                </label>
               );
             })}
             <small role="status">{data.dataCenters
