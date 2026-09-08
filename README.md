@@ -68,7 +68,7 @@ npm --prefix prototype run build
 
 | 키 | 발급 URL | 사용처 | 필요 시점 |
 |---|---|---|---|
-| **OpenRouter** (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=openrouter/free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
+| **OpenRouter** (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=google/gemma-4-31b-it:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
 | VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/disaster.ts`(재해위험지구 점 조회) · `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | 로컬 `data-pack/.env`의 `DATA_GO_KR_API_KEY`(무시됨, Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json`. Vercel 환경변수에도 같은 이름으로 보관 | 허가→착공 통계 |
 | 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | 로컬 `data-pack/.env`의 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json`. Vercel 환경변수에도 같은 이름으로 보관 | 뉴스 참고 목록 |
@@ -82,12 +82,12 @@ LLM 키는 서버에만 둡니다. 사전 생성 의견은 **v4 서명**과 전�
 
 1. 새 키가 필요하면 [OpenRouter Keys](https://openrouter.ai/keys)에서 본인 계정으로 발급합니다.
 2. Vercel에서 `OPENROUTER_API_KEY`를 추가하거나 편집하고 값을 직접 붙여넣습니다. 환경은 **Production**, 종류는 **Secret**으로 지정해 저장합니다. 키를 대화·코드·브라우저 앱 입력란에 넣지 않습니다.
-3. `LLM_MODEL`은 **Config**, Production 환경에 `openrouter/free`로 설정합니다. [공식 Free Models Router](https://openrouter.ai/docs/guides/routing/routers/free-router)는 사용 가능한 무료 모델을 선택합니다. 호출별 모델과 응답 속도는 달라질 수 있습니다.
+3. `LLM_MODEL`은 **Config**, Production 환경에 `google/gemma-4-31b-it:free`로 설정합니다. [무료 모델 제공 상태](https://openrouter.ai/google/gemma-4-31b-it:free)를 확인할 수 있습니다. 무료 제공 상태와 응답 속도는 달라질 수 있습니다.
 4. 환경변수 변경 후 새로 배포해야 실행 중인 서버에 반영됩니다. 기존 배포는 Vercel의 Redeploy, 코드 변경은 저장소의 배포 흐름으로 반영합니다.
 
 터미널을 선호하면 프로젝트의 `prototype` 폴더에서 `vercel env update OPENROUTER_API_KEY production --sensitive`를 직접 실행하고 숨겨진 입력창에 붙여넣습니다. 처음 등록하는 환경이면 `update` 대신 `add`를 사용합니다. 키를 명령어 인수에 적지 않습니다.
 
-2026-09-08 점검에서 `OPENROUTER_API_KEY`는 운영 환경에 이미 등록돼 있었습니다. 기존 `minimax/minimax-m3:free` 호출은 무료 제공 종료로 404를 반환해 서버 설정과 기본 모델을 `openrouter/free`로 변경했습니다. 키 원문을 조회·복사하지 않았습니다.
+2026-09-08 점검에서 `OPENROUTER_API_KEY`는 운영 환경에 이미 등록돼 있었습니다. 기존 `minimax/minimax-m3:free` 호출은 무료 제공 종료로 404를 반환해 서버 설정과 기본 모델을 `google/gemma-4-31b-it:free`로 변경했습니다. 키 원문을 조회·복사하지 않았습니다. 보고서 18개 항목의 출력을 위해 추론 모드를 끄고 출력 한도를 4,000토큰으로 설정했습니다. 본문이 비어 있는 응답은 실패로 표시하며 기본 보고서는 계속 사용할 수 있습니다.
 
 ## 구현 구조
 

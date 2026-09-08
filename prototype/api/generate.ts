@@ -6,7 +6,7 @@ export const config = { runtime: 'edge' };
 
 declare const process: { env: Record<string, string | undefined> };
 
-const DEFAULT_MODEL = 'openrouter/free';
+const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
 const UPSTREAM_TIMEOUT_MS = 55_000;
 
 function sseToText(res: Response): ReadableStream<Uint8Array> {
@@ -34,7 +34,11 @@ function sseToText(res: Response): ReadableStream<Uint8Array> {
             // OpenRouter reports mid-stream failures as a data frame; surface it as a section
             // the client parser understands instead of ending the memo silently.
             if (j.error) {
-              controller.enqueue(enc.encode(`\n## ERROR\n${j.error.message ?? 'upstream error'}\n`));
+              controller.enqueue(
+                enc.encode(
+                  `\n## ERROR\n${j.error.message ?? 'upstream error'}\n`,
+                ),
+              );
               controller.close();
               return;
             }
@@ -51,13 +55,18 @@ function sseToText(res: Response): ReadableStream<Uint8Array> {
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
+  if (req.method !== 'POST')
+    return new Response('method not allowed', { status: 405 });
 
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) return new Response('no OPENROUTER_API_KEY configured on server', { status: 503 });
+  if (!key)
+    return new Response('no OPENROUTER_API_KEY configured on server', {
+      status: 503,
+    });
 
   const { prompt } = (await req.json()) as { prompt?: string };
-  if (!prompt || prompt.length > 20000) return new Response('bad prompt', { status: 400 });
+  if (!prompt || prompt.length > 20000)
+    return new Response('bad prompt', { status: 400 });
 
   const model = process.env.LLM_MODEL || DEFAULT_MODEL;
   const abort = new AbortController();
@@ -77,16 +86,23 @@ export default async function handler(req: Request): Promise<Response> {
         model,
         stream: true,
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 4000,
+        reasoning: { enabled: false },
         messages: [{ role: 'user', content: prompt }],
       }),
     });
   } catch (e) {
     clearTimeout(timer);
-    return new Response(`openrouter unreachable: ${e instanceof Error ? e.message : String(e)}`, {
-      status: 502,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
+    return new Response(
+      `openrouter unreachable: ${e instanceof Error ? e.message : String(e)}`,
+      {
+        status: 502,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'no-store',
+        },
+      },
+    );
   }
   clearTimeout(timer);
 
@@ -94,7 +110,10 @@ export default async function handler(req: Request): Promise<Response> {
     const detail = (await res.text()).replace(/\s+/g, ' ').slice(0, 300);
     return new Response(`openrouter ${res.status}: ${detail}`, {
       status: 502,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
     });
   }
 

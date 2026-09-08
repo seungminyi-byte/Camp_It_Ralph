@@ -3,7 +3,7 @@ import type { PrecomputedFile } from '../src/genai/llmClient';
 // Pre-generate the 실사 체크리스트 opinions for the fixture points (offline fallback for MemoPanel).
 // Usage (the key never touches the repo):
 //   OPENROUTER_API_KEY="sk-or-..." node node_modules/tsx/dist/cli.mjs scripts/precompute_memos.ts
-// Optional: OPENROUTER_MODEL (default openrouter/free) — match the deployed LLM_MODEL.
+// Optional: OPENROUTER_MODEL (default google/gemma-4-31b-it:free) — match the deployed LLM_MODEL.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseCsv } from '../src/lib/csv';
@@ -88,7 +88,8 @@ async function callOpenRouter(
     body: JSON.stringify({
       model,
       temperature: 0.3,
-      max_tokens: 2000,
+      max_tokens: 4000,
+      reasoning: { enabled: false },
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -105,7 +106,7 @@ async function callOpenRouter(
 async function main() {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error('set OPENROUTER_API_KEY in the environment');
-  const model = process.env.OPENROUTER_MODEL || 'openrouter/free';
+  const model = process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it:free';
   console.log(`provider=openrouter model=${model}`);
 
   const data = loadData();

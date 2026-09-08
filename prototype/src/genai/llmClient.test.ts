@@ -4,6 +4,25 @@ import { generateMemo } from './llmClient';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('offline opinion evidence', () => {
+  it.each(['', '   \n'])(
+    'rejects an empty successful response: %j',
+    async (body) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(new Response(body, { status: 200 })),
+      );
+      const opts = {
+        signal: new AbortController().signal,
+        onText: vi.fn(),
+        onMode: vi.fn(),
+        fallbackAt: null,
+      };
+      await expect(generateMemo('prompt', opts)).rejects.toThrow(
+        'AI 응답 본문 없음',
+      );
+      expect(opts.onMode).toHaveBeenCalledTimes(1);
+    },
+  );
   const options = () => ({
     signal: new AbortController().signal,
     onText: vi.fn(),

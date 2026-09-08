@@ -51,11 +51,15 @@ async function streamViaProxy(
   const model = res.headers.get('X-LLM-Model') ?? undefined;
   const reader = res.body.getReader();
   const dec = new TextDecoder();
+  let hasText = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
-    onText(dec.decode(value, { stream: true }));
+    const text = dec.decode(value, { stream: true });
+    if (text.trim()) hasText = true;
+    onText(text);
   }
+  if (!hasText) throw new Error('AI 응답 본문 없음');
   return { model };
 }
 
@@ -119,7 +123,7 @@ export async function generateMemo(
   }
 
   throw new Error(
-    `검토 의견 생성 실패 (${proxyError}). 서버 환경변수 OPENROUTER_API_KEY를 확인하세요. ` +
+    `검토 의견 생성 실패 (${proxyError}). 기본 보고서는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요. ` +
       `사전 생성 메모는 등록된 지점 반경 ${FALLBACK_RADIUS_KM * 1000}m 이내이며 평가조건이 같은 경우에만 제공됩니다.`,
   );
 }

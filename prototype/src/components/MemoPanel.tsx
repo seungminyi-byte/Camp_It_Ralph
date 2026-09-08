@@ -201,8 +201,11 @@ export function MemoPanel({
           보고서는 현재 조건으로 갱신되었습니다.
         </p>
       )}
-      {!stale && run?.status === 'error' && (
-        <p className="mt-2 text-xs text-red-600">{run.error}</p>
+      {!stale && (run?.status === 'error' || run?.parsed.error) && (
+        <p role="alert" className="mt-2 text-xs text-red-600">
+          {run?.error ?? run?.parsed.error} 기본 보고서는 계속 출력할 수
+          있습니다.
+        </p>
       )}
 
       <div className="report-preview-shell">
