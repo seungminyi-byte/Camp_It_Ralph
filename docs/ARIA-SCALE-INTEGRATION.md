@@ -26,3 +26,9 @@
 - 실제 AI 호출은 HTTP 200, 45.5초에 항목 18개·조치 5개·주의사항 2개를 완료했다. 모델이 `OVERVIEW`로 요약 제목을 반환하여 요약이 파싱되지 않는 문제를 발견했다. `OVERALL`과 동의 표기 `OVERVIEW`를 함께 인식하도록 수정했다. 새 테스트의 실패를 먼저 확인한 뒤 타입 검사·린트·18개 파일 163개 테스트·빌드를 통과했고, 실제 응답을 재파싱해 요약 207자와 모든 항목 보존을 확인했다.
 - 브라우저에서 AI 생성 중 규모를 변경했다가 원래 조건으로 되돌려도 이전 의견이 복원되지 않고, 해제 안내와 현재 조건의 기본 보고서가 표시되는 것을 확인했다.
 - AI는 비결정적이며 생성 완료는 수치·법률 해석의 정확성을 보증하지 않는다. 기본 보고서의 확인된 근거를 우선한다.
+
+## 최종 배포
+
+- 최종 배포 코드 `fb5673c`(병합 커밋 `6a7566f` + AI 요약 호환 수정). GitHub Actions [실행 18](https://github.com/seungminyi-byte/Camp_It_Ralph/actions/runs/34191500239)은 Success(49초), Vercel `dpl_8hbYe85M5WweHngV2JwV8Vp6Mrd3`는 Production Ready다.
+- 운영 주소 https://grand-site-dc.vercel.app 의 JS `index-BknGIwp-.js`, CSS `index-E8w3yMKi.css`가 최종 로컬 빌드와 바이트 단위로 일치했다. 후속 수정은 클라이언트 요약 파서에 한정되며 서버 API는 앞서 검증한 것과 같다.
+- 원래 작업 폴더의 기본 브랜치도 최신 코드로 전진시켰다. 기존 README의 추가·삭제 내용은 보존 전과 대조했고 AGENTS.md의 SHA-256도 동일했다. 임시 보관한 README는 복원 후 이번 작업의 임시 stash만 정리했다.
