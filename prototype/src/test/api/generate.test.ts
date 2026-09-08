@@ -1,0 +1,48 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import handler from '../../../api/generate.js';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
+
+describe('report model routing', () => {
+  const request = () =>
+    new Request('https://example.test/api/generate', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: '검토 의견' }),
+    });
+  const setup = (model: string) => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'test-key');
+    vi.stubEnv('LLM_MODEL', model);
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          'data: {"model":"alternate-model","choices":[{"delta":{"content":"검토 결과"}}]}\n\ndata: [DONE]\n\n',
+        ),
+      );
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  it('keeps automatic alternatives free and does not mislabel the chosen model', async () => {
+    const fetch = setup('google/gemma-4-31b-it:free');
+    const response = await handler(request());
+    const payload = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(payload.models).toHaveLength(3);
+    expect(
+      payload.models.every((model: string) => model.endsWith(':free')),
+    ).toBe(true);
+    expect(await response.text()).toBe('검토 결과');
+    expect(response.headers.get('X-LLM-Model')).toBe('OpenRouter');
+  });
+  it('honors an explicitly configured model without adding alternatives', async () => {
+    const fetch = setup('configured/model');
+    const response = await handler(request());
+    expect(JSON.parse(fetch.mock.calls[0][1].body).models).toEqual([
+      'configured/model',
+    ]);
+    expect(await response.text()).toBe('검토 결과');
+    expect(response.headers.get('X-LLM-Model')).toBe('configured/model');
+  });
+});

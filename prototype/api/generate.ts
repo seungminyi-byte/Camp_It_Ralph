@@ -69,6 +69,14 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('bad prompt', { status: 400 });
 
   const model = process.env.LLM_MODEL || DEFAULT_MODEL;
+  const models =
+    model === DEFAULT_MODEL
+      ? [
+          model,
+          'nvidia/nemotron-3.5-lightning:free',
+          'google/gemma-4-26b-a4b-it:free',
+        ]
+      : [model];
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), UPSTREAM_TIMEOUT_MS);
   let res: Response;
@@ -83,7 +91,7 @@ export default async function handler(req: Request): Promise<Response> {
         'X-Title': 'The Grand Site DC',
       },
       body: JSON.stringify({
-        model,
+        models,
         stream: true,
         temperature: 0.3,
         max_tokens: 4000,
@@ -121,7 +129,7 @@ export default async function handler(req: Request): Promise<Response> {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'no-store',
-      'X-LLM-Model': model,
+      'X-LLM-Model': models.length > 1 ? 'OpenRouter' : model,
     },
   });
 }
