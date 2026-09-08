@@ -349,6 +349,7 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 }
 
 /* Candidate review inputs and evidence. */
+.business-controls { margin-top:18px; }
 .business-inputs { margin-top:14px; border:1px solid #e2e4de; border-radius:9px; background:#fff; font-size:12px; overflow:hidden; }
 .business-inputs-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:56px; padding:12px 14px; cursor:pointer; list-style:none; }
 .business-inputs-summary::after { content:'⌄'; flex:none; color:#8f968e; font-size:14px; }

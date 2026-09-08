@@ -125,6 +125,7 @@ export type LandUse =
   | 'unknown';
 
 export type ProjectType = 'small' | 'standard' | 'hyperscale';
+export type BusinessType = 'generalCloud' | 'colocation' | 'ai';
 
 export interface ProjectProfile {
   label: string;
@@ -133,6 +134,7 @@ export interface ProjectProfile {
 
 export interface ProjectAssumptions {
   type: ProjectType;
+  businessType: BusinessType;
   targetMw: number | null;
   development: 'new' | 'conversion';
   areaMethod: 'manual' | 'racks';

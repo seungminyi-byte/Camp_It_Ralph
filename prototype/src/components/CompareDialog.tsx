@@ -8,6 +8,10 @@ import { summarizeRestriction } from '../scoring/restriction';
 import { areaLabel, fmtArea, fmtCount, fmtKrw } from '../lib/format';
 import { CostReview } from './ReviewFacts';
 import type { ScoreResult } from '../types';
+import {
+  BUSINESS_TYPE_LABELS,
+  PROJECT_SCALE_LABELS,
+} from '../lib/reviewInputs';
 export function CompareDialog({
   open,
   entries,
@@ -105,7 +109,7 @@ export function CompareDialog({
               {row(
                 '사업조건',
                 (r) =>
-                  `${r.project.profile.label} · 수전 ${r.project.assumptions.targetMw ?? '미입력'}MW · ${r.project.assumptions.development === 'new' ? '신축' : '기존 건물 전환'}`,
+                  `${PROJECT_SCALE_LABELS[r.project.assumptions.type]} · ${BUSINESS_TYPE_LABELS[r.project.assumptions.businessType]} · 수전 ${r.project.assumptions.targetMw ?? '미입력'}MW · ${r.project.assumptions.development === 'new' ? '신축' : '기존 건물 전환'}`,
               )}
               {row(
                 '대지 / 필요 연면적',

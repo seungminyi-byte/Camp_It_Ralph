@@ -9,8 +9,10 @@ import {
   CONSULTATION_LABELS,
   CONSULTATION_STATUS,
   COST_LABELS,
+  BUSINESS_TYPE_LABELS,
   convertArea,
 } from '../lib/reviewInputs';
+import type { BusinessType } from '../types';
 
 type Props = {
   data: AppData;
@@ -85,8 +87,53 @@ export function BusinessInputs({
       }
     />
   );
+  const scaleOptions = [
+    {
+      type: 'small' as const,
+      label: '엣지',
+      hint: '소형',
+      description: '수요지 인접성과 운영 접근성을 중심으로 검토합니다.',
+    },
+    {
+      type: 'standard' as const,
+      label: '일반',
+      hint: '중형',
+      description: '일반적인 코로케이션 규모를 기준으로 검토합니다.',
+    },
+    {
+      type: 'hyperscale' as const,
+      label: '초대형',
+      hint: '대규모',
+      description: '대규모 전력 인입과 넓은 부지 조건을 중심으로 검토합니다.',
+    },
+  ];
   return (
-    <details className="business-inputs" aria-label="사업조건 입력">
+    <section className="business-controls" aria-label="사업조건 입력">
+      <fieldset className="project-scale">
+        <legend>데이터센터 규모</legend>
+        <div className="scale-options">
+          {scaleOptions.map((option) => (
+            <label
+              className={`scale-option ${p.type === option.type ? 'is-selected' : ''}`}
+              key={option.type}
+            >
+              <input
+                type="radio"
+                name="project-type"
+                value={option.type}
+                checked={p.type === option.type}
+                onChange={() => project({ type: option.type })}
+              />
+              <span>{option.hint}</span>
+              <strong>{option.label}</strong>
+            </label>
+          ))}
+        </div>
+        <p className="scale-caption">
+          {scaleOptions.find((option) => option.type === p.type)?.description}
+        </p>
+      </fieldset>
+      <details className="business-inputs">
       <summary className="business-inputs-summary">
         <span>
           <strong>사업·설계 조건</strong>
@@ -99,16 +146,18 @@ export function BusinessInputs({
         <label className="review-field">
           <span>사업 유형</span>
           <select
-            value={p.type}
+            value={p.businessType}
             onChange={(e) =>
-              project({ type: e.target.value as ProjectAssumptions['type'] })
+              project({ businessType: e.target.value as BusinessType })
             }
           >
-            {(['standard', 'small', 'hyperscale'] as const).map((t) => (
-              <option key={t} value={t}>
-                {data.constants.scoring.projectProfiles[t].label}
-              </option>
-            ))}
+            {(Object.keys(BUSINESS_TYPE_LABELS) as BusinessType[]).map(
+              (businessType) => (
+                <option key={businessType} value={businessType}>
+                  {BUSINESS_TYPE_LABELS[businessType]}
+                </option>
+              ),
+            )}
           </select>
         </label>
         <NumberField
@@ -395,6 +444,7 @@ export function BusinessInputs({
         </div>
       </details>
       </div>
-    </details>
+      </details>
+    </section>
   );
 }

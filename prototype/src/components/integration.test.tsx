@@ -7,7 +7,9 @@ import type { ScoreInput } from '../types';
 import { ChecklistReport } from './ChecklistReport';
 import { ResultOverview } from './ResultOverview';
 import { CompareDialog } from './CompareDialog';
+import { BusinessInputs } from './BusinessInputs';
 import { pinId } from '../compare/pins';
+import { defaultProject, emptyConditions } from '../lib/reviewInputs';
 
 const data = loadAppData();
 const sc = loadScenarios().find((s) => s.id === 'sejong-contrast')!;
@@ -81,6 +83,30 @@ function renderSurfaces(input: ScoreInput) {
 }
 
 describe('ARIA integration across summary surfaces', () => {
+  it('keeps the three data-center scale choices visible outside optional inputs', () => {
+    const project = defaultProject(data.constants);
+    const html = renderToStaticMarkup(
+      <BusinessInputs
+        data={data}
+        project={project}
+        conditions={emptyConditions()}
+        hasSite
+        onProject={() => {}}
+        onConditions={() => {}}
+      />,
+    );
+    expect(html).toContain('데이터센터 규모');
+    expect(html).toContain('엣지');
+    expect(html).toContain('일반');
+    expect(html).toContain('초대형');
+    expect(html).toContain('사업 유형');
+    expect(html).toContain('일반 클라우드');
+    expect(html).toContain('코로케이션');
+    expect(html).toContain('AI 데이터센터');
+    expect(html.indexOf('데이터센터 규모')).toBeLessThan(
+      html.indexOf('<details class="business-inputs"'),
+    );
+  });
   it('preserves the legal E cap and report evidence in the new layout', () => {
     const rendered = renderSurfaces({
       ...base,

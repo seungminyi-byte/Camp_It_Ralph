@@ -3,7 +3,21 @@ import type {
   CostItem,
   ProjectAssumptions,
   SiteConditions,
+  BusinessType,
+  ProjectType,
 } from '../types';
+
+export const PROJECT_SCALE_LABELS: Record<ProjectType, string> = {
+  small: '엣지',
+  standard: '일반',
+  hyperscale: '초대형',
+};
+
+export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
+  generalCloud: '일반 클라우드',
+  colocation: '코로케이션',
+  ai: 'AI 데이터센터',
+};
 
 export const COST_LABELS: Record<CostItem, string> = {
   land: '토지비',
@@ -55,6 +69,7 @@ export function emptyConditions(): SiteConditions {
 export function defaultProject(constants: Constants): ProjectAssumptions {
   return {
     type: 'standard',
+    businessType: 'generalCloud',
     targetMw: null,
     development: 'new',
     areaMethod: 'manual',
