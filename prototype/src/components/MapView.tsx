@@ -12,7 +12,16 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import { divIcon } from 'leaflet';
-import type { AppData, CaseRow, Constants, ProtectedZone, ProtectedZones, SiteSelection } from '../types';
+import type {
+  AppData,
+  CaseRow,
+  Constants,
+  DataCenterCategory,
+  DataCenterSite,
+  ProtectedZone,
+  ProtectedZones,
+  SiteSelection,
+} from '../types';
 
 const CASE_COLOR: Record<CaseRow['status'], string> = {
   무산: '#d8756b',
@@ -20,6 +29,15 @@ const CASE_COLOR: Record<CaseRow['status'], string> = {
   진행중분쟁: '#c6a260',
   지연후준공: '#74a99b',
   대응중: '#6b7280',
+};
+
+const DATA_CENTER_META: Record<
+  DataCenterCategory,
+  { label: string; color: string; size: number; short: string }
+> = {
+  edgeSmall: { label: '엣지·소형', color: '#397d8a', size: 22, short: 'E' },
+  colocation: { label: '일반 코로케이션', color: '#665c91', size: 26, short: 'C' },
+  hyperscale: { label: '초대형', color: '#d65b16', size: 30, short: 'H' },
 };
 
 // VWorld 용도지역 layers: 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역 (WMS allows up to 4 per request).
@@ -51,6 +69,23 @@ function siteIcon(): ReturnType<typeof divIcon> {
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
+}
+
+function dataCenterIcon(category: DataCenterCategory): ReturnType<typeof divIcon> {
+  const meta = DATA_CENTER_META[category];
+  return divIcon({
+    className: '',
+    html: `<div class="dc-map-marker" style="--dc-color:${meta.color};width:${meta.size}px;height:${meta.size}px"><span>${meta.short}</span></div>`,
+    iconSize: [meta.size, meta.size],
+    iconAnchor: [meta.size / 2, meta.size / 2],
+    popupAnchor: [0, -meta.size / 2],
+  });
+}
+
+function capacityText(site: DataCenterSite): string | null {
+  if (site.capacityMw === null) return null;
+  const kind = site.capacityKind === 'IT' ? 'IT 용량' : site.capacityKind === 'design' ? '수전 설계' : '시설 전력';
+  return `${kind} ${site.capacityMw.toLocaleString('ko-KR')}MW`;
 }
 
 function ClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
@@ -245,6 +280,7 @@ interface Props {
 
 export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
   const [showSubs, setShowSubs] = useState(true);
+  const [showDataCenters, setShowDataCenters] = useState(true);
   const [showCases, setShowCases] = useState(true);
   const [showSchools, setShowSchools] = useState(false);
   const [showZoning, setShowZoning] = useState(true);
@@ -256,6 +292,16 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
   const [layersOpen, setLayersOpen] = useState(false);
   const [zoningError, setZoningError] = useState<string | null>(null);
   const [restrictionError, setRestrictionError] = useState<string | null>(null);
+  const [compactLayout, setCompactLayout] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 1023px)');
+    const update = () => setCompactLayout(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
@@ -309,6 +355,43 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
               </Popup>
             </CircleMarker>
           ))}
+        {showDataCenters &&
+          data.dataCenters.map((dc) => {
+            const meta = DATA_CENTER_META[dc.category];
+            const capacity = capacityText(dc);
+            return (
+              <Marker
+                key={dc.id}
+                position={[dc.lat, dc.lng]}
+                icon={dataCenterIcon(dc.category)}
+                eventHandlers={{ click: () => setLayersOpen(false) }}
+              >
+                <Popup
+                  maxWidth={340}
+                  className="dc-popup"
+                  autoPanPaddingTopLeft={compactLayout ? [12, 80] : [20, 220]}
+                  autoPanPaddingBottomRight={[20, 20]}
+                >
+                  <div className="dc-popup-heading">
+                    <span style={{ color: meta.color, backgroundColor: `${meta.color}18` }}>{meta.label}</span>
+                    <small>운영 중</small>
+                  </div>
+                  <b>{dc.name}</b>
+                  <p>{dc.operator} · {dc.address}</p>
+                  <dl>
+                    {dc.openedYear && <><dt>운영 시작</dt><dd>{dc.openedYear}년</dd></>}
+                    {capacity && <><dt>공개 용량</dt><dd>{capacity}</dd></>}
+                    <dt>규모 근거</dt><dd>{dc.scaleNote}</dd>
+                    <dt>분류 근거</dt><dd>{dc.categoryReason}</dd>
+                  </dl>
+                  <small>{dc.coordinateBasis}</small>
+                  <a href={dc.sourceUrl} target="_blank" rel="noreferrer">
+                    {dc.sourceName} ↗
+                  </a>
+                </Popup>
+              </Marker>
+            );
+          })}
         {showCases &&
           data.cases.map((c) => (
             <CircleMarker
@@ -371,6 +454,28 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
           <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} />
           변전소 (OSM)
         </label>
+        <label className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            checked={showDataCenters}
+            onChange={(e) => setShowDataCenters(e.target.checked)}
+          />
+          인근 데이터센터
+        </label>
+        {showDataCenters && data.dataCenters.length > 0 && (
+          <div className="dc-layer-legend">
+            {(Object.keys(DATA_CENTER_META) as DataCenterCategory[]).map((category) => {
+              const meta = DATA_CENTER_META[category];
+              return (
+                <span key={category}>
+                  <i style={{ backgroundColor: meta.color }} />
+                  {meta.label}
+                </span>
+              );
+            })}
+            <small>공개 위치·운영 확인 {data.dataCenters.length}곳 · 2026.09 기준</small>
+          </div>
+        )}
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={showCases} onChange={(e) => setShowCases(e.target.checked)} />
           갈등 사례

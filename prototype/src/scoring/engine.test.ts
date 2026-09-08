@@ -33,6 +33,22 @@ const evaluate = (
 ) => scoreSite({ ...input(), ...overrides }, dataset);
 
 describe('사업조건 면적·비용', () => {
+  it('상세 설계조건이 없어도 입지점수를 산정하고 미입력을 검토사유로 만들지 않는다', () => {
+    const r = evaluate();
+    expect(r.composite.score).not.toBeNull();
+    expect(r.composite.grade).not.toBeNull();
+    expect(r.review.issues.map((issue) => issue.title)).not.toEqual(
+      expect.arrayContaining([
+        '면적 계산 보류',
+        '목표 수전용량 미입력',
+        '사업비 범위 확인',
+        '금융비용 계산 보류',
+      ]),
+    );
+    expect(r.review.issues.some((issue) => issue.title.includes('공급조건'))).toBe(
+      false,
+    );
+  });
   it('면적 30,000㎡ / 용적률 200% / 건폐율 50% / 4층 → 최소 대지 15,000㎡', () => {
     const c = {
       ...emptyConditions(),
@@ -46,6 +62,9 @@ describe('사업조건 면적·비용', () => {
     expect(r.area.minimumLandM2).toBe(15000);
     expect(r.area.shortfallM2).toBe(5000);
     expect(r.area.status).toBe('shortfall');
+    expect(r.review.issues.some((issue) => issue.title === r.area.label)).toBe(
+      true,
+    );
     expect(
       evaluate({ conditions: { ...c, landAreaM2: 15000 } }).area.status,
     ).toBe('fits');

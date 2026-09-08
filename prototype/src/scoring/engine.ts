@@ -569,6 +569,21 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const area = evaluateArea(project, conditions);
   const businessCost = evaluateBusinessCost(conditions);
   const finance = evaluateFinance(project, conditions);
+  const hasAreaInputs = [
+    conditions.landAreaM2,
+    conditions.plannedAreaM2,
+    conditions.existingAreaM2,
+    conditions.farPct,
+    conditions.coveragePct,
+    conditions.floors,
+    project.itMw,
+    project.rackKw,
+    project.rackAreaM2,
+    project.whiteSpacePct,
+  ].some((value) => value !== null);
+  const hasCostInputs =
+    conditions.totalCostKrw !== null ||
+    Object.values(conditions.costs).some((value) => value !== null);
   const issues: ReviewIssue[] = [];
   const add = (
     title: string,
@@ -601,15 +616,13 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       area.label,
       `${area.shortfallM2!.toLocaleString()}㎡ 부족 · 입력 조건을 재검토하세요.`,
     );
-  if (area.status === 'unknown')
+  if (area.status === 'unknown' && hasAreaInputs)
     add('면적 계산 보류', area.missing.join(' · '));
   const missingSources = evidence.filter(
     (e) => e.status !== 'available' && e.key !== 'news' && e.key !== 'permits',
   );
   if (missingSources.length)
     add('공개자료 추가 확인', missingSources.map((e) => e.title).join(' · '));
-  if (!positive(project.targetMw))
-    add('목표 수전용량 미입력', '수전용량과 IT부하를 구분해 입력하세요.');
   if (
     positive(project.targetMw) &&
     positive(project.itMw) &&
@@ -619,15 +632,16 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   for (const [key, label] of Object.entries(CONSULTATION_LABELS)) {
     const c =
       conditions.consultations[key as keyof typeof conditions.consultations];
-    if (c.status !== 'confirmed' || !c.note.trim() || !validDate(c.date))
+    const started = c.status !== 'unknown' || !!c.note.trim() || !!c.date;
+    if (started && (c.status !== 'confirmed' || !c.note.trim() || !validDate(c.date)))
       add(
         `${label} 공급조건 확인`,
         `${label} 협의 내용과 확인일을 기록하세요. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.`,
       );
   }
-  if (!businessCost.complete)
+  if (hasCostInputs && !businessCost.complete)
     add('사업비 범위 확인', businessCost.missing.join(' · '));
-  if (finance.missing.length)
+  if (conditions.averageDebtKrw !== null && finance.missing.length)
     add('금융비용 계산 보류', finance.missing.join(' · '));
   const risk = issues.some((i) => i.tone === 'risk');
   const review: ScoreResult['review'] = {

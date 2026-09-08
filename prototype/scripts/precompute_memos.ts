@@ -17,6 +17,7 @@ import { parseMemo, stripThinking } from '../src/genai/memoFormat';
 import type {
   AppData,
   CaseRow,
+  DataCenterSiteFile,
   NewsSignalFile,
   PermitDelayFile,
   ProtectedZonesFile,
@@ -55,6 +56,7 @@ function loadData(): AppData {
     popGrid: readJson('pop_grid.json'),
     households: readJsonOrNull('households_grid.json'),
     dcStats: readJson('dc_stats.json'),
+    dataCenters: readJsonOrNull<DataCenterSiteFile>('data/data_centers.json')?.sites ?? [],
     constants: readJson('constants.json'),
     cases: casesRaw.map((r) => ({
       ...r,

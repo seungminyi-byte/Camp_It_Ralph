@@ -64,6 +64,35 @@ export interface DcStat {
   contractMw: number;
 }
 
+export type DataCenterCategory = 'edgeSmall' | 'colocation' | 'hyperscale';
+
+export interface DataCenterSite {
+  id: string;
+  name: string;
+  operator: string;
+  category: DataCenterCategory;
+  categoryReason: string;
+  lat: number;
+  lng: number;
+  address: string;
+  status: 'operational';
+  openedYear: number | null;
+  capacityMw: number | null;
+  capacityKind: 'IT' | 'facility' | 'design' | null;
+  scaleNote: string;
+  sourceName: string;
+  sourceUrl: string;
+  coordinateBasis: string;
+}
+
+export interface DataCenterSiteFile {
+  version: 1;
+  asOf: string;
+  scope: string;
+  classification: Record<DataCenterCategory, string>;
+  sites: DataCenterSite[];
+}
+
 export interface Scenario {
   id: string;
   name: string;
@@ -489,6 +518,8 @@ export interface AppData {
   cases: CaseRow[];
   regulations: RegulationRow[];
   dcStats: DcStat[];
+  /** 공개 주소와 운영 상태를 확인한 완공 데이터센터; optional curated layer */
+  dataCenters: DataCenterSite[];
   constants: Constants;
   /** 건축HUB 허가→착공 통계 (P1); null when data/permit_delay.json is absent */
   permitDelay: PermitDelayFile | null;

@@ -5,6 +5,7 @@ import { decodeTerrain } from '../scoring/terrain';
 import { decodeProtectedZones } from '../scoring/restriction';
 import type {
   AppData,
+  DataCenterSiteFile,
   CaseRow,
   NewsSignalFile,
   PermitDelayFile,
@@ -40,6 +41,7 @@ export function loadAppData(): AppData {
     popGrid: readJson('pop_grid.json'),
     households: readJsonOrNull('households_grid.json'),
     dcStats: readJson('dc_stats.json'),
+    dataCenters: readJsonOrNull<DataCenterSiteFile>('data/data_centers.json')?.sites ?? [],
     constants: readJson('constants.json'),
     cases: casesRaw.map((r) => ({
       ...r,

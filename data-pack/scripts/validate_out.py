@@ -75,12 +75,27 @@ def main() -> int:
     subs = json.loads((OUT / "substations_osm.json").read_text(encoding="utf-8"))
     schools = json.loads((OUT / "schools.json").read_text(encoding="utf-8"))
     pop = json.loads((OUT / "pop_grid.json").read_text(encoding="utf-8"))
+    data_centers = json.loads((CURATED / "data_centers.json").read_text(encoding="utf-8"))
 
     check(len(emd_power) >= 4000, f"emd_power rows {len(emd_power)} >= 4000")
     check(len(cents) >= 5000, f"emd_centroids rows {len(cents)} >= 5000")
     check(len(subs) >= 800, f"substations rows {len(subs)} >= 800")
     check(len(schools) >= 11000, f"schools rows {len(schools)} >= 11000")
     check(len(pop) >= 50000, f"pop_grid rows {len(pop)} >= 50000 (nationwide; the old bbox clip gave 21,944)")
+    dc_sites = data_centers.get("sites", [])
+    check(data_centers.get("version") == 1, "data_centers version 1")
+    check(len(dc_sites) >= 3, f"completed data_centers rows {len(dc_sites)} >= 3")
+    check(len({d.get('id') for d in dc_sites}) == len(dc_sites), "data_centers ids unique")
+    check(
+        all(
+            d.get("status") == "operational"
+            and d.get("category") in {"edgeSmall", "colocation", "hyperscale"}
+            and in_korea(d["lat"], d["lng"])
+            and str(d.get("sourceUrl", "")).startswith("https://")
+            for d in dc_sites
+        ),
+        "data_centers operational, classified, sourced and in Korea bbox",
+    )
 
     check(all(in_korea(c["lat"], c["lng"]) for c in cents), "centroid coords in Korea bbox")
     check(all(in_korea(s["lat"], s["lng"]) for s in subs), "substation coords in Korea bbox")

@@ -45,7 +45,7 @@ def main() -> int:
     APP_DATA.mkdir(parents=True, exist_ok=True)
     for f in OUT.glob("*.json"):
         shutil.copy2(f, APP_DATA / f.name)
-    for name in ("constants.json", "scenarios.json", "cases.csv", "regulations.csv"):
+    for name in ("constants.json", "scenarios.json", "cases.csv", "regulations.csv", "data_centers.json"):
         shutil.copy2(CURATED / name, APP_DATA / name)
     sizes = {p.name: p.stat().st_size for p in sorted(APP_DATA.iterdir())}
     print("app data synced:")

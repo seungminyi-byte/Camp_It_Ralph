@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type {
   AppData,
+  DataCenterSiteFile,
   HouseholdGridFile,
   CaseRow,
   NewsSignalFile,
@@ -77,6 +78,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           schools,
           popGrid,
           dcStats,
+          dataCenterFile,
           constants,
           casesRaw,
           regsRaw,
@@ -92,6 +94,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchJson<AppData['schools']>('data/schools.json'),
           fetchJson<AppData['popGrid']>('data/pop_grid.json'),
           fetchJson<AppData['dcStats']>('data/dc_stats.json'),
+          fetchJsonOrNull<DataCenterSiteFile>('data/data_centers.json'),
           fetchJson<AppData['constants']>('data/constants.json'),
           fetchCsv('data/cases.csv'),
           fetchCsv('data/regulations.csv'),
@@ -135,6 +138,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
             cases,
             regulations,
             dcStats,
+            dataCenters: validDataCenters(dataCenterFile) ? dataCenterFile.sites : [],
             constants,
             permitDelay,
             newsSignal,
@@ -152,6 +156,30 @@ export function useAppData(): { data: AppData | null; error: string | null } {
   }, []);
 
   return { data, error };
+}
+
+export function validDataCenters(file: DataCenterSiteFile | null): file is DataCenterSiteFile {
+  const categories = new Set(['edgeSmall', 'colocation', 'hyperscale']);
+  return (
+    !!file &&
+    file.version === 1 &&
+    /^\d{4}-\d{2}-\d{2}$/.test(file.asOf) &&
+    Array.isArray(file.sites) &&
+    file.sites.every(
+      (site) =>
+        !!site.id &&
+        !!site.name &&
+        site.status === 'operational' &&
+        categories.has(site.category) &&
+        Number.isFinite(site.lat) &&
+        Number.isFinite(site.lng) &&
+        site.lat >= 33 &&
+        site.lat <= 39.5 &&
+        site.lng >= 124 &&
+        site.lng <= 132 &&
+        /^https:\/\//.test(site.sourceUrl),
+    )
+  );
 }
 
 function validHouseholds(f: HouseholdGridFile | null): boolean {

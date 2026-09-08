@@ -111,6 +111,29 @@ describe('ARIA integration across summary surfaces', () => {
     expect(rendered.result.composite.score).toBeNull();
   });
 
+  it('shows the base score without detailed design conditions', () => {
+    const rendered = renderSurfaces({
+      ...base,
+      restrictions: {
+        hits: [],
+        queried: ['all'],
+        failed: [],
+        complete: true,
+      },
+      disaster: {
+        found: false,
+        layer: 'LT_C_UP201',
+        coordinate: { lat: base.lat, lng: base.lng },
+        hits: [],
+      },
+    });
+    expect(rendered.result.composite.score).not.toBeNull();
+    expect(rendered.overview).toContain('공공데이터 기반 1차 입지점수');
+    expect(rendered.overview).toContain('상세 설계 · 선택');
+    expect(rendered.overview).toContain('선택 미입력');
+    expect(rendered.overview).not.toContain('면적 계산 보류');
+  });
+
   it('keeps an incomplete site unscored consistently on every surface', () => {
     const rendered = renderSurfaces(base);
     expect(rendered.result.composite.grade).toBeNull();
