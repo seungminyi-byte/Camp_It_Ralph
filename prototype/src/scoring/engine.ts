@@ -569,12 +569,21 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const area = evaluateArea(project, conditions);
   const businessCost = evaluateBusinessCost(conditions);
   const finance = evaluateFinance(project, conditions);
+  const hasCostInputs = conditions.costMode === 'total'
+    ? conditions.totalCostKrw !== null
+    : Object.values(conditions.costs).some(value => value !== null);
   const issues: ReviewIssue[] = [];
+  const overviewIssues: ReviewIssue[] = [];
   const add = (
     title: string,
     detail: string,
     tone: ReviewIssue['tone'] = 'caution',
-  ) => issues.push({ title, detail, tone });
+    showInOverview = true,
+  ) => {
+    const issue = { title, detail, tone };
+    issues.push(issue);
+    if (showInOverview) overviewIssues.push(issue);
+  };
   if (!site.eligible)
     add(site.label, site.detail, site.status === 'sea' ? 'risk' : 'caution');
   if (restriction.level === 'prohibited')
@@ -602,14 +611,14 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       `${area.shortfallM2!.toLocaleString()}㎡ 부족 · 입력 조건을 재검토하세요.`,
     );
   if (area.status === 'unknown')
-    add('면적 계산 보류', area.missing.join(' · '));
+    add('면적 계산 보류', area.missing.join(' · '), 'caution', area.hasInputs);
+  if (!positive(project.targetMw))
+    add('목표 수전용량 미입력', '목표 수전용량은 양수로 입력하고 실제 공급 가능량은 공급기관과 확인하세요.', 'caution', project.targetMw !== null);
   const missingSources = evidence.filter(
     (e) => e.status !== 'available' && e.key !== 'news' && e.key !== 'permits',
   );
   if (missingSources.length)
     add('공개자료 추가 확인', missingSources.map((e) => e.title).join(' · '));
-  if (!positive(project.targetMw))
-    add('목표 수전용량 미입력', '수전용량과 IT부하를 구분해 입력하세요.');
   if (
     positive(project.targetMw) &&
     positive(project.itMw) &&
@@ -619,32 +628,35 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   for (const [key, label] of Object.entries(CONSULTATION_LABELS)) {
     const c =
       conditions.consultations[key as keyof typeof conditions.consultations];
+    const started = c.status !== 'unknown' || !!c.note.trim() || !!c.date;
     if (c.status !== 'confirmed' || !c.note.trim() || !validDate(c.date))
       add(
         `${label} 공급조건 확인`,
         `${label} 협의 내용과 확인일을 기록하세요. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.`,
+        'caution', started,
       );
   }
   if (!businessCost.complete)
-    add('사업비 범위 확인', businessCost.missing.join(' · '));
+    add('사업비 범위 확인', businessCost.missing.join(' · '), 'caution', hasCostInputs);
   if (finance.missing.length)
-    add('금융비용 계산 보류', finance.missing.join(' · '));
-  const risk = issues.some((i) => i.tone === 'risk');
+    add('금융비용 계산 보류', finance.missing.join(' · '), 'caution', conditions.averageDebtKrw !== null || finance.missing.some(item => item !== '지연 중 평균 차입잔액'));
+  const summarize = (items: ReviewIssue[]): ScoreResult['review']['overview'] => {
+    const risk = items.some(i => i.tone === 'risk');
+    return {
+      label: !site.eligible ? site.label : risk ? '중대 제약 확인'
+        : area.status === 'shortfall' ? '입력 조건 재검토'
+        : items.length ? '추가 확인 필요'
+        : !area.hasInputs ? '상세조건 입력 전' : '후속 실사 검토',
+      tone: risk ? 'risk' : items.length || !area.hasInputs ? 'caution' : 'good',
+      reason: items[0]?.detail ?? (!area.hasInputs
+        ? '공개자료를 먼저 확인하세요. 면적·비용·공급조건의 미확인은 전체 확인사항과 보고서에 남아 있습니다.'
+        : '입력 조건의 단순 검토를 마쳤습니다. 실제 공급·설계·인허가는 후속 실사에서 확인하세요.'),
+      issues: items,
+    };
+  };
   const review: ScoreResult['review'] = {
-    label: !site.eligible
-      ? site.label
-      : risk
-        ? '중대 제약 확인'
-        : area.status === 'shortfall'
-          ? '입력 조건 재검토'
-          : issues.length
-            ? '추가 확인 필요'
-            : '후속 실사 검토',
-    tone: risk ? 'risk' : issues.length ? 'caution' : 'good',
-    reason:
-      issues[0]?.detail ??
-      '입력 조건의 단순 검토를 마쳤습니다. 실제 공급·설계·인허가는 후속 실사에서 확인하세요.',
-    issues,
+    ...summarize(issues),
+    overview: summarize(overviewIssues),
     actions: [
       ...issues.map((i) => `${i.title}: ${i.detail}`),
       project.development === 'conversion'
@@ -804,7 +816,18 @@ function evaluateArea(
       : shortfallM2 > 0
         ? 'shortfall'
         : 'fits';
+  const hasInputs = [
+    ...(p.areaMethod === 'racks' ? [p.itMw, p.rackKw, p.rackAreaM2, p.whiteSpacePct] : [c.plannedAreaM2]),
+    ...(p.development === 'conversion' ? [c.existingAreaM2] : [c.landAreaM2, c.farPct, c.coveragePct, c.floors]),
+  ].some(value => value !== null);
+  const available = p.development === 'conversion' ? c.existingAreaM2 : c.landAreaM2;
+  const required = p.development === 'conversion' ? requiredAreaM2 : minimumLandM2;
+  const ratio = status !== 'unknown' && positive(available) && positive(required)
+    ? Math.round(available / required * 100) : null;
+  const fitPct = ratio !== null && Number.isFinite(ratio) ? ratio : null;
   return {
+    hasInputs,
+    fitPct,
     status,
     label:
       status === 'unknown'

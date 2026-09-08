@@ -147,10 +147,13 @@ export function BusinessInputs({
         className="input-details"
         open={p.areaMethod === 'racks' || undefined}
       >
-        <summary>상세 설계조건</summary>
+        <summary>
+          상세 설계조건 <span>선택 입력 · 참고점수와 별도</span>
+        </summary>
         <p>
-          수전용량과 IT부하는 다릅니다. 전산실 비중은 전체 연면적 대비
-          비율입니다.
+          참고점수는 필요한 공개자료가 확인된 경우 산정합니다. 상세 설계조건을
+          입력하면 랙 수와 필요 연면적을 별도로 계산합니다. 수전용량과
+          IT부하는 다릅니다.
         </p>
         <div className="review-fields">
           <NumberField

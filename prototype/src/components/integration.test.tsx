@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { loadAppData, loadScenarios } from '../test/loadData';
+import { emptyConditions } from '../lib/reviewInputs';
 import { scoreSite } from '../scoring/engine';
 import { CHECKLIST_KEYS, buildChecklist } from '../report/checklist';
 import type { ScoreInput } from '../types';
@@ -109,6 +110,33 @@ describe('ARIA integration across summary surfaces', () => {
     const rendered = renderSurfaces({ ...base, lat: 38, lng: 126.5 });
     expect(rendered.overview).toContain('자료 범위 밖');
     expect(rendered.result.composite.score).toBeNull();
+  });
+
+  it('shows the base score without detailed design conditions', () => {
+    const rendered = renderSurfaces({
+      ...base,
+      conditions: emptyConditions(),
+      restrictions: {
+        hits: [],
+        queried: ['all'],
+        failed: [],
+        complete: true,
+      },
+      disaster: {
+        found: false,
+        layer: 'LT_C_UP201',
+        coordinate: { lat: base.lat, lng: base.lng },
+        hits: [],
+      },
+    });
+    expect(rendered.result.composite.score).not.toBeNull();
+    expect(rendered.overview).toContain('공개자료 기반 참고점수');
+    expect(rendered.overview).toContain('상세 설계 · 선택');
+    expect(rendered.overview).toContain('선택 미입력');
+    expect(rendered.overview).not.toContain('면적 계산 보류');
+    for (const report of rendered.reports) {
+      for (const title of ['면적 계산 보류', '사업비 범위 확인', '금융비용 계산 보류', '전력 공급조건 확인']) expect(report).toContain(title);
+    }
   });
 
   it('keeps an incomplete site unscored consistently on every surface', () => {

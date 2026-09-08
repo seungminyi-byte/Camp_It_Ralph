@@ -13,6 +13,7 @@ import type {
 } from '../types';
 import { decodeTerrain } from '../scoring/terrain';
 import { decodeProtectedZones } from '../scoring/restriction';
+import { loadDataCenters } from '../lib/dataCenters';
 import { parseCsv } from '../lib/csv';
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -77,6 +78,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           schools,
           popGrid,
           dcStats,
+          dataCenterFile,
           constants,
           casesRaw,
           regsRaw,
@@ -92,6 +94,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           fetchJson<AppData['schools']>('data/schools.json'),
           fetchJson<AppData['popGrid']>('data/pop_grid.json'),
           fetchJson<AppData['dcStats']>('data/dc_stats.json'),
+          loadDataCenters(),
           fetchJson<AppData['constants']>('data/constants.json'),
           fetchCsv('data/cases.csv'),
           fetchCsv('data/regulations.csv'),
@@ -135,6 +138,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
             cases,
             regulations,
             dcStats,
+            dataCenters: dataCenterFile,
             constants,
             permitDelay,
             newsSignal,

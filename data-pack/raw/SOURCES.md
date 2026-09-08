@@ -14,6 +14,7 @@
 | protected/knps_park_boundary.zip | data.go.kr 15017313 국립공원공단_국립공원 공원경계 (BSI_NPK_BBNDR.shp, 23곳, EPSG:5179, cp949, 기준 2024-12-30) | selectFileDataDownload.do 2단계 POST (0.33MB) — publicDataDetailPk에 `_201709051712` 접미사 필요 · 이용허락범위 제한 없음 |
 | protected/kdpa_2016.zip | data.go.kr 15127921 국립공원공단_한국보호지역 데이터 KDPA (wdpa_kor_poly_2016.shp, 1,516 폴리곤, EPSG:4326, UTF-8, 2016-12-31 기준) | selectFileDataDownload.do 2단계 POST (19.5MB) · 이용허락범위 제한 없음 |
 | terrain/N{33..38}E{125..129}.hgt.gz | AWS Open Data — Mapzen/Tilezen Terrain Tiles, skadi 1" HGT (SRTM 30m 육지 + ETOPO1 수심) | scripts/p07_terrain.py 익명 GET 30타일 188MB (키 불필요). 표기 의무: "SRTM and GMTED2010 data courtesy of the U.S. Geological Survey; ETOPO1 DOC/NOAA/NESDIS/NCEI" |
+| curated/data_centers.json | 세종·안산 공식 시설 소개·보도자료와 공개 주소 | 2026-09-08 사실·주소·좌표 대조 후 2곳 수록. 출처별 근거·이용 검토는 docs/ARIA-NEARBY-INTEGRATION.md |
 
 주의:
 - data.go.kr 파일 다운로드는 `POST /tcs/dss/selectFileDataDownload.do` (publicDataPk·publicDataDetailPk·publicDataTyCode=PR0051) → 응답의 atchFileId로 `GET /cmm/cmm/fileDownload.do` 2단계.

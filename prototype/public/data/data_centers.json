@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "asOf": "2026-09-08",
+  "scope": "공개 시설 소개·보도자료와 주소 응답을 대조한 일부 시설 목록입니다. 전국 전수 목록이 아니며 운영 상태·가용 상면·용량을 실시간 확인하지 않습니다. 미표시는 인근 시설이 없다는 뜻이 아닙니다.",
+  "classification": {
+    "edgeSmall": "도심 소규모 시설(현재 검증을 마친 수록 항목 없음)",
+    "colocation": "상면 임대 시설(현재 검증을 마친 수록 항목 없음)",
+    "hyperscale": "공개 소개에서 대규모 전용 시설로 명시한 데이터센터. 서버 유닛·대수·전력 용량은 서로 환산하지 않습니다."
+  },
+  "sites": [
+    {
+      "id": "sejong-hyperscale-01",
+      "name": "세종 집현동 대규모 데이터센터",
+      "category": "hyperscale",
+      "categoryReason": "공개 시설 소개에서 대규모 전용 데이터센터로 설명한 시설",
+      "lat": 36.50815688750704,
+      "lng": 127.34100594521068,
+      "address": "세종특별자치시 행복대로 824",
+      "status": "operational",
+      "openedYear": null,
+      "capacityMw": null,
+      "capacityKind": null,
+      "scaleNote": "공개 시설 소개의 서버 수용 규모 60만 유닛. 현재 설치 대수·가용 상면은 미확인.",
+      "sourceName": "공식 시설 소개",
+      "sourceUrl": "https://datacenter.navercorp.com/gaksejong/",
+      "coordinateBasis": "공식 공개 주소를 VWorld 주소 API로 재확인(2026-09-08). 주소 대표점이며 필지 경계·출입구 위치가 아닙니다."
+    },
+    {
+      "id": "ansan-hyperscale-01",
+      "name": "안산 사동 대규모 데이터센터",
+      "category": "hyperscale",
+      "categoryReason": "공개 시설 소개에서 대규모 전용 데이터센터로 설명한 시설",
+      "lat": 37.293497971991656,
+      "lng": 126.83172113353041,
+      "address": "경기도 안산시 상록구 해안로 689",
+      "status": "operational",
+      "openedYear": 2024,
+      "capacityMw": null,
+      "capacityKind": null,
+      "scaleNote": "공개 보도자료의 설계 수용 규모 4,000랙·12만 서버, 연면적 47,378㎡. 현재 가용 상면은 미확인.",
+      "sourceName": "공식 보도자료",
+      "sourceUrl": "https://www.kakaocorp.com/page/detail/11097",
+      "coordinateBasis": "공식 공개 주소를 VWorld 주소 API로 재확인(2026-09-08). 주소 대표점이며 필지 경계·출입구 위치가 아닙니다."
+    }
+  ],
+  "usageReview": {
+    "checkedAt": "2026-09-08",
+    "note": "공개 시설 소개·보도자료에서 확인한 최소 사실관계를 자체 요약했습니다. 원문·사진·도면·로고를 복제하지 않습니다. 개방 라이선스로 배포되는 원자료가 아니며 출처의 권리는 원권리자에게 있습니다. 명시적 데이터 재배포 제한 출처는 제외했습니다.",
+    "record": "docs/DATA.md#인근-데이터센터-지도-목록"
+  }
+}

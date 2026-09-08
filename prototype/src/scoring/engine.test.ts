@@ -33,6 +33,35 @@ const evaluate = (
 ) => scoreSite({ ...input(), ...overrides }, dataset);
 
 describe('사업조건 면적·비용', () => {
+  it('초기 요약만 미입력을 생략하고 전체 검토와 보고서 근거는 보존한다', () => {
+    const r = evaluate();
+    expect(r.composite.score).not.toBeNull();
+    const missing = ['면적 계산 보류', '목표 수전용량 미입력', '사업비 범위 확인', '금융비용 계산 보류', '전력 공급조건 확인', '용수 공급조건 확인', '통신 공급조건 확인'];
+    expect(r.review.issues.map(i => i.title)).toEqual(expect.arrayContaining(missing));
+    for (const title of missing) {
+      expect(r.review.overview.issues.map(i => i.title)).not.toContain(title);
+      expect(r.review.actions.some(action => action.startsWith(title))).toBe(true);
+    }
+    expect(r.area.fitPct).toBeNull();
+    expect(r.area.hasInputs).toBe(false);
+  });
+  it('입력을 시작한 오류와 누락은 초기 요약에서도 표시한다', () => {
+    const c = emptyConditions();
+    c.plannedAreaM2 = 0;
+    c.costs.land = 0;
+    c.averageDebtKrw = -1;
+    c.consultations.power.note = '협의 예정';
+    const r = evaluate({ conditions: c, project: { ...defaultProject(data.constants), targetMw: 0 } });
+    expect(r.review.overview.issues.map(i => i.title)).toEqual(expect.arrayContaining([
+      '면적 계산 보류', '목표 수전용량 미입력', '사업비 범위 확인', '금융비용 계산 보류', '전력 공급조건 확인',
+    ]));
+    expect(r.area.fitPct).toBeNull();
+  });
+  it('비활성 입력방식의 값으로 초기 요약을 활성화하지 않는다', () => {
+    const r = evaluate({ conditions: { ...emptyConditions(), existingAreaM2: 100, totalCostKrw: 10 }, project: { ...defaultProject(data.constants), rackKw: 10 } });
+    expect(r.area.hasInputs).toBe(false);
+    expect(r.review.overview.issues.map(i => i.title)).not.toContain('사업비 범위 확인');
+  });
   it('면적 30,000㎡ / 용적률 200% / 건폐율 50% / 4층 → 최소 대지 15,000㎡', () => {
     const c = {
       ...emptyConditions(),
@@ -45,7 +74,11 @@ describe('사업조건 면적·비용', () => {
     const r = evaluate({ conditions: c });
     expect(r.area.minimumLandM2).toBe(15000);
     expect(r.area.shortfallM2).toBe(5000);
+    expect(r.area.fitPct).toBe(67);
     expect(r.area.status).toBe('shortfall');
+    expect(r.review.issues.some((issue) => issue.title === r.area.label)).toBe(
+      true,
+    );
     expect(
       evaluate({ conditions: { ...c, landAreaM2: 15000 } }).area.status,
     ).toBe('fits');
