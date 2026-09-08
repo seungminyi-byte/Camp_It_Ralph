@@ -41,3 +41,13 @@ ARIA 후보 7곳 중 **2곳**을 수록한다. 회사명·운영사·고유 시�
 - 직전 정상 운영 배포(복구 기준): `dpl_Hjwvu2ZMUoPs7wbgRsELBsPud4Ub`. 운영 배포 결과는 아래에 이어 기록한다.
 
 - 최종 프리뷰 데스크톱 1280px·모바일 390×844px에서 시설 팝업과 출처 링크 확인. 모바일 팝업 내부 스크롤로 출처까지 접근 가능하며 문서 가로 넘침 없음.
+
+### 운영 완료
+
+- 통합 SHA: `aa733cb440404e996edcb0d34a3ff81b373c7616`. 부모는 기본 브랜치 `2ab3ef6`과 ARIA `11a8e86`이다.
+- [GitHub Actions #16](https://github.com/seungminyi-byte/Camp_It_Ralph/actions/runs/34180414924): **Success**, 1분 2초. 기본 브랜치 푸시로 실행됐다.
+- 운영 배포: `dpl_CLWcqJ4wsSKdR7aF7wYHywh9Pg61`, **Production / Ready**, 2026-09-08 11:33 KST 생성. [고유 배포 URL](https://grand-site-qeiuz9g5z-camp-it-ralph.vercel.app).
+- 운영 별칭: https://grand-site-dc.vercel.app. HTML, `index-B87qiAJj.js`, `index-DExgq_dA.css` 모두 HTTP 200. JS의 새 참고점수 문구와 공개 데이터센터 JSON 2곳이 curated 원본과 동일함을 확인했다.
+- 운영 규제·재해·용도지역 API HTTP 200 JSON 및 잘못된 재해 좌표 HTTP 400 확인. 함수 지역 `icn1` 유지. 브라우저에서 안산 팝업·출처, 고양 법적 제한의 붉은 안내와 E등급 상한(실조회 E40)을 확인했고 콘솔 오류는 없었다. 고정 골든 값과 실조회 결과를 혼동하지 않는다.
+- 확인 범위에서 운영 회귀가 없어 복구하지 않았다. 직전 정상 배포 ID는 위 기록대로 보존한다.
+- 기본 브랜치는 `seungminyi-byte-prototype` 유지. 원격 HEAD로 재확인했다. 원래 작업 트리의 README·AGENTS.md SHA-256은 작업 전후 동일하며 이번 커밋들에 포함하지 않았다.
