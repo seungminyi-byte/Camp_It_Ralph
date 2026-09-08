@@ -92,7 +92,7 @@ export function parseMemo(raw: string): ParsedMemo {
   const visible = stripFences(stripThinking(raw)).trim();
   if (!visible) return { ...EMPTY };
 
-  const headerRe = /^[ \t]*#{1,3}[ \t]*(OVERALL|ITEM[ \t]+\S+|ACTIONS|CAVEATS|ERROR)[ \t]*$/gim;
+  const headerRe = /^[ \t]*#{1,3}[ \t]*(OVERALL|OVERVIEW|ITEM[ \t]+\S+|ACTIONS|CAVEATS|ERROR)[ \t]*$/gim;
   const marks: { name: string; start: number; end: number }[] = [];
   for (let m = headerRe.exec(visible); m !== null; m = headerRe.exec(visible)) {
     marks.push({ name: m[1].trim(), start: m.index, end: m.index + m[0].length });
@@ -112,7 +112,7 @@ export function parseMemo(raw: string): ParsedMemo {
     const name = mark.name.toUpperCase();
     if (i === marks.length - 1) openSection = mark.name;
 
-    if (name === 'OVERALL') {
+    if (name === 'OVERALL' || name === 'OVERVIEW') {
       out.overall = body;
     } else if (name === 'ACTIONS') {
       out.actions = bullets(body);

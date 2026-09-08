@@ -32,6 +32,13 @@ describe('parseMemo', () => {
     expect(p.error).toBeNull();
   });
 
+  it('preserves the overall opinion when a provider uses OVERVIEW', () => {
+    const p = parseMemo(full.replace('## OVERALL', '## OVERVIEW'));
+    expect(p.overall).toBe('종합적으로 D 등급입니다.');
+    expect(p.complete).toBe(true);
+    expect(Object.keys(p.items)).toHaveLength(CHECKLIST_KEYS.length);
+  });
+
   it('strips code fences and leading reasoning', () => {
     const p = parseMemo(`<think>계산 중</think>\n\`\`\`markdown\n${full}\n\`\`\``);
     expect(p.complete).toBe(true);
