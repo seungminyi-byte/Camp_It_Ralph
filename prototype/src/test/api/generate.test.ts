@@ -7,6 +7,29 @@ afterEach(() => {
 });
 
 describe('report model routing', () => {
+  it('finishes on the SSE completion marker even if the provider keeps the connection open', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'test-key');
+    const cancel = vi.fn();
+    const upstream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'data: {"choices":[{"delta":{"content":"완료"}}]}\n\ndata: [DONE]\n\n',
+          ),
+        );
+      },
+      cancel,
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(upstream)));
+    const response = await handler(
+      new Request('https://example.test/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'test' }),
+      }),
+    );
+    expect(await response.text()).toBe('완료');
+    expect(cancel).toHaveBeenCalled();
+  });
   const request = () =>
     new Request('https://example.test/api/generate', {
       method: 'POST',

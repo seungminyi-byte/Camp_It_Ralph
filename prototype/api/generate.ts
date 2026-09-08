@@ -25,7 +25,12 @@ function sseToText(res: Response): ReadableStream<Uint8Array> {
         for (const line of lines) {
           if (!line.startsWith('data:')) continue;
           const payload = line.slice(5).trim();
-          if (!payload || payload === '[DONE]') continue;
+          if (!payload) continue;
+          if (payload === '[DONE]') {
+            controller.close();
+            await reader.cancel();
+            return;
+          }
           try {
             const j = JSON.parse(payload) as {
               choices?: { delta?: { content?: string } }[];
@@ -40,6 +45,7 @@ function sseToText(res: Response): ReadableStream<Uint8Array> {
                 ),
               );
               controller.close();
+              await reader.cancel();
               return;
             }
             const t = j.choices?.[0]?.delta?.content;
