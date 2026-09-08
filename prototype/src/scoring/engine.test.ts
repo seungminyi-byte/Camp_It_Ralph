@@ -62,6 +62,34 @@ describe('사업조건 면적·비용', () => {
     expect(r.area.hasInputs).toBe(false);
     expect(r.review.overview.issues.map(i => i.title)).not.toContain('사업비 범위 확인');
   });
+  it('분야별 가중점수와 총점은 같은 산식을 사용하고 미확인은 null이다', () => {
+    const r = evaluate();
+    const b = r.composite.breakdown;
+    expect(b.power.weight).toBe(data.constants.scoring.composite.weightPower);
+    expect(b.permit.weight).toBe(data.constants.scoring.composite.weightPermit);
+    expect(b.power.weightedPoints).toBe(Math.round(r.power.score! * b.power.weight * 100) / 100);
+    expect(b.permit.weightedPoints).toBe(Math.round(r.permit.score! * b.permit.weight * 100) / 100);
+    expect(r.composite.score).toBe(Math.round(r.power.score! * b.power.weight + r.permit.score! * b.permit.weight));
+    const unknown = evaluate({ zoning: null, landUse: 'unknown', restrictions: null, disaster: null });
+    expect(unknown.composite.score).toBeNull();
+    expect(unknown.composite.breakdown.permit.score).toBeNull();
+    expect(unknown.composite.breakdown.permit.weightedPoints).toBeNull();
+  });
+  it('규모와 사업 유형만 바꿔도 용량·면적·비용·점수가 바뀌지 않는다', () => {
+    const project = { ...defaultProject(data.constants), targetMw: 40, itMw: 25 };
+    const conditions = { ...emptyConditions(), landAreaM2: 15000, plannedAreaM2: 30000, farPct: 200, coveragePct: 50, floors: 4, averageDebtKrw: 1e11 };
+    const before = evaluate({ project, conditions });
+    for (const type of ['small', 'standard', 'hyperscale'] as const) {
+      for (const businessType of ['generalCloud', 'colocation', 'ai'] as const) {
+        const after = evaluate({ project: { ...project, type, businessType }, conditions });
+        expect(after.project.assumptions).toEqual({ ...project, type, businessType });
+        expect(after.conditions).toEqual(before.conditions);
+        expect(after.area).toEqual(before.area);
+        expect(after.finance).toEqual(before.finance);
+        expect(after.composite).toEqual(before.composite);
+      }
+    }
+  });
   it('면적 30,000㎡ / 용적률 200% / 건폐율 50% / 4층 → 최소 대지 15,000㎡', () => {
     const c = {
       ...emptyConditions(),

@@ -141,16 +141,16 @@
   },
   "projectProfiles": {
    "standard": {
-    "label": "일반 클라우드",
-    "description": "일반 클라우드·코로케이션 사업의 초기 검토"
+    "label": "일반",
+    "description": "일반 규모 데이터센터의 초기 검토이며 실제 용량은 별도 입력합니다."
    },
    "small": {
     "label": "엣지",
-    "description": "수요지와 운영 접근성을 함께 검토하는 엣지 데이터센터"
+    "description": "수요지 인접성과 운영 접근성을 함께 검토하며 실제 용량은 별도 입력합니다."
    },
    "hyperscale": {
-    "label": "AIDC",
-    "description": "IT부하·랙 전력밀도·냉각방식을 별도로 검토하는 AI 데이터센터"
+    "label": "초대형",
+    "description": "대규모 전력 인입과 부지 조건을 검토하며 실제 용량은 별도 입력합니다."
    }
   },
   "power": {

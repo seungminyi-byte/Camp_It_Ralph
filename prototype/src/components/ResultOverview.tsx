@@ -3,6 +3,7 @@ import type { ScoreResult } from '../types';
 export function ResultOverview({
   result: r,
   loading,
+  missingEvidence,
   children,
 }: {
   result: ScoreResult;
@@ -22,6 +23,11 @@ export function ResultOverview({
   const hasDetailedInputs = r.area.hasInputs;
   const areaFitPct = r.area.fitPct;
   const overview = r.review.overview;
+  const topDeductions = [...r.permit.deductions]
+    .filter((item) => item.points > 0)
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 3);
+  const { power: powerPart, permit: permitPart } = r.composite.breakdown;
   return (
     <section
       className="result-overview"
@@ -83,6 +89,52 @@ export function ResultOverview({
           </strong>
         </div>
       </div>
+      <section className="score-explanation" aria-label="점수 계산 근거">
+        <div className="score-explanation-heading">
+          <div>
+            <span>왜 이 점수인가요?</span>
+            <strong>분야별 점수와 반영비율</strong>
+          </div>
+          {score !== null && <b>{score}점</b>}
+        </div>
+        {score !== null ? (
+          <>
+            <div className="score-formula">
+              <div>
+                <span>전력 여건</span>
+                <strong>{powerPart.score}점</strong>
+                <small>× {Math.round(powerPart.weight * 100)}%</small>
+                <b>{powerPart.weightedPoints}점</b>
+              </div>
+              <i>+</i>
+              <div>
+                <span>인허가·부지</span>
+                <strong>{permitPart.score}점</strong>
+                <small>× {Math.round(permitPart.weight * 100)}%</small>
+                <b>{permitPart.weightedPoints}점</b>
+              </div>
+            </div>
+            <p className="score-waiting">가중점수 합계를 반올림한 참고점수입니다. 법적 입지 제한이 확인되면 등급은 E로 제한됩니다.</p>
+            <div className="score-deductions">
+              <span>주요 감점 요인</span>
+              {topDeductions.length ? (
+                topDeductions.map((item) => (
+                  <div key={`${item.label}-${item.points}`}>
+                    <strong>{item.label}</strong>
+                    <b>−{item.points}점</b>
+                  </div>
+                ))
+              ) : (
+                <p>현재 확인된 인허가·부지 감점 항목이 없습니다.</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="score-waiting">
+            {loading ? '공공자료 조회 중입니다.' : `필수 자료 미확인으로 참고점수를 산정하지 않았습니다. ${missingEvidence.join(' · ')}`}
+          </p>
+        )}
+      </section>
       {hasDetailedInputs && (
         <div className={`design-assessment is-${r.area.status}`}>
           <div>
@@ -105,23 +157,22 @@ export function ResultOverview({
         <p>{overview.reason}</p>
       </div>
       {children}
-      <div className="priority-issues">
-        {overview.issues.slice(0, 4).map((issue, i) => (
-          <article key={i}>
-            <strong>{issue.title}</strong>
-            <p>{issue.detail}</p>
-          </article>
-        ))}
-      </div>
-      {overview.issues.length > 4 && (
+      {overview.issues.length > 0 && (
         <details className="verdict-reasons">
-          <summary>추가 확인사항 {overview.issues.length - 4}개</summary>
-          {overview.issues.slice(4).map((issue, i) => (
-            <article key={i}>
-              <strong>{issue.title}</strong>
-              <p>{issue.detail}</p>
-            </article>
-          ))}
+          <summary>
+            확인할 사항 <small>{overview.issues.length}개 · 펼쳐보기</small>
+          </summary>
+          <div>
+            {overview.issues.map((issue, i) => (
+              <article key={i}>
+                <span className={`reason-dot tone-${issue.tone}`} />
+                <div>
+                  <strong>{issue.title}</strong>
+                  <p>{issue.detail}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </details>
       )}
       <p className="score-disclaimer">

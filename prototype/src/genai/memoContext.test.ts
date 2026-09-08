@@ -55,6 +55,18 @@ describe('memo evaluation context', () => {
 });
 
 describe('new business and public evidence signatures', () => {
+  it('invalidates for scale and business type independently', async () => {
+    const project = scoreSite(input, data).project.assumptions;
+    const at = { ...input, project };
+    const before = await key(at);
+    for (const changed of [
+      { ...at, project: { ...project, type: 'hyperscale' as const } },
+      { ...at, project: { ...project, businessType: 'ai' as const } },
+    ]) {
+      expect(sameMemoInput(at, changed)).toBe(false);
+      expect(await key(changed)).not.toBe(before);
+    }
+  });
   it('invalidates when source processing changes without changing nearby counts', async () => {
     const before = await key(input);
     const changedData = {

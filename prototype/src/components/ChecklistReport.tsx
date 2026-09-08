@@ -10,6 +10,10 @@ import { VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
 import type { ParsedMemo } from '../genai/memoFormat';
 import { fmtArea, fmtKrw } from '../lib/format';
 import {
+  BUSINESS_TYPE_LABELS,
+  PROJECT_SCALE_LABELS,
+} from '../lib/reviewInputs';
+import {
   AreaReview,
   ConsultationReview,
   CostReview,
@@ -68,7 +72,8 @@ export function ChecklistReport({
         </div>
         <h2>사업조건</h2>
         <p>
-          {r.project.profile.label} · 목표 수전용량 {p.targetMw ?? '미입력'}MW ·{' '}
+          {PROJECT_SCALE_LABELS[p.type]} · {BUSINESS_TYPE_LABELS[p.businessType]} · 목표
+          수전용량 {p.targetMw ?? '미입력'}MW ·{' '}
           {p.development === 'new' ? '신축' : '기존 건물 전환'} ·{' '}
           {p.areaMethod === 'manual'
             ? '계획 연면적 직접 입력'

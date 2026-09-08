@@ -726,6 +726,22 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
             : null,
       gradeCapped,
       capReason,
+      breakdown: {
+        power: {
+          score: powerKnown ? powerScore : null,
+          weight: comp.weightPower,
+          weightedPoints: powerKnown
+            ? Math.round(powerScore * comp.weightPower * 100) / 100
+            : null,
+        },
+        permit: {
+          score: permitKnown ? permitScore : null,
+          weight: comp.weightPermit,
+          weightedPoints: permitKnown
+            ? Math.round(permitScore * comp.weightPermit * 100) / 100
+            : null,
+        },
+      },
     },
   };
 }

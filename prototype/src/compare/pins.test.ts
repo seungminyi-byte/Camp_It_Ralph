@@ -91,7 +91,7 @@ describe('common assumptions and separate site conditions', () => {
       hits: [{ name: '시험지구', attributes: {} }],
     };
     for (const type of ['small', 'standard', 'hyperscale'] as const) {
-      const changed = { ...project, type, targetMw: 40 };
+      const changed = { ...project, type, businessType: 'ai' as const, targetMw: 40 };
       const input = toScoreInput(p, changed);
       const result = scoreSite(input, data);
       expect(input.conditions).toBe(p.conditions);
@@ -101,6 +101,7 @@ describe('common assumptions and separate site conditions', () => {
       expect(result.composite.capReason).toBe('restriction');
       expect(result.disaster.deduction).toBe(15);
       expect(result.project.assumptions.targetMw).toBe(40);
+      expect(result.project.assumptions.businessType).toBe('ai');
     }
   });
 });

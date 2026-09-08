@@ -1,14 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { loadAppData, loadScenarios } from '../test/loadData';
-import { emptyConditions } from '../lib/reviewInputs';
 import { scoreSite } from '../scoring/engine';
 import { CHECKLIST_KEYS, buildChecklist } from '../report/checklist';
 import type { ScoreInput } from '../types';
 import { ChecklistReport } from './ChecklistReport';
 import { ResultOverview } from './ResultOverview';
 import { CompareDialog } from './CompareDialog';
+import { BusinessInputs } from './BusinessInputs';
 import { pinId } from '../compare/pins';
+import { defaultProject, emptyConditions } from '../lib/reviewInputs';
 
 const data = loadAppData();
 const sc = loadScenarios().find((s) => s.id === 'sejong-contrast')!;
@@ -82,6 +83,43 @@ function renderSurfaces(input: ScoreInput) {
 }
 
 describe('ARIA integration across summary surfaces', () => {
+  it('keeps the three data-center scale choices visible outside optional inputs', () => {
+    const project = defaultProject(data.constants);
+    const html = renderToStaticMarkup(
+      <BusinessInputs
+        data={data}
+        project={project}
+        conditions={emptyConditions()}
+        hasSite
+        onProject={() => {}}
+        onConditions={() => {}}
+      />,
+    );
+    expect(html).toContain('데이터센터 규모');
+    expect(html).toContain('엣지');
+    expect(html).toContain('일반');
+    expect(html).toContain('초대형');
+    expect(html).toContain('사업 유형');
+    expect(html).toContain('일반 클라우드');
+    expect(html).toContain('코로케이션');
+    expect(html).toContain('AI 데이터센터');
+    expect(html.indexOf('데이터센터 규모')).toBeLessThan(
+      html.indexOf('<details class="business-inputs"'),
+    );
+  });
+  it('shows independent scale and business labels in reports and comparison', () => {
+    const rendered = renderSurfaces({ ...base, project: { ...defaultProject(data.constants), type: 'hyperscale', businessType: 'ai', targetMw: 40 } });
+    for (const html of [...rendered.reports, rendered.compare]) {
+      expect(html).toContain('초대형');
+      expect(html).toContain('AI 데이터센터');
+      expect(html).toContain('40MW');
+    }
+  });
+  it('does not describe missing power evidence as an ongoing lookup', () => {
+    const rendered = renderSurfaces(base);
+    expect(rendered.overview).toContain('필수 자료 미확인');
+    expect(rendered.overview).not.toContain('공공자료 조회 중');
+  });
   it('preserves the legal E cap and report evidence in the new layout', () => {
     const rendered = renderSurfaces({
       ...base,
@@ -131,6 +169,8 @@ describe('ARIA integration across summary surfaces', () => {
     });
     expect(rendered.result.composite.score).not.toBeNull();
     expect(rendered.overview).toContain('공개자료 기반 참고점수');
+    expect(rendered.overview).toContain('왜 이 점수인가요?');
+    expect(rendered.overview).toContain('주요 감점 요인');
     expect(rendered.overview).toContain('상세 설계 · 선택');
     expect(rendered.overview).toContain('선택 미입력');
     expect(rendered.overview).not.toContain('면적 계산 보류');
