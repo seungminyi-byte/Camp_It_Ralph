@@ -2,7 +2,7 @@
 #
 # Why Vercel CLI + token instead of the Vercel GitHub App:
 # - Hobby plan deploys only commits authored by the Hobby team owner, so teammates' commits would fail.
-# - Deploy only prototype/ on seungminyi-byte-prototype, the repository default branch.
+# - Deploy only prototype/ on prototype, the repository default branch.
 #
 # Required repository secret: VERCEL_TOKEN
 #   Vercel dashboard -> Account Settings -> Tokens -> Create (scope: team "camp it ralph")
@@ -11,7 +11,7 @@ name: Deploy prototype to Vercel
 
 on:
   push:
-    branches: [seungminyi-byte-prototype]
+    branches: [prototype]
     paths:
       - 'prototype/**'
       - '.github/workflows/vercel-prod.yml'
