@@ -47,6 +47,7 @@ jobs:
         run: npm install --global vercel@59
 
       - name: Deploy to production
+        timeout-minutes: 10
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -54,7 +55,7 @@ jobs:
             echo "::error::VERCEL_TOKEN secret is missing (repo Settings -> Secrets and variables -> Actions)"
             exit 1
           fi
-          url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
+          url=$(vercel deploy --prod --yes --force --archive=tgz --token="$VERCEL_TOKEN")
           echo "deployment: $url"
           {
             echo "### Vercel production deployment"
