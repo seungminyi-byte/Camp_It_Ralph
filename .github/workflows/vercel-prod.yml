@@ -55,7 +55,9 @@ jobs:
             echo "::error::VERCEL_TOKEN secret is missing (repo Settings -> Secrets and variables -> Actions)"
             exit 1
           fi
-          url=$(vercel deploy --prod --yes --force --archive=tgz --token="$VERCEL_TOKEN")
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          url=$(vercel deploy --prebuilt --prod --yes --no-wait --token="$VERCEL_TOKEN")
           echo "deployment: $url"
           {
             echo "### Vercel production deployment"
