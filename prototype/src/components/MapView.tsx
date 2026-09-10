@@ -12,6 +12,7 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import { divIcon } from 'leaflet';
+import { useNearbySites, type NearbySitesStatus } from '../hooks/useNearbySites';
 import type {
   AppData,
   CaseRow,
@@ -306,6 +307,8 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
     return () => query.removeEventListener('change', update);
   }, []);
 
+  const nearbySites = useNearbySites(site);
+
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
     [data.substations],
@@ -473,7 +476,26 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             <RadiusRing lat={site.lat} lng={site.lng} km={0.2} color="#ef4444" />
           </>
         )}
+        {nearbySites.status === 'done' &&
+          nearbySites.result.candidates.flatMap((candidate) =>
+            candidate.rings.map((ring, ringIndex) => (
+              <Polygon
+                key={`candidate-${candidate.id}-${ringIndex}`}
+                positions={ring}
+                pathOptions={{ color: '#d65f14', fillColor: '#f2a36f', fillOpacity: 0.23, weight: 2 }}
+              >
+                <Popup maxWidth={280}>
+                  <b>{candidate.label}</b>
+                  <br />
+                  약 {Math.round(candidate.areaPyeong).toLocaleString('ko-KR')}평 · 선택 지점에서 {candidate.distanceKm.toFixed(1)}km
+                  <br />
+                  <span style={{ color: '#6b7280' }}>연속지적도 도형 기준 추정</span>
+                </Popup>
+              </Polygon>
+            )),
+          )}
       </MapContainer>
+      <div className="map-control-stack">
       <div className="map-layer-control">
         <button
           type="button"
@@ -616,7 +638,85 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
         )}
         </div>
       </div>
+      <NearbySiteControl
+        key={site ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}` : 'no-site'}
+        site={site}
+        nearbySites={nearbySites}
+        onSelect={onSelect}
+      />
+      </div>
     </div>
+  );
+}
+
+function NearbySiteControl({
+  site,
+  nearbySites,
+  onSelect,
+}: {
+  site: SiteSelection | null;
+  nearbySites: NearbySitesStatus;
+  onSelect: (lat: number, lng: number) => void;
+}) {
+  const [open, setOpen] = useState(site !== null);
+  return (
+    <details
+      className="nearby-site-control"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+        <summary>
+          <span>
+            <b>인근 추천부지</b>
+            <small>엣지·소형 · 1,000평 이상</small>
+          </span>
+          <i aria-hidden="true">⌄</i>
+        </summary>
+        <div className="nearby-site-body">
+          {!site && <p className="nearby-site-empty">예상 부지를 지도에서 선택하면 주변 15km를 탐색합니다.</p>}
+          {site && nearbySites.status === 'loading' && (
+            <p className="nearby-site-empty"><span className="candidate-spinner" />1,000평 이상 필지를 찾는 중…</p>
+          )}
+          {site && nearbySites.status === 'error' && (
+            <p className="nearby-site-empty">
+              {nearbySites.code === 'not-deployed'
+                ? '로컬 프리뷰 서버에 추천 API가 아직 연결되지 않았습니다.'
+                : '추천 후보를 불러오지 못했습니다. 잠시 후 지점을 다시 선택해 주세요.'}
+            </p>
+          )}
+          {nearbySites.status === 'done' && nearbySites.result.candidates.length === 0 && (
+            <p className="nearby-site-empty">반경 {nearbySites.result.searchRadiusKm}km 안에서 면적 기준을 충족한 후보를 찾지 못했습니다.</p>
+          )}
+          {nearbySites.status === 'done' && nearbySites.result.candidates.length > 0 && (
+            <>
+              <ol className="nearby-site-list">
+                {nearbySites.result.candidates.map((candidate, index) => (
+                  <li key={candidate.id}>
+                    <span className="candidate-rank">{index + 1}</span>
+                    <div>
+                      <strong>{candidate.label}</strong>
+                      <p>
+                        <b>약 {Math.round(candidate.areaPyeong).toLocaleString('ko-KR')}평</b>
+                        <span>{candidate.distanceKm.toFixed(1)}km 거리</span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(candidate.center.lat, candidate.center.lng)}
+                    >
+                      검토
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <p className="nearby-site-note">
+                면적 기준 1차 탐색 후보 · 도형 추정면적이며 용도·접도·권리관계와 토지대장 면적 확인 필요
+                {nearbySites.result.truncated ? ' · 필지가 많은 지역은 일부 범위만 반영' : ''}
+              </p>
+            </>
+          )}
+        </div>
+    </details>
   );
 }
 

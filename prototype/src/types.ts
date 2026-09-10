@@ -112,6 +112,29 @@ export interface SiteSelection {
   source: SiteSource;
 }
 
+export interface NearbySiteCandidate {
+  id: string;
+  label: string;
+  pnu: string | null;
+  areaM2: number;
+  areaPyeong: number;
+  distanceKm: number;
+  center: { lat: number; lng: number };
+  /** Leaflet-ready exterior rings, stored as [lat, lng]. */
+  rings: [number, number][][];
+}
+
+export interface NearbySiteCandidates {
+  basis: 'vworld-continuous-cadastral-map';
+  minimumAreaM2: number;
+  minimumAreaPyeong: number;
+  searchRadiusKm: number;
+  candidates: NearbySiteCandidate[];
+  truncated: boolean;
+  searchedTiles: number;
+  note: string;
+}
+
 /** Whether `ScoreInput.landUse` came from the VWorld lookup or from the dropdown. */
 export type LandUseSource = 'unknown' | 'auto' | 'manual';
 
