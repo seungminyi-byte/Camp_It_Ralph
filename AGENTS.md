@@ -72,7 +72,7 @@
 - AI는 추론 모드 비활성·출력 4,000토큰이며 빈 응답/실패는 사용자에게 표시한다. SSE `[DONE]`에서 응답을 종료한다. 대체 목록 사용 시 실제 모델을 단정하지 않고 OpenRouter로 표시한다. 실패해도 기본 보고서는 출력된다.
 - 사전 생성 스크립트는 `OPENROUTER_API_KEY`와 선택 `OPENROUTER_MODEL`을 사용한다. 서버 변수 `LLM_MODEL`과 혼동하지 않는다. 현재 `precomputed_memos.json`은 없으며 예전 Gemini 키나 시나리오 id→텍스트 형식은 사용하지 않는다. 생성본은 v4와 현재 전체 평가 서명이 맞아야 한다.
 - 로컬 Vite `/api/*`는 운영 서버로 전달된다. 로컬에서 `prototype/api`만 수정해도 운영 함수가 바뀌지는 않는다. 서버 수정은 API 테스트와 배포 후 응답으로 확인한다.
-- 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 자동 배포하지 않는다.
+- 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. Vercel Git 연동의 Root Directory는 `prototype`이다. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 자동 배포하지 않는다.
 - 원격은 `git@github.com:seungminyi-byte/Camp_It_Ralph.git`, 단일 기준 브랜치는 `prototype`이다. 변경은 작업 브랜치와 PR로 반영한다. 기존 `seungminyi-byte-prototype` 원격 브랜치는 과거 기록으로 유지하되 작업 기준으로 사용하지 않는다. **푸시·배포는 사용자가 요청할 때만** 진행한다. 배포 완료는 원격 반영, Vercel 상태, 운영 정적 파일·API 응답을 구분해 확인한다.
 
 ## Codex Cloud

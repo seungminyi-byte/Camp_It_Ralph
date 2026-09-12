@@ -119,7 +119,7 @@ npm --prefix prototype run build
 
 배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. 기본 브랜치 `prototype`의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 검사 후 Vercel 운영 배포를 실행합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. **README·AGENTS 등 문서만 수정한 푸시는 자동 재배포하지 않습니다.**
 
-배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. 워크플로는 Node.js 24와 Vercel CLI 59.16.0을 사용해 타입 검사·린트·전체 Vitest·데이터 검증을 먼저 통과시키고, 기존 `grand-site-dc` 프로젝트를 명시적으로 연결한 뒤 production 설정을 받아 prebuilt 결과를 배포합니다. 마지막에는 `vercel inspect --wait --timeout 10m`으로 Ready 상태를 확인합니다. 서버 API 키는 별도로 Vercel 환경변수에 두고 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
+배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. Vercel Git 연동의 Root Directory는 `prototype`입니다. 워크플로는 Node.js 24와 Vercel CLI 59.16.0을 사용해 타입 검사·린트·전체 Vitest·데이터 검증을 먼저 통과시키고, 기존 `grand-site-dc` 프로젝트를 명시적으로 연결한 뒤 production 설정을 받아 prebuilt 결과를 배포합니다. 마지막에는 `vercel inspect --wait --timeout 10m`으로 Ready 상태를 확인합니다. 서버 API 키는 별도로 Vercel 환경변수에 두고 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
 
 2026-09-08 운영 확인 기록은 [DEMO](docs/DEMO.md#2026-09-08-운영-배포-검증)에 있습니다. 배포 코드 `7678816`의 Ready 상태, 운영 정적 파일과 가구 JSON 일치, 용도지역·규제·재해 API 응답, AI 보고서 18개 항목·조치 5개·주의사항 2개의 생성 완료를 확인했습니다. 해당 변경의 타입 검사·린트·17개 파일 134개 테스트·데이터 검증·프로덕션 빌드도 통과했습니다. 이는 날짜가 있는 검증 기록이며 이후 변경의 검증을 대신하지 않습니다.
 
