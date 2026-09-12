@@ -117,7 +117,7 @@ npm --prefix prototype run build
 
 ## 배포와 운영 확인
 
-배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. 기본 브랜치 `prototype`의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 검사 후 Vercel 운영 배포를 실행합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. **README·AGENTS 등 문서만 수정한 푸시는 자동 재배포하지 않습니다.**
+배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. 기본 브랜치 `prototype`의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 검사 후 Vercel 운영 배포를 실행합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. README·AGENTS 등 문서만 수정한 푸시는 이 Actions를 실행하지 않습니다. 별도로 연결된 Vercel Git 배포·PR 미리보기는 자체 실행 조건을 따릅니다.
 
 배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. Vercel Git 연동의 Root Directory는 `prototype`입니다. 워크플로는 Node.js 24와 Vercel CLI 59.16.0을 사용해 타입 검사·린트·전체 Vitest·데이터 검증을 먼저 통과시키고, 기존 `grand-site-dc` 프로젝트를 명시적으로 연결한 뒤 production 설정을 받아 prebuilt 결과를 배포합니다. 마지막에는 `vercel inspect --wait --timeout 10m`으로 Ready 상태를 확인합니다. 서버 API 키는 별도로 Vercel 환경변수에 두고 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
 
@@ -174,7 +174,7 @@ gh run view <run-id> --log
 
 ## Codex Cloud 작업
 
-GitHub의 비공개 저장소 `seungminyi-byte/Camp_It_Ralph` 하나만 연결한 개인 환경 `camp-it-ralph`를 사용합니다. 기준 브랜치는 `prototype`, 런타임은 Node.js 24·Python 3.12입니다.
+Codex GitHub 연결 권한은 사용자 요청에 따라 `seungminyi-byte` 계정의 전체 저장소에 부여합니다. 이 프로젝트용 개인 환경 이름은 `camp-itralph`, 환경에 연결할 저장소는 `seungminyi-byte/Camp_It_Ralph`, 기준 브랜치는 `prototype`입니다. 런타임은 Node.js 24·Python 3.12를 사용합니다. 구성·실행 완료 여부는 [검증 기록](docs/DEMO.md)을 확인하세요.
 
 - 설정 스크립트: `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`
 - 유지관리 스크립트: `npm --prefix prototype ci`

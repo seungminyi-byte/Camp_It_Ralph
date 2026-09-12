@@ -77,7 +77,7 @@
 
 ## Codex Cloud
 
-- 개인 환경 이름은 `camp-it-ralph`, 연결 범위는 비공개 저장소 `seungminyi-byte/Camp_It_Ralph` 하나, 기준 브랜치는 `prototype`이다.
+- 개인 환경 이름은 `camp-itralph`, 환경 저장소는 `seungminyi-byte/Camp_It_Ralph`, 기준 브랜치는 `prototype`이다. Codex GitHub 앱은 사용자 요청에 따라 `seungminyi-byte` 계정 전체 저장소 접근 권한을 유지하며 특정 저장소로 제한하지 않는다. 구성·실행 완료 여부는 DEMO의 검증 기록을 따른다.
 - Node.js 24와 Python 3.12를 사용한다. 설정 스크립트는 `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`, 유지관리 스크립트는 `npm --prefix prototype ci`다.
 - 환경에 API 비밀값을 넣지 않는다. 에이전트 인터넷 접근은 `grand-site-dc.vercel.app`의 `GET`, `HEAD`, `OPTIONS`, `POST`만 허용한다.
 - GitHub의 수동 `@codex` 작업과 리뷰를 사용할 수 있게 하되 자동 리뷰는 사용하지 않는다.

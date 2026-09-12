@@ -19,3 +19,4 @@ data-pack/.env
 .DS_Store
 Thumbs.db
 *.log
+.env*
