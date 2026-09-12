@@ -68,10 +68,10 @@ npm --prefix prototype run build
 - 운영 용도지역·규제구역·재해 API는 200으로 응답했습니다. 화면에서 최소 대지 15,000㎡·부족 5,000㎡, 법정 제한 E등급 배지와 기본 보고서 출력 버튼을 확인했습니다.
 - 실제 서버로 사업검토 요청을 보내 HTTP 200, AI 항목 18개, 조치 5개, 주의사항 2개의 응답 완료를 확인했습니다. 검증 예시 생성 시간은 약 52~59초였으며 무료 공급처의 혼잡도에 따라 달라질 수 있습니다. AI 의견은 기본 보고서의 확인된 근거와 함께 검토합니다.
 
-## 2026-09-10 운영 검증 완료 보고 (요청 반영)
+## 2026-09-10 운영 검증 기록
 
-- 배포 브랜치 확인: `seungminyi-byte-prototype`(`origin/seungminyi-byte-prototype`) 기준으로 운영 페이지 진입을 확인했습니다.
-- 현재 저장소 상태: `README.md`는 수정 상태이고, `AGENTS.md`는 미추적 상태로 유지되어 있습니다.
+- 당시 배포 브랜치: `seungminyi-byte-prototype`. 2026-09-12부터의 단일 작업 기준은 기본 브랜치 `prototype`이며 이 항목은 과거 운영 확인 기록입니다.
+- 당시 로컬의 `README.md` 수정본과 미추적 `AGENTS.md`는 2026-09-12 원격 보존 브랜치에 별도로 보존했습니다.
 - 운영 URL 기본 응답: https://grand-site-dc.vercel.app 접속 시 `200`.
 - 핵심 API 점검
   - `GET /api/geocode?q=서울특별시청` → `200`
@@ -84,6 +84,15 @@ npm --prefix prototype run build
 - 반영 판단
   - 1차 검증 목표(배포 진입·페이지/핵심 API 정상) 범위는 충족.
   - AI 생성 기능은 호출 경로 및 핸드셰이크는 유효하나 현재는 외부 응답 지연 관측이 필요한 상태.
+
+## 2026-09-12 `prototype` 통합 검증
+
+- 기준: 당시 최신 `origin/prototype`의 `22a47ef6`에서 `codex/cloud-migration-20260912` 브랜치를 만들고 문서·배포 자동화만 통합했습니다. 애플리케이션 API·타입·산식은 변경하지 않았습니다.
+- `npm --prefix prototype ci`로 잠금파일 기준 의존성을 다시 설치했습니다.
+- 타입 검사와 린트가 통과했습니다.
+- Vitest 전체 19개 파일, 166개 테스트가 통과했습니다. 계획 수립 당시 18개였던 테스트 파일은 최신 `prototype`에서 1개 늘었습니다.
+- `python3 data-pack/scripts/validate_out.py`의 번들 데이터 검증과 `npm --prefix prototype run build`의 프로덕션 빌드가 통과했습니다.
+- GitHub Actions 워크플로 YAML 구문을 파싱했고, 고정 버전 Vercel CLI 59.16.0의 실행과 배포·검사 옵션 지원을 확인했습니다. GitHub Actions 실행, 새 Vercel 배포와 Codex Cloud 검사 결과는 각각 원격에서 완료된 뒤 이 기록과 구분해 확인합니다.
 
 ## 오프라인·후속 항목
 

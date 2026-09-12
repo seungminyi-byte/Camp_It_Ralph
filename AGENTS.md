@@ -66,14 +66,22 @@
 
 - 런타임 외부 API 의존을 늘리지 않는다. 기존 온라인 기능은 지도 타일, OpenRouter, VWorld `geocode.ts`(주소), `zoning.ts`(용도지역), `restrictions.ts`(규제), `disaster.ts`(재해), `wms.ts`(지도 표시)다. 새 자료는 원본·이용조건·가공을 검증한 뒤 빌드 시 JSON으로 묶는다.
 - VWorld API는 `runtime: 'edge', regions: ['icn1']`을 유지한다. 서버 함수의 상대 import는 `.js`를 사용한다. Edge에서 Node 파일 API에 의존하는 공급자 SDK를 추가하지 않는다. AI는 `fetch`와 SSE를 사용한다.
-- 런타임 키는 Vercel 서버 환경변수에만 둔다. 빌드 수집용 키는 Git에서 제외된 `data-pack/.env` 등 로컬 환경변수로 사용한다. 대화·명령 인수·로그·코드·브라우저 입력 UI·번들·커밋에 비밀값을 넣지 않는다. 값 대신 등록 여부와 응답으로 확인한다.
+- 런타임 키는 Vercel 서버 환경변수에만 두고 데이터 수집 키는 GitHub Actions Secrets에서 관리한다. Codex Cloud 환경에는 API 비밀값을 복제하지 않는다. 대화·명령 인수·로그·코드·브라우저 입력 UI·번들·커밋에 비밀값을 넣지 않는다. 값 대신 등록 여부와 응답으로 확인한다.
 - 2026-09-08 운영 `OPENROUTER_API_KEY`의 Production Secret 등록과 AI 응답을 확인했다. 등록·교체는 README의 Vercel 설정 절차를 따른다. `LLM_MODEL`은 비밀키가 아닌 모델 설정값이다. 환경변수 변경 후 새 배포가 필요하다.
 - 서버 기본 `LLM_MODEL`은 `google/gemma-4-31b-it:free`. 기본값일 때 `nvidia/nemotron-3.5-lightning:free`, `google/gemma-4-26b-a4b-it:free`를 대체 목록으로 전송한다. 자동 유료 전환은 없다. 다른 모델을 명시하면 해당 모델만 사용한다. 모델 제공 상태는 변경 시 확인한다.
 - AI는 추론 모드 비활성·출력 4,000토큰이며 빈 응답/실패는 사용자에게 표시한다. SSE `[DONE]`에서 응답을 종료한다. 대체 목록 사용 시 실제 모델을 단정하지 않고 OpenRouter로 표시한다. 실패해도 기본 보고서는 출력된다.
 - 사전 생성 스크립트는 `OPENROUTER_API_KEY`와 선택 `OPENROUTER_MODEL`을 사용한다. 서버 변수 `LLM_MODEL`과 혼동하지 않는다. 현재 `precomputed_memos.json`은 없으며 예전 Gemini 키나 시나리오 id→텍스트 형식은 사용하지 않는다. 생성본은 v4와 현재 전체 평가 서명이 맞아야 한다.
 - 로컬 Vite `/api/*`는 운영 서버로 전달된다. 로컬에서 `prototype/api`만 수정해도 운영 함수가 바뀌지는 않는다. 서버 수정은 API 테스트와 배포 후 응답으로 확인한다.
-- 자동 배포: `.github/workflows/vercel-prod.yml`, `seungminyi-byte-prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI를 실행한다. README·AGENTS만 바뀐 푸시는 자동 배포하지 않는다.
-- 원격은 `git@github.com:seungminyi-byte/Camp_It_Ralph.git`, 작업 브랜치는 `seungminyi-byte-prototype`다. 팀원 브랜치의 병합·정리는 사용자 요청과 팀 합의 범위에서 한다. **푸시·배포는 사용자가 요청할 때만** 진행한다. 배포 완료는 원격 반영, Vercel 상태, 운영 정적 파일·API 응답을 구분해 확인한다.
+- 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 자동 배포하지 않는다.
+- 원격은 `git@github.com:seungminyi-byte/Camp_It_Ralph.git`, 단일 기준 브랜치는 `prototype`이다. 변경은 작업 브랜치와 PR로 반영한다. 기존 `seungminyi-byte-prototype` 원격 브랜치는 과거 기록으로 유지하되 작업 기준으로 사용하지 않는다. **푸시·배포는 사용자가 요청할 때만** 진행한다. 배포 완료는 원격 반영, Vercel 상태, 운영 정적 파일·API 응답을 구분해 확인한다.
+
+## Codex Cloud
+
+- 개인 환경 이름은 `camp-it-ralph`, 연결 범위는 비공개 저장소 `seungminyi-byte/Camp_It_Ralph` 하나, 기준 브랜치는 `prototype`이다.
+- Node.js 24와 Python 3.12를 사용한다. 설정 스크립트는 `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`, 유지관리 스크립트는 `npm --prefix prototype ci`다.
+- 환경에 API 비밀값을 넣지 않는다. 에이전트 인터넷 접근은 `grand-site-dc.vercel.app`의 `GET`, `HEAD`, `OPTIONS`, `POST`만 허용한다.
+- GitHub의 수동 `@codex` 작업과 리뷰를 사용할 수 있게 하되 자동 리뷰는 사용하지 않는다.
+- 검사 전용 작업은 타입 검사, 린트, 전체 Vitest, 데이터 검증, 프로덕션 빌드를 실행하고 `git diff --exit-code`와 `git status --short`가 깨끗한지 확인한다. 결과에는 이 파일을 읽고 적용했음을 명시한다.
 
 ## 표현 규칙
 

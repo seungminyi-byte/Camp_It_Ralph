@@ -5,7 +5,7 @@
 기본 보고서는 AI 없이 출력됩니다. 점수는 보조 정보이며 사업 적합·부적합, 실제 공급 용량, 인허가 결과를 확정하지 않습니다.
 
 - 서비스명은 가칭입니다. 배포 설정과 `X-Title`의 내부 코드명은 유지합니다.
-- 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph · 브랜치 `seungminyi-byte-prototype`
+- 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph · 기준 브랜치 `prototype`
 - 운영 서비스: https://grand-site-dc.vercel.app · 2026-09-08 확인한 배포 코드 `7678816`
 - [구현 사양](docs/PLAN.md) · [데이터 출처·한계](docs/DATA.md) · [데모·검증 절차](docs/DEMO.md)
 
@@ -15,7 +15,7 @@
 
 ```bash
 cd prototype
-npm install
+npm ci
 npm run dev -- --port 5199
 ```
 
@@ -81,11 +81,11 @@ npm --prefix prototype run build
 |---|---|---|---|
 | **OpenRouter** (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=google/gemma-4-31b-it:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
 | VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/disaster.ts`(재해위험지구 점 조회) · `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
-| 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | 로컬 `data-pack/.env`의 `DATA_GO_KR_API_KEY`(무시됨, Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json`. Vercel 환경변수에도 같은 이름으로 보관 | 허가→착공 통계 |
-| 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | 로컬 `data-pack/.env`의 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json`. Vercel 환경변수에도 같은 이름으로 보관 | 뉴스 참고 목록 |
+| 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | GitHub Actions Secret `DATA_GO_KR_API_KEY`(Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json` | 허가→착공 통계 |
+| 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | GitHub Actions Secrets `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json` | 뉴스 참고 목록 |
 | 고속도로 출입시설 위치정보 (후속) | https://www.data.go.kr/data/15076687/openapi.do → 연결된 한국도로공사 서비스에서 활용신청·인증키 확인 | 향후 빌드 시 수집 전용. 신청·키 발급은 사용자 직접 진행, 브라우저 입력·번들 포함 금지 | IC 자료 원본 검증 단계 |
 
-런타임 키는 서버에만 둡니다. 빌드·사전 생성용 키는 Git에서 제외된 로컬 환경변수로만 사용합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서와 온라인 AI 의견은 사용할 수 있습니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
+런타임 키는 Vercel에, 데이터 수집 키는 GitHub Actions Secrets에만 둡니다. Codex Cloud 환경에는 API 비밀값을 복제하지 않습니다. 임시 로컬 수집이 꼭 필요할 때만 Git에서 제외된 환경 파일을 만들고 작업 후 제거합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서와 온라인 AI 의견은 사용할 수 있습니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
 
 ## OpenRouter 서버 키 등록·교체
 
@@ -117,9 +117,9 @@ npm --prefix prototype run build
 
 ## 배포와 운영 확인
 
-배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. `seungminyi-byte-prototype` 브랜치의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 Vercel CLI로 운영 배포합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. **README·AGENTS 등 문서만 수정한 푸시는 자동 재배포하지 않습니다.**
+배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. 기본 브랜치 `prototype`의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 검사 후 Vercel 운영 배포를 실행합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. **README·AGENTS 등 문서만 수정한 푸시는 자동 재배포하지 않습니다.**
 
-배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. 서버 API 키는 별도로 Vercel Production 환경변수에 둡니다. 기존 프로젝트명 `grand-site-dc`와 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
+배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. 워크플로는 Node.js 24와 Vercel CLI 59.16.0을 사용해 타입 검사·린트·전체 Vitest·데이터 검증을 먼저 통과시키고, 기존 `grand-site-dc` 프로젝트를 명시적으로 연결한 뒤 production 설정을 받아 prebuilt 결과를 배포합니다. 마지막에는 `vercel inspect --wait --timeout 10m`으로 Ready 상태를 확인합니다. 서버 API 키는 별도로 Vercel 환경변수에 두고 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
 
 2026-09-08 운영 확인 기록은 [DEMO](docs/DEMO.md#2026-09-08-운영-배포-검증)에 있습니다. 배포 코드 `7678816`의 Ready 상태, 운영 정적 파일과 가구 JSON 일치, 용도지역·규제·재해 API 응답, AI 보고서 18개 항목·조치 5개·주의사항 2개의 생성 완료를 확인했습니다. 해당 변경의 타입 검사·린트·17개 파일 134개 테스트·데이터 검증·프로덕션 빌드도 통과했습니다. 이는 날짜가 있는 검증 기록이며 이후 변경의 검증을 대신하지 않습니다.
 
@@ -128,7 +128,7 @@ npm --prefix prototype run build
 팀원도 배포할 수 있도록 하려면 아래 조건을 맞추면 됩니다.
 
 - 저장소에 등록된 협업자(Write 이상) 또는 팀 멤버여야 합니다.
-- `prototype/**` 변경이 `seungminyi-byte-prototype` 브랜치로 반영되어야 합니다.
+- `prototype/**` 변경이 기본 브랜치 `prototype`으로 반영되어야 합니다.
 - `VERCEL_TOKEN`은 `seungminyi-byte/Camp_It_Ralph` 저장소의 Actions Secret으로 등록되어 있어야 합니다.
 
 실행 예시 (동작 확인됨):
@@ -149,18 +149,18 @@ git commit -m "..."
 
 # 4-1) PR/병합 배포(권장)
 git push -u origin feat/my-deploy
-gh pr create --base seungminyi-byte-prototype
+gh pr create --base prototype
 # → 병합되면 배포 자동 실행
 
 # 4-2) 직접 배포 브랜치 반영(권한이 있는 경우)
-git checkout seungminyi-byte-prototype
-git pull origin seungminyi-byte-prototype
+git checkout prototype
+git pull origin prototype
 git merge --no-ff feat/my-deploy
-git push origin seungminyi-byte-prototype
+git push origin prototype
 # → 자동 배포 실행
 
 # 4-3) 수동 워크플로 배포(긴급/테스트용)
-gh workflow run vercel-prod.yml --ref seungminyi-byte-prototype
+gh workflow run vercel-prod.yml --ref prototype
 ```
 
 배포 상태 확인:
@@ -171,6 +171,18 @@ gh run view <run-id> --log
 ```
 
 수동 배포를 선택해도 Secrets와 Workflow 권한이 없는 계정이면 실행이 실패할 수 있습니다.
+
+## Codex Cloud 작업
+
+GitHub의 비공개 저장소 `seungminyi-byte/Camp_It_Ralph` 하나만 연결한 개인 환경 `camp-it-ralph`를 사용합니다. 기준 브랜치는 `prototype`, 런타임은 Node.js 24·Python 3.12입니다.
+
+- 설정 스크립트: `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`
+- 유지관리 스크립트: `npm --prefix prototype ci`
+- 환경 비밀값: 없음. 런타임 키는 Vercel, 수집 키는 GitHub Actions Secrets에서 관리합니다.
+- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용하며 `GET`, `HEAD`, `OPTIONS`, `POST`만 엽니다.
+- GitHub 작업: 수동 `@codex` 작업과 리뷰를 사용하고 자동 리뷰는 켜지 않습니다.
+
+Codex Cloud에서 변경할 때는 `prototype`에서 작업 브랜치를 만들고 PR로 반영합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
 
 ## 현재 상태와 다음 단계
 
