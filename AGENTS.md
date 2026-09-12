@@ -79,7 +79,7 @@
 
 - 개인 환경 이름은 `camp-itralph`, 환경 저장소는 `seungminyi-byte/Camp_It_Ralph`, 기준 브랜치는 `prototype`이다. Codex GitHub 앱은 사용자 요청에 따라 `seungminyi-byte` 계정 전체 저장소 접근 권한을 유지하며 특정 저장소로 제한하지 않는다. 구성·실행 완료 여부는 DEMO의 검증 기록을 따른다.
 - Node.js 24와 Python 3.12를 사용한다. 기본 이미지의 Node 선택 메뉴에는 24가 없어 README의 설정 스크립트에서 NVM으로 설치·활성화한다. 이후 `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`를 실행하고 유지관리 때도 Node 24를 활성화한 뒤 `npm --prefix prototype ci`를 실행한다.
-- 환경에 API 비밀값을 넣지 않는다. 에이전트 인터넷 접근은 `grand-site-dc.vercel.app`으로 제한한다. 현재 UI에서 `POST`만 추가할 수 없어 `GET/HEAD/OPTIONS`만 설정했으며 범위를 넓히기 전 사용자 확인이 필요하다.
+- 환경에 API 비밀값을 넣지 않는다. 에이전트 인터넷 접근은 사용자 최종 승인에 따라 `grand-site-dc.vercel.app`의 `GET/HEAD/OPTIONS`만 허용한다. 현재 UI에서 `POST`만 추가할 수 없어 계획의 4종 대신 읽기 전용 3종으로 확정했다. Cloud에서 운영 AI 생성 `POST`를 호출할 수 없으며 별도 승인 없이 메서드 범위를 넓히지 않는다.
 - GitHub의 수동 `@codex` 작업과 리뷰를 사용할 수 있게 하되 자동 리뷰는 사용하지 않는다.
 - Cloud 검사 컨테이너의 브랜치가 `work`이고 remote가 없을 수 있다. 환경·기준 브랜치는 작업 생성 UI에서 선택하고 HEAD를 원격 `prototype` 기준 커밋과 대조한다. 검사 목적으로 임의의 원격이나 인증키를 추가하지 않으며 변경 제출은 Cloud의 PR 기능을 사용한다.
 - 검사 전용 작업은 타입 검사, 린트, 전체 Vitest, 데이터 검증, 프로덕션 빌드를 실행하고 `git diff --exit-code`와 `git status --short`가 깨끗한지 확인한다. 결과에는 이 파일을 읽고 적용했음을 명시한다.

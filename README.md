@@ -166,7 +166,7 @@ Codex GitHub 연결 권한은 사용자 요청에 따라 `seungminyi-byte` 계�
 
 - 기본 이미지의 Node 선택 메뉴에는 24가 없어 설정 스크립트에서 NVM으로 24를 활성화합니다. Python 선택값은 3.12입니다. 실제 런타임 버전은 Cloud 검사 결과로 확인합니다.
 - 환경 비밀값: 없음. 런타임 키는 Vercel, 수집 키는 GitHub Actions Secrets에서 관리합니다.
-- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용합니다. 현재 UI는 `GET`·`HEAD`·`OPTIONS` 또는 모든 메서드만 지원해 읽기 전용 3종으로 설정했습니다. `POST`만 추가하는 조합은 선택할 수 없어 사용자 확인 전에는 모든 메서드로 넓히지 않습니다.
+- 에이전트 인터넷 접근: 사용자 최종 승인에 따라 `grand-site-dc.vercel.app`의 `GET`·`HEAD`·`OPTIONS`만 허용합니다. 현재 UI에서 `POST`만 추가할 수 없어 계획의 4종 대신 읽기 전용 3종으로 확정했습니다. Cloud 에이전트의 운영 AI 생성 `POST` 호출은 허용되지 않으며, 별도 승인 없이 모든 메서드로 넓히지 않습니다.
 - GitHub 작업: 수동 `@codex` 작업과 리뷰를 사용하고 자동 리뷰는 켜지 않습니다.
 
 Codex Cloud에서는 작업 생성 화면에서 `camp-itralph`와 기준 브랜치 `prototype`을 선택하고, 변경은 Cloud의 PR 기능으로 반영합니다. 검사 컨테이너에서는 브랜치가 `work`이고 Git remote가 없었습니다. 이 경우 터미널에서 임의로 원격·인증키를 추가하지 말고 선택한 환경·브랜치와 HEAD가 원격 기준 커밋에 일치하는지 대조합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
@@ -198,7 +198,7 @@ npm --prefix prototype ci
 
 ## 현재 상태와 다음 단계
 
-2026-09-12: 로컬 문서 원본 3개를 `codex/local-preservation-20260912`에 보존하고 기본 브랜치 `prototype`의 배포 자동화를 검증했습니다. GitHub Actions, Vercel Ready, 운영 화면·핵심 API·AI 연결 검사가 통과했습니다. Cloud 구성과 로컬 제거는 별도 완료 조건이며 [최신 검증 기록](docs/DEMO.md#2026-09-12-배포-자동화와-운영-검증)을 따릅니다.
+2026-09-12: 로컬 문서 원본 3개를 `codex/local-preservation-20260912`에 보존하고 기본 브랜치 `prototype`의 배포 자동화를 검증했습니다. GitHub Actions, Vercel Ready, 운영 화면·핵심 API·AI 연결 검사와 `camp-itralph` Cloud의 전체 166개 테스트·무변경 검사가 통과했습니다. 사용자는 읽기 전용 인터넷 설정과 지정된 로컬 5개 폴더의 휴지통 이동을 최종 승인했습니다. 이후 작업은 Cloud 환경의 `prototype`에서 시작하며 [최신 검증 기록](docs/DEMO.md#2026-09-12-배포-자동화와-운영-검증)을 따릅니다.
 
 2026-09-08: 사용자 요청으로 1차 사업검토 개편을 운영 환경에 배포했습니다. 가구 격자, 사업조건과 면적 계산, 부지별 비용·협의 기록, 민감도 표, 비교·보고서와 AI 의견 유효성 검사를 연결했습니다.
 

@@ -119,9 +119,9 @@ npm --prefix prototype run build
 
 [문서 PR의 수동 리뷰 요청](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/4#issuecomment-5646379947)은 Codex 봇이 처리해 [주요 문제 없음으로 완료](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/4#issuecomment-5646395191)했습니다(검토 대상 `e5c2a55`, 이후 문서 보완분과 구분). 자동 리뷰는 개인 기본값에서 끄고 저장소는 해당 기본값을 따르도록 두었습니다. 같은 기본값을 따르는 다른 개인 저장소에도 자동 리뷰 꺼짐이 적용됩니다.
 
-에이전트 인터넷 허용목록은 기본 프리셋 없음, 추가 도메인 `grand-site-dc.vercel.app` 하나입니다. 현재 UI는 `GET/HEAD/OPTIONS` 또는 모든 메서드만 지원하므로 우선 읽기 전용 3종을 저장했습니다. 계획의 `POST`만 추가하는 조합은 선택할 수 없어 최종 범위는 사용자 확인 대기입니다. 설치·유지관리 단계의 의존성 다운로드는 에이전트 실행 단계의 이 제한과 구분합니다.
+에이전트 인터넷 허용목록은 기본 프리셋 없음, 추가 도메인 `grand-site-dc.vercel.app` 하나입니다. 현재 UI는 `GET/HEAD/OPTIONS` 또는 모든 메서드만 지원하므로 사용자 최종 승인에 따라 읽기 전용 3종으로 확정했습니다. 계획의 `POST`만 추가하는 조합은 선택할 수 없어 제외했고 Cloud의 운영 AI 생성 `POST` 호출은 차단됩니다. 앞서 기록한 AI 연결 검사는 Cloud가 아닌 운영 API 직접 검사입니다. 설치·유지관리 단계의 의존성 다운로드는 에이전트 실행 단계의 이 제한과 구분합니다.
 
-Cloud에서 같은 검증 명령과 `AGENTS.md` 적용, 변경 없는 diff를 확인하기 전에는 로컬 5개 폴더를 이동하지 않습니다. 모든 검증 완료 후에만 승인된 `/Users/yiseungmin/.Trash/Camp_It_Ralph-local-20260912/` 아래로 이동하며 휴지통은 비우지 않습니다.
+Cloud에서 같은 검증 명령과 `AGENTS.md` 적용, 변경 없는 diff를 확인했고 사용자가 로컬 이동을 최종 승인했습니다. 원격 보존 브랜치·Secrets 접근, 성공한 Actions, Cloud 작업의 `READY / no diff`, 운영 Ready·HTTP 응답을 이동 직전에 다시 확인합니다. 승인된 `/Users/yiseungmin/.Trash/Camp_It_Ralph-local-20260912/` 아래로 `Camp_It_Ralph`, `Camp_It_Ralph-aria-integration`, `Camp_It_Ralph-aria-nearby`, `Camp_It_Ralph-aria-scale`, `Camp_It_Ralph-aria-update`만 이동합니다. 이동 후 원래 5개 경로가 없고 휴지통의 복구본과 원격 접근이 유지되는지 확인하며 휴지통은 비우지 않습니다. 다른 로컬 저장소·GitHub CLI 인증·SSH 키는 이동·삭제 대상이 아닙니다.
 
 ## 오프라인·후속 항목
 
