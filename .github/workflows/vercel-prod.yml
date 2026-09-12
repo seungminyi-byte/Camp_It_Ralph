@@ -1,4 +1,5 @@
-# Deploys prototype/ to the Vercel project "grand-site-dc" on every push to this branch.
+# Deploys prototype/ to the Vercel project "grand-site-dc" on every matching push
+# to the repository default branch, prototype.
 #
 # Why Vercel CLI + token instead of the Vercel GitHub App:
 # - Hobby plan deploys only commits authored by the Hobby team owner, so teammates' commits would fail.
@@ -32,6 +33,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: prototype
@@ -42,12 +44,32 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: prototype/package-lock.json
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: node node_modules/vitest/vitest.mjs run
+
+      - name: Validate bundled data
+        run: python3 ../data-pack/scripts/validate_out.py
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@59
+        run: npm install --global vercel@59.16.0
 
-      - name: Deploy to production
-        timeout-minutes: 15
+      - name: Check deployment secret
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -55,10 +77,39 @@ jobs:
             echo "::error::VERCEL_TOKEN secret is missing (repo Settings -> Secrets and variables -> Actions)"
             exit 1
           fi
-          url=$(vercel deploy --prod --yes --logs --token="$VERCEL_TOKEN")
-          echo "deployment: $url"
+
+      - name: Link Vercel project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel link --yes --project grand-site-dc --scope camp-it-ralph --token="$VERCEL_TOKEN"
+
+      - name: Pull production project settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build production artifact
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy prebuilt artifact
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          deployment_url=$(vercel deploy --prebuilt --prod --yes --archive=tgz --token="$VERCEL_TOKEN")
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm production deployment is Ready
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          vercel inspect "$DEPLOYMENT_URL" --wait --timeout 10m --token="$VERCEL_TOKEN"
           {
             echo "### Vercel production deployment"
-            echo "- Deployment: $url"
+            echo "- Deployment: $DEPLOYMENT_URL"
             echo "- Production URL: https://grand-site-dc.vercel.app"
+            echo "- Status: Ready (verified with vercel inspect)"
           } >> "$GITHUB_STEP_SUMMARY"
