@@ -109,7 +109,17 @@ npm --prefix prototype run build
 
 ### Cloud 구성과 로컬 제거의 완료 조건
 
-GitHub의 개인 계정 `seungminyi-byte`용 ChatGPT Codex Connector는 전체 저장소 접근으로 확인했습니다. 다만 현재 Codex Cloud 커넥터의 연결 계정은 `smy_gsenc`이며 개인 저장소가 환경 생성 목록에 나타나지 않습니다. 기존 업무 연결을 개인 계정으로 바꾸기 전 사용자 확인이 필요합니다. `camp-itralph` 환경 생성·검사 전용 Cloud 작업·수동 리뷰 연결은 아직 완료하지 않았습니다.
+사용자 승인으로 Codex Cloud의 GitHub 연결을 업무 계정 `smy_gsenc`에서 개인 계정 `seungminyi-byte`로 전환했습니다. 개인 계정용 ChatGPT Codex Connector는 전체 저장소 접근을 유지했습니다. [개인 환경 `camp-itralph`](https://chatgpt.com/codex/cloud/settings/environment/6aa55c04f9a48191bb2b737a9dc1b13a)은 `seungminyi-byte/Camp_It_Ralph`만 연결하며 환경 변수·비밀값은 비워 두었습니다. 기본 메뉴의 Node 선택지는 18·20·22여서 README의 설치·유지관리 스크립트에서 24를 활성화합니다. Python 선택값은 3.12입니다.
+
+`prototype`을 선택한 [검사 전용 Cloud 작업](https://chatgpt.com/codex/cloud/tasks/task_e_6aa55c3d6d00832b8a80140022f2fc6c)이 완료됐습니다. 실제 HEAD는 `cc88e4c600eab51dd555a769434660da7f170a7c`로 원격 기준과 정확히 일치했습니다. Node 24.21.0, Python 3.12.13, pyshp 3.1.6, pyproj 3.6.1을 확인했고 타입·린트·19개 파일 166개 테스트·데이터 검증·프로덕션 빌드는 모두 종료 코드 0으로 통과했습니다. `AGENTS.md`를 끝까지 읽고 적용한 규칙이 결과에 기록됐으며 `git diff --exit-code`와 `git status --short` 출력은 비어 있었습니다. 운영 페이지·서울시청 geocode GET도 HTTP 200으로 실제 본문을 확인했습니다. npm의 `Unknown env config "http-proxy"` 경고는 있었지만 검사 실패는 없었습니다.
+
+컨테이너 내부 브랜치는 `work`이고 Git remote는 없었습니다. 이를 로컬 브랜치 `prototype`이 존재한다는 뜻으로 기록하지 않습니다. 환경·저장소·기준 브랜치는 생성 UI에서 확인했고 기준 커밋 일치와 무변경 검사로 해당 소스가 검증됐음을 확인했습니다. 터미널 직접 푸시나 Cloud에서 새 PR 작성까지 검증한 작업은 아닙니다.
+
+설치·유지관리 스크립트에 `set +x`를 추가해 NVM 내부 추적 로그를 줄인 뒤 같은 Cloud 작업에서 후속 검사를 실행했습니다. 수동 버전 전환 없이 새 셸의 기본 Node 24.21.0·Python 3.12.13, pyshp·pyproj import와 버전, 동일 HEAD, 빈 diff·status를 다시 확인했습니다. 최종 문서 보완 브랜치에서도 로컬 타입·린트·전체 166개 테스트·데이터 검증·빌드를 재실행해 통과했습니다.
+
+[문서 PR의 수동 리뷰 요청](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/4#issuecomment-5646379947)은 Codex 봇이 처리해 [주요 문제 없음으로 완료](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/4#issuecomment-5646395191)했습니다(검토 대상 `e5c2a55`, 이후 문서 보완분과 구분). 자동 리뷰는 개인 기본값에서 끄고 저장소는 해당 기본값을 따르도록 두었습니다. 같은 기본값을 따르는 다른 개인 저장소에도 자동 리뷰 꺼짐이 적용됩니다.
+
+에이전트 인터넷 허용목록은 기본 프리셋 없음, 추가 도메인 `grand-site-dc.vercel.app` 하나입니다. 현재 UI는 `GET/HEAD/OPTIONS` 또는 모든 메서드만 지원하므로 우선 읽기 전용 3종을 저장했습니다. 계획의 `POST`만 추가하는 조합은 선택할 수 없어 최종 범위는 사용자 확인 대기입니다. 설치·유지관리 단계의 의존성 다운로드는 에이전트 실행 단계의 이 제한과 구분합니다.
 
 Cloud에서 같은 검증 명령과 `AGENTS.md` 적용, 변경 없는 diff를 확인하기 전에는 로컬 5개 폴더를 이동하지 않습니다. 모든 검증 완료 후에만 승인된 `/Users/yiseungmin/.Trash/Camp_It_Ralph-local-20260912/` 아래로 이동하며 휴지통은 비우지 않습니다.
 

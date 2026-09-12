@@ -164,13 +164,37 @@ gh run view <run-id> --log
 
 Codex GitHub 연결 권한은 사용자 요청에 따라 `seungminyi-byte` 계정의 전체 저장소에 부여합니다. 이 프로젝트용 개인 환경 이름은 `camp-itralph`, 환경에 연결할 저장소는 `seungminyi-byte/Camp_It_Ralph`, 기준 브랜치는 `prototype`입니다. 런타임은 Node.js 24·Python 3.12를 사용합니다. 구성·실행 완료 여부는 [검증 기록](docs/DEMO.md)을 확인하세요.
 
-- 설정 스크립트: `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`
-- 유지관리 스크립트: `npm --prefix prototype ci`
+- 기본 이미지의 Node 선택 메뉴에는 24가 없어 설정 스크립트에서 NVM으로 24를 활성화합니다. Python 선택값은 3.12입니다. 실제 런타임 버전은 Cloud 검사 결과로 확인합니다.
 - 환경 비밀값: 없음. 런타임 키는 Vercel, 수집 키는 GitHub Actions Secrets에서 관리합니다.
-- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용하며 `GET`, `HEAD`, `OPTIONS`, `POST`만 엽니다.
+- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용합니다. 현재 UI는 `GET`·`HEAD`·`OPTIONS` 또는 모든 메서드만 지원해 읽기 전용 3종으로 설정했습니다. `POST`만 추가하는 조합은 선택할 수 없어 사용자 확인 전에는 모든 메서드로 넓히지 않습니다.
 - GitHub 작업: 수동 `@codex` 작업과 리뷰를 사용하고 자동 리뷰는 켜지 않습니다.
 
-Codex Cloud에서 변경할 때는 `prototype`에서 작업 브랜치를 만들고 PR로 반영합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
+Codex Cloud에서는 작업 생성 화면에서 `camp-itralph`와 기준 브랜치 `prototype`을 선택하고, 변경은 Cloud의 PR 기능으로 반영합니다. 검사 컨테이너에서는 브랜치가 `work`이고 Git remote가 없었습니다. 이 경우 터미널에서 임의로 원격·인증키를 추가하지 말고 선택한 환경·브랜치와 HEAD가 원격 기준 커밋에 일치하는지 대조합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
+
+설정 스크립트:
+
+```bash
+set +x
+set -e
+source "$NVM_DIR/nvm.sh"
+nvm install 24
+nvm alias default 24
+nvm use 24
+node --version
+python3 --version
+npm --prefix prototype ci
+python3 -m pip install pyshp 'pyproj<3.7'
+```
+
+유지관리 스크립트:
+
+```bash
+set +x
+set -e
+source "$NVM_DIR/nvm.sh"
+nvm use 24
+npm --prefix prototype ci
+```
 
 ## 현재 상태와 다음 단계
 
