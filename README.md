@@ -6,7 +6,7 @@
 
 - 서비스명은 가칭입니다. 배포 설정과 `X-Title`의 내부 코드명은 유지합니다.
 - 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph · 기준 브랜치 `prototype`
-- 운영 서비스: https://grand-site-dc.vercel.app · 2026-09-08 확인한 배포 코드 `7678816`
+- 운영 서비스: https://grand-site-dc.vercel.app · 2026-09-12 확인한 배포 코드 `cc88e4c`
 - [구현 사양](docs/PLAN.md) · [데이터 출처·한계](docs/DATA.md) · [데모·검증 절차](docs/DEMO.md)
 
 스크리닝 참고용, 한전 공식 검토·법률 판단 대체 불가.
@@ -131,35 +131,23 @@ npm --prefix prototype run build
 - `prototype/**` 변경이 기본 브랜치 `prototype`으로 반영되어야 합니다.
 - `VERCEL_TOKEN`은 `seungminyi-byte/Camp_It_Ralph` 저장소의 Actions Secret으로 등록되어 있어야 합니다.
 
-실행 예시 (동작 확인됨):
+Codex Cloud의 `camp-itralph` 환경에서 `prototype`을 선택해 작업하고 변경 diff와 검증 결과를 검토한 뒤 PR을 만듭니다. 환경 구성·검사가 완료되었는지는 아래 검증 기록을 먼저 확인하세요. 팀원이 별도 개발 환경에서 GitHub CLI를 사용하는 경우에도 같은 PR 절차를 따릅니다.
 
 ```bash
-# 1) GitHub CLI 로그인
-gh auth login --hostname github.com --web
+# 저장소 루트에서 최신 기준 브랜치의 작업 브랜치 생성
+git fetch origin prototype
+git switch -c codex/my-change origin/prototype
 
-# 2) 저장소 클론 후 브랜치 생성
-cd /tmp
-gh repo clone seungminyi-byte/Camp_It_Ralph
-cd Camp_It_Ralph
-git checkout -b feat/my-deploy
-
-# 3) prototype만 수정 후 커밋
+# 요청한 변경과 검증을 마친 뒤 해당 파일만 커밋
 git add prototype
-git commit -m "..."
+git commit -m "요청한 변경 내용"
 
-# 4-1) PR/병합 배포(권장)
-git push -u origin feat/my-deploy
+# PR 작성 → 검토 → prototype에 squash 병합
+git push -u origin codex/my-change
 gh pr create --base prototype
-# → 병합되면 배포 자동 실행
+# → prototype/** 또는 워크플로 변경 병합이면 Actions 배포 실행
 
-# 4-2) 직접 배포 브랜치 반영(권한이 있는 경우)
-git checkout prototype
-git pull origin prototype
-git merge --no-ff feat/my-deploy
-git push origin prototype
-# → 자동 배포 실행
-
-# 4-3) 수동 워크플로 배포(긴급/테스트용)
+# 수동 워크플로 배포가 필요한 경우
 gh workflow run vercel-prod.yml --ref prototype
 ```
 
@@ -176,15 +164,41 @@ gh run view <run-id> --log
 
 Codex GitHub 연결 권한은 사용자 요청에 따라 `seungminyi-byte` 계정의 전체 저장소에 부여합니다. 이 프로젝트용 개인 환경 이름은 `camp-itralph`, 환경에 연결할 저장소는 `seungminyi-byte/Camp_It_Ralph`, 기준 브랜치는 `prototype`입니다. 런타임은 Node.js 24·Python 3.12를 사용합니다. 구성·실행 완료 여부는 [검증 기록](docs/DEMO.md)을 확인하세요.
 
-- 설정 스크립트: `npm --prefix prototype ci`와 `python3 -m pip install pyshp 'pyproj<3.7'`
-- 유지관리 스크립트: `npm --prefix prototype ci`
+- 기본 이미지의 Node 선택 메뉴에는 24가 없어 설정 스크립트에서 NVM으로 24를 활성화합니다. Python 선택값은 3.12입니다. 실제 런타임 버전은 Cloud 검사 결과로 확인합니다.
 - 환경 비밀값: 없음. 런타임 키는 Vercel, 수집 키는 GitHub Actions Secrets에서 관리합니다.
-- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용하며 `GET`, `HEAD`, `OPTIONS`, `POST`만 엽니다.
+- 에이전트 인터넷 접근: `grand-site-dc.vercel.app`만 허용합니다. 현재 UI는 `GET`·`HEAD`·`OPTIONS` 또는 모든 메서드만 지원해 읽기 전용 3종으로 설정했습니다. `POST`만 추가하는 조합은 선택할 수 없어 사용자 확인 전에는 모든 메서드로 넓히지 않습니다.
 - GitHub 작업: 수동 `@codex` 작업과 리뷰를 사용하고 자동 리뷰는 켜지 않습니다.
 
-Codex Cloud에서 변경할 때는 `prototype`에서 작업 브랜치를 만들고 PR로 반영합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
+Codex Cloud에서는 작업 생성 화면에서 `camp-itralph`와 기준 브랜치 `prototype`을 선택하고, 변경은 Cloud의 PR 기능으로 반영합니다. 검사 컨테이너에서는 브랜치가 `work`이고 Git remote가 없었습니다. 이 경우 터미널에서 임의로 원격·인증키를 추가하지 말고 선택한 환경·브랜치와 HEAD가 원격 기준 커밋에 일치하는지 대조합니다. 검사 전용 작업은 위의 다섯 검증 명령을 실행한 뒤 `git diff --exit-code`와 `git status --short`로 변경이 남지 않았는지 확인하고, 저장소 루트의 `AGENTS.md` 적용 여부를 결과에 기록합니다.
+
+설정 스크립트:
+
+```bash
+set +x
+set -e
+source "$NVM_DIR/nvm.sh"
+nvm install 24
+nvm alias default 24
+nvm use 24
+node --version
+python3 --version
+npm --prefix prototype ci
+python3 -m pip install pyshp 'pyproj<3.7'
+```
+
+유지관리 스크립트:
+
+```bash
+set +x
+set -e
+source "$NVM_DIR/nvm.sh"
+nvm use 24
+npm --prefix prototype ci
+```
 
 ## 현재 상태와 다음 단계
+
+2026-09-12: 로컬 문서 원본 3개를 `codex/local-preservation-20260912`에 보존하고 기본 브랜치 `prototype`의 배포 자동화를 검증했습니다. GitHub Actions, Vercel Ready, 운영 화면·핵심 API·AI 연결 검사가 통과했습니다. Cloud 구성과 로컬 제거는 별도 완료 조건이며 [최신 검증 기록](docs/DEMO.md#2026-09-12-배포-자동화와-운영-검증)을 따릅니다.
 
 2026-09-08: 사용자 요청으로 1차 사업검토 개편을 운영 환경에 배포했습니다. 가구 격자, 사업조건과 면적 계산, 부지별 비용·협의 기록, 민감도 표, 비교·보고서와 AI 의견 유효성 검사를 연결했습니다.
 
