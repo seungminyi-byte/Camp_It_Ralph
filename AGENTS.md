@@ -1,15 +1,15 @@
 # AGENTS.md — 여기 DC 돼요? 후보 부지 1차 사업검토
 
-2026-09-08 구현·운영 확인 기준. 실행 절차는 [README.md](README.md), 산식·범위는 [docs/PLAN.md](docs/PLAN.md), 자료 출처·한계는 [docs/DATA.md](docs/DATA.md), 데모·검증 기록은 [docs/DEMO.md](docs/DEMO.md)를 따른다.
+2026-09-12 문서·배포 자동화 통합 기준. 실행 절차는 [README.md](README.md), 산식·범위는 [docs/PLAN.md](docs/PLAN.md), 자료 출처·한계는 [docs/DATA.md](docs/DATA.md), 데모·검증 기록은 [docs/DEMO.md](docs/DEMO.md)를 따른다.
 
 ## 프로젝트와 현재 상태
 
 - 제안받은 후보 주소와 사업조건을 입력해 주요 제약, 면적 부족, 미확인 비용·공급조건, 다음 확인사항을 정리하는 지도 웹앱이다. 주 사용자는 개발·사업검토 담당자이며 초기 검토와 내부 보고를 돕는다.
 - 참고점수는 보조 정보다. 점수로 사업 적합·부적합, 실제 전력 공급량이나 인허가 결과를 확정하지 않는다. 기본 보고서는 AI 없이 출력되고 AI 의견은 선택 기능이다.
 - 화면 서비스명은 **여기 DC 돼요? (가칭)**. Vercel 프로젝트명 `grand-site-dc`와 `X-Title`의 내부 코드명은 유지한다. PLAI CAMP S3 개발자리그(9.21~22) 해커톤 프로토타입이다.
-- 운영 주소: https://grand-site-dc.vercel.app. 2026-09-08 배포 코드 `7678816`의 Ready 상태와 실제 서버 응답을 확인했다. 최신 배포 여부를 말할 때는 이 기록만 재사용하지 말고 현재 배포와 대조한다.
+- 운영 주소: https://grand-site-dc.vercel.app. 2026-09-12 배포 코드 `cc88e4c`의 Actions 성공·Ready 상태와 실제 화면·서버 응답을 확인했다. 최신 배포 여부를 말할 때는 이 기록만 재사용하지 말고 현재 배포와 대조한다.
 - 1차 구현 완료: 전국 가구 격자, 공통 사업조건·부지별 조건, 면적·비용·금융비용 계산, 협의 기록, 최대 4개 후보 비교, 첫 장 요약·18개 근거 항목의 보고서, AI 의견 유효성 검사.
-- 해당 변경 검증: 타입 검사·린트·17개 파일 134개 테스트·데이터 검증·프로덕션 빌드 통과. 모바일·데스크톱·A4와 운영 AI 응답 검증의 상세 조건은 DEMO에 있다. 이후 코드 변경의 검증을 이 기록으로 대신하지 않는다.
+- 2026-09-12 통합 검증: 타입 검사·린트·19개 파일 166개 테스트·데이터 검증·프로덕션 빌드 통과. 과거 모바일·A4와 최신 운영 검증의 상세 조건은 DEMO에 구분한다. 이후 코드 변경이나 Cloud 실행 검증을 이 기록으로 대신하지 않는다.
 
 ## 세션 시작
 
@@ -72,7 +72,7 @@
 - AI는 추론 모드 비활성·출력 4,000토큰이며 빈 응답/실패는 사용자에게 표시한다. SSE `[DONE]`에서 응답을 종료한다. 대체 목록 사용 시 실제 모델을 단정하지 않고 OpenRouter로 표시한다. 실패해도 기본 보고서는 출력된다.
 - 사전 생성 스크립트는 `OPENROUTER_API_KEY`와 선택 `OPENROUTER_MODEL`을 사용한다. 서버 변수 `LLM_MODEL`과 혼동하지 않는다. 현재 `precomputed_memos.json`은 없으며 예전 Gemini 키나 시나리오 id→텍스트 형식은 사용하지 않는다. 생성본은 v4와 현재 전체 평가 서명이 맞아야 한다.
 - 로컬 Vite `/api/*`는 운영 서버로 전달된다. 로컬에서 `prototype/api`만 수정해도 운영 함수가 바뀌지는 않는다. 서버 수정은 API 테스트와 배포 후 응답으로 확인한다.
-- 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. Vercel Git 연동의 Root Directory는 `prototype`이다. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 자동 배포하지 않는다.
+- 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. Vercel Git 연동의 Root Directory는 `prototype`이다. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 이 Actions를 실행하지 않는다. 별도 Vercel Git 배포·PR 미리보기는 자체 실행 조건을 따른다.
 - 원격은 `git@github.com:seungminyi-byte/Camp_It_Ralph.git`, 단일 기준 브랜치는 `prototype`이다. 변경은 작업 브랜치와 PR로 반영한다. 기존 `seungminyi-byte-prototype` 원격 브랜치는 과거 기록으로 유지하되 작업 기준으로 사용하지 않는다. **푸시·배포는 사용자가 요청할 때만** 진행한다. 배포 완료는 원격 반영, Vercel 상태, 운영 정적 파일·API 응답을 구분해 확인한다.
 
 ## Codex Cloud

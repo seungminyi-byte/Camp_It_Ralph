@@ -92,7 +92,26 @@ npm --prefix prototype run build
 - 타입 검사와 린트가 통과했습니다.
 - Vitest 전체 19개 파일, 166개 테스트가 통과했습니다. 계획 수립 당시 18개였던 테스트 파일은 최신 `prototype`에서 1개 늘었습니다.
 - `python3 data-pack/scripts/validate_out.py`의 번들 데이터 검증과 `npm --prefix prototype run build`의 프로덕션 빌드가 통과했습니다.
-- GitHub Actions 워크플로 YAML 구문을 파싱했고, 고정 버전 Vercel CLI 59.16.0의 실행과 배포·검사 옵션 지원을 확인했습니다. GitHub Actions 실행, 새 Vercel 배포와 Codex Cloud 검사 결과는 각각 원격에서 완료된 뒤 이 기록과 구분해 확인합니다.
+- GitHub Actions 워크플로 YAML 구문을 파싱했고, 고정 버전 Vercel CLI 59.16.0의 실행과 배포·검사 옵션 지원을 확인했습니다. 실제 원격 실행 결과는 다음 항목으로 구분합니다.
+
+## 2026-09-12 배포 자동화와 운영 검증
+
+- 원본 보존: `README.md`, `AGENTS.md`, `docs/DEMO.md`의 로컬 원본을 [보존 커밋 `0295322`](https://github.com/seungminyi-byte/Camp_It_Ralph/commit/02953222182b55240181dcdbdaf37ba3345f9cb8)에 그대로 커밋·푸시했습니다. 보존 브랜치 `codex/local-preservation-20260912`와 기존 `seungminyi-byte-prototype` 브랜치는 유지합니다. 비밀값·원본 데이터·빌드 결과는 보존 커밋에 넣지 않았습니다.
+- 문서·워크플로 통합 [PR #1](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/1), 연결 옵션 수정 [PR #2](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/2), 실행 위치 수정 [PR #3](https://github.com/seungminyi-byte/Camp_It_Ralph/pull/3)을 `prototype`에 squash 병합했습니다. 애플리케이션 API·타입·산식은 변경하지 않았습니다.
+- 초기 Actions는 기존 토큰의 프로젝트 설정 접근 권한과 Vercel Root Directory 대비 CLI 실행 위치 때문에 실패했습니다. 사용자 승인으로 팀 범위 CI 토큰을 `VERCEL_TOKEN`에 등록하고, Vercel CLI 단계는 저장소 루트에서 실행하도록 수정했습니다. 실패 실행을 성공으로 집계하지 않습니다.
+- 최종 코드 `cc88e4c600eab51dd555a769434660da7f170a7c`의 [Actions 실행 34697606312](https://github.com/seungminyi-byte/Camp_It_Ralph/actions/runs/34697606312)이 성공했습니다. Node.js 24·Python 3.12에서 의존성 설치, 타입 검사, 린트, 전체 19개 파일 166개 테스트, 데이터 검증, Vercel CLI 59.16.0의 link → production pull → build → prebuilt deploy → inspect Ready 확인을 모두 통과했습니다.
+- Ready 배포: `dpl_9A7UfEwT7hezan5VLMgBC47S63TZ`, https://grand-site-e1k8ntwyj-camp-it-ralph.vercel.app. 운영 별칭 `grand-site-dc.vercel.app`이 해당 배포를 가리키는 것을 확인했습니다. 직전 Ready 배포 `dpl_85NTT6z2wZbH3CQCGLGmtVFRk54P`는 롤백 기준으로 확인했으며 운영 검증 통과로 롤백하지 않았습니다.
+- 운영 HTML은 HTTP 200이며 `index-KZP5-_rP.js`, `index-yjxvgu6R.css`, `households_grid.json`, `constants.json`이 검증한 로컬 빌드와 바이트 단위로 일치했습니다.
+- 운영 `/api/geocode?q=서울특별시청`, `/api/zoning`, `/api/restrictions`, `/api/disaster`는 HTTP 200으로 응답했습니다(후자 3개 좌표 `37.5665, 126.9780`). 주소·용도지역 응답, 규제 조회 완료(`failed: []`), 재해 조회의 해당 없음 응답을 확인했습니다. 이를 부지 안전이나 법적 판단으로 확대하지 않습니다.
+- 실제 브라우저에서 지도·분석 패널 표시, 서울시청 주소 검색, 인근 필지 3개 표시, 법적 제한 E등급 상한과 자료 미확인에 따른 참고점수 미산정의 동시 유지, 후보 1곳 담기를 확인했습니다. 콘솔 오류는 없었습니다. 이번 검사는 운영 연결 확인이며 과거 A4·모바일 전체 회귀를 새로 수행했다고 주장하지 않습니다.
+- `POST /api/generate`의 짧은 연결 검사에서 약 1.4초 만에 HTTP 200, `X-LLM-Model: OpenRouter`, 오류 프레임 없는 비어 있지 않은 실제 답변을 확인했습니다. 이는 긴 18항목 AI 보고서 검증과 구분하며, 2026-09-10의 무료 공급자 타임아웃 기록을 삭제하거나 성공으로 바꾸지 않습니다.
+- `DATA_GO_KR_API_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`은 GitHub Actions Secrets 등록 메타데이터로 확인했습니다. Vercel 런타임 키는 기존 값을 유지했고 Codex Cloud에 복제하지 않았습니다. `VERCEL_OIDC_TOKEN`은 원격 보존 대상에서 제외했습니다.
+
+### Cloud 구성과 로컬 제거의 완료 조건
+
+GitHub의 개인 계정 `seungminyi-byte`용 ChatGPT Codex Connector는 전체 저장소 접근으로 확인했습니다. 다만 현재 Codex Cloud 커넥터의 연결 계정은 `smy_gsenc`이며 개인 저장소가 환경 생성 목록에 나타나지 않습니다. 기존 업무 연결을 개인 계정으로 바꾸기 전 사용자 확인이 필요합니다. `camp-itralph` 환경 생성·검사 전용 Cloud 작업·수동 리뷰 연결은 아직 완료하지 않았습니다.
+
+Cloud에서 같은 검증 명령과 `AGENTS.md` 적용, 변경 없는 diff를 확인하기 전에는 로컬 5개 폴더를 이동하지 않습니다. 모든 검증 완료 후에만 승인된 `/Users/yiseungmin/.Trash/Camp_It_Ralph-local-20260912/` 아래로 이동하며 휴지통은 비우지 않습니다.
 
 ## 오프라인·후속 항목
 
