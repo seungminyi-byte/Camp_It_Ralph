@@ -6,8 +6,10 @@
 
 - 서비스명은 가칭입니다. 배포 설정과 `X-Title`의 내부 코드명은 유지합니다.
 - 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph · 브랜치 `seungminyi-byte-prototype`
-- 운영 서비스: https://grand-site-dc.vercel.app · 2026-09-08 사업검토 개편 배포
+- 운영 서비스: https://grand-site-dc.vercel.app · 2026-09-08 확인한 배포 코드 `7678816`
 - [구현 사양](docs/PLAN.md) · [데이터 출처·한계](docs/DATA.md) · [데모·검증 절차](docs/DEMO.md)
+
+스크리닝 참고용, 한전 공식 검토·법률 판단 대체 불가.
 
 ## 빠른 시작
 
@@ -17,8 +19,9 @@ npm install
 npm run dev -- --port 5199
 ```
 
-`prototype/public/data` 약 11.2MB를 번들로 사용합니다. 기본 검토에 새 인증키는 필요하지 않습니다.
-로컬 `/api/*`는 기존 프로덕션으로 전달됩니다. 주소 검색·용도지역·규제·재해 조회가 실패하면 미확인 상태로 남습니다.
+Node.js 24와 npm을 사용합니다(배포 자동화와 동일). `prototype/public/data` 약 11.2MB를 번들로 사용하므로 기본 계산을 위해 원본을 다시 수집할 필요는 없습니다.
+
+Vite 개발 서버의 `/api/*`는 운영 서버로 전달됩니다. 로컬 화면에서도 주소·선택 좌표와 AI 생성 요청은 운영 API에 전송되며, 새 인증키 입력 없이 기존 서버 설정을 사용합니다. `prototype/api` 수정은 Vite에서 실행되지 않으므로 서버 변경 검증과 구분하세요. 주소 검색·용도지역·규제·재해 조회가 실패하면 미확인 상태로 남습니다. 지도 타일과 온라인 조회에는 인터넷 연결이 필요합니다.
 
 ## 사용법
 
@@ -32,6 +35,14 @@ npm run dev -- --port 5199
 8. ‘부지 검토 보고서’를 열고 PDF 저장을 누릅니다. AI 의견은 선택 사항이며 입력·근거 변경 시 해제됩니다.
 
 금리 4.5·5.5·6.5%, 지연 6·12·24개월은 수정 가능한 **계산 가정**입니다. 실제 면적·설계계수·인입비·차입잔액에는 임의 기본값이 없습니다. 비용 차액은 모든 비교 후보가 완전하고 같은 비용 방식·범위를 가질 때만 표시합니다.
+
+## 결과를 읽는 기준
+
+- 전력 목록과 OSM 위치·직선거리는 참고 자료입니다. 변전소 개수로 공급 MW를 추정하거나 실제 연결 변전소·심사 결과를 예측하지 않습니다. 목록 미등재만으로 D등급 상한을 적용하지 않습니다.
+- 참고점수의 필수 자료가 없으면 미산정입니다. 확인된 법적 입지 제한은 점수 산정 여부와 별개로 E등급 상한과 붉은 배지를 유지합니다. 재해위험지구는 15점 감점·추가 검토 대상이며 재해만으로 E등급 상한을 적용하지 않습니다.
+- 주변 인구·가구는 반경 1km 안의 격자 중심점 합계입니다. SGIS 2024 가구 자료는 전국 107,680개 셀 중 74,723개 값이 확인되고 32,957개는 결측입니다. 가구 수는 주민등록 세대수와 다르며, 부분 합계·결측을 구분합니다. 가구를 인구와 중복 감점하지 않습니다.
+- 인구·가구가 적거나 뉴스가 0건이어도 주민수용성이 좋다는 뜻은 아닙니다. 뉴스·사례는 참고 목록이며 수용성 등급·감점에 사용하지 않습니다. 학교 지점까지 거리는 법정 보호구역 경계거리가 아닙니다.
+- 면적 충족은 입력한 단순 조건의 계산 결과입니다. 지연 금융비용은 평균 차입잔액과 사용자가 정한 금리·기간으로 계산하며 점수에서 예상 지연기간을 만들지 않습니다. 산식과 예시는 [구현 사양](docs/PLAN.md#2-입력과-산식)을 참조하세요.
 
 ## 데이터 재생성
 
@@ -62,9 +73,9 @@ npm --prefix prototype run build
 
 [데모 절차](docs/DEMO.md)에 면적·금융비용·비교·조회 실패·모바일·인쇄 확인 항목을 정리했습니다. 이전 데모 점수 D45/E32/B75 및 점수 기반 예상 지연은 현재 기준이 아닙니다.
 
-## 직접 발급이 필요한 키 (전부 무료, 본인 계정 필요)
+## 직접 발급이 필요한 키
 
-에이전트가 대신 가입·발급할 수 없다. 발급 후 사용처에 넣으면 된다.
+새 환경을 구성하거나 수집 자료를 갱신할 때 필요한 키입니다. 계정 가입·키 발급과 비밀값 입력은 사용자가 직접 진행합니다. 운영 키 등록 여부와 수집용 로컬 키 보유 여부는 별개입니다. 키 발급·무료 모델에도 서비스별 호출 한도와 제공 조건이 적용됩니다.
 
 | 키 | 발급 URL | 사용처 | 필요 시점 |
 |---|---|---|---|
@@ -74,7 +85,7 @@ npm --prefix prototype run build
 | 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | 로컬 `data-pack/.env`의 `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json`. Vercel 환경변수에도 같은 이름으로 보관 | 뉴스 참고 목록 |
 | 고속도로 출입시설 위치정보 (후속) | https://www.data.go.kr/data/15076687/openapi.do → 연결된 한국도로공사 서비스에서 활용신청·인증키 확인 | 향후 빌드 시 수집 전용. 신청·키 발급은 사용자 직접 진행, 브라우저 입력·번들 포함 금지 | IC 자료 원본 검증 단계 |
 
-LLM 키는 서버에만 둡니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 사전 생성본이 없어도 기본 보고서 출력은 가능합니다. `prototype/scripts/precompute_memos.ts`는 키를 환경변수로 받아 실행합니다.
+런타임 키는 서버에만 둡니다. 빌드·사전 생성용 키는 Git에서 제외된 로컬 환경변수로만 사용합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서와 온라인 AI 의견은 사용할 수 있습니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
 
 ## OpenRouter 서버 키 등록·교체
 
@@ -91,16 +102,75 @@ LLM 키는 서버에만 둡니다. 사전 생성 의견은 **v4 서명**과 전�
 
 ## 구현 구조
 
+아래 `src/` 경로의 기준은 `prototype/`입니다.
+
 - `src/scoring/engine.ts`: 기존 공간·규제 판단과 면적·사업비·금융비용·추가 확인사항의 단일 계산 경로
 - `data-pack/curated/constants.json`: 가중치·임계값·단위 변환·금리와 기간 가정·자료 설명. `build_all.py`가 앱에 복사
 - `src/lib/reviewInputs.ts`: 빈 입력 상태·공통 사업조건·표시 단위 변환
 - `src/components/BusinessInputs.tsx`, `ReviewFacts.tsx`: 공통/부지별 입력과 계산 결과 표시
 - `src/compare/pins.ts`: 최대 4곳 보관, 엔진 결과 재계산 및 같은 비용 범위의 차액
-- `src/report/checklist.ts`, `ChecklistReport.tsx`: 18개 근거 항목과 첫 장 요약·상세 보고서
+- `src/report/checklist.ts`, `src/components/ChecklistReport.tsx`: 18개 근거 항목과 첫 장 요약·상세 보고서
 - `src/genai/memoContext.ts`: 입력·근거 전체의 안정적인 서명. `MemoPanel`은 오래된 AI 의견을 표시하지 않음
 - `data-pack/scripts/p09_households.py`: SGIS 총가구수 추출, 좌표 변환, 결측·중복·출처 추적
 
 지도·패널 폭 조절·주소 검색·용도지역 수동 보완·보호구역/재해 조회는 유지했습니다. 새로운 런타임 API와 상태관리·라우터·차트 라이브러리는 추가하지 않았습니다.
+
+## 배포와 운영 확인
+
+배포 자동화는 [.github/workflows/vercel-prod.yml](.github/workflows/vercel-prod.yml)입니다. `seungminyi-byte-prototype` 브랜치의 `prototype/**` 또는 해당 워크플로 파일 변경을 푸시하면 GitHub Actions가 Vercel CLI로 운영 배포합니다. 수동 실행(`workflow_dispatch`)도 지원합니다. **README·AGENTS 등 문서만 수정한 푸시는 자동 재배포하지 않습니다.**
+
+배포에는 GitHub Actions Secret `VERCEL_TOKEN`이 필요합니다. 서버 API 키는 별도로 Vercel Production 환경변수에 둡니다. 기존 프로젝트명 `grand-site-dc`와 VWorld API의 서울 리전 `icn1`을 유지합니다. 푸시·배포는 사용자가 요청한 범위에서 진행합니다.
+
+2026-09-08 운영 확인 기록은 [DEMO](docs/DEMO.md#2026-09-08-운영-배포-검증)에 있습니다. 배포 코드 `7678816`의 Ready 상태, 운영 정적 파일과 가구 JSON 일치, 용도지역·규제·재해 API 응답, AI 보고서 18개 항목·조치 5개·주의사항 2개의 생성 완료를 확인했습니다. 해당 변경의 타입 검사·린트·17개 파일 134개 테스트·데이터 검증·프로덕션 빌드도 통과했습니다. 이는 날짜가 있는 검증 기록이며 이후 변경의 검증을 대신하지 않습니다.
+
+## 다른 사용자 배포 가이드
+
+팀원도 배포할 수 있도록 하려면 아래 조건을 맞추면 됩니다.
+
+- 저장소에 등록된 협업자(Write 이상) 또는 팀 멤버여야 합니다.
+- `prototype/**` 변경이 `seungminyi-byte-prototype` 브랜치로 반영되어야 합니다.
+- `VERCEL_TOKEN`은 `seungminyi-byte/Camp_It_Ralph` 저장소의 Actions Secret으로 등록되어 있어야 합니다.
+
+실행 예시 (동작 확인됨):
+
+```bash
+# 1) GitHub CLI 로그인
+gh auth login --hostname github.com --web
+
+# 2) 저장소 클론 후 브랜치 생성
+cd /tmp
+gh repo clone seungminyi-byte/Camp_It_Ralph
+cd Camp_It_Ralph
+git checkout -b feat/my-deploy
+
+# 3) prototype만 수정 후 커밋
+git add prototype
+git commit -m "..."
+
+# 4-1) PR/병합 배포(권장)
+git push -u origin feat/my-deploy
+gh pr create --base seungminyi-byte-prototype
+# → 병합되면 배포 자동 실행
+
+# 4-2) 직접 배포 브랜치 반영(권한이 있는 경우)
+git checkout seungminyi-byte-prototype
+git pull origin seungminyi-byte-prototype
+git merge --no-ff feat/my-deploy
+git push origin seungminyi-byte-prototype
+# → 자동 배포 실행
+
+# 4-3) 수동 워크플로 배포(긴급/테스트용)
+gh workflow run vercel-prod.yml --ref seungminyi-byte-prototype
+```
+
+배포 상태 확인:
+
+```bash
+gh run list --workflow vercel-prod.yml --limit 5
+gh run view <run-id> --log
+```
+
+수동 배포를 선택해도 Secrets와 Workflow 권한이 없는 계정이면 실행이 실패할 수 있습니다.
 
 ## 현재 상태와 다음 단계
 
@@ -108,6 +178,4 @@ LLM 키는 서버에만 둡니다. 사전 생성 의견은 **v4 서명**과 전�
 
 후속 기후 자료는 파일셋 페이지의 응답 지연으로 원본 확보·가공 검증을 완료하지 못했습니다. IC 자료는 서비스 활용신청·인증 상태가 미확인입니다. 검증한 원본만 추가한다는 기준에 따라 두 항목은 현재 화면에 없습니다. 수집 절차와 완료 조건은 PLAN·DATA에 정리했습니다.
 
-기존 배포 자동화는 `.github/workflows/vercel-prod.yml`입니다. 해당 브랜치의 `prototype/**` 푸시가 프로덕션 배포를 유발합니다. 푸시는 사용자가 요청할 때만 진행합니다. 기존 Vercel 프로젝트명 `grand-site-dc`와 서울 리전 `icn1`을 유지합니다.
-
-해커톤 준비의 사전 생성 의견, 현장 재빌드 팩(`ralphathon/`) 및 드라이런은 별도 남은 작업입니다.
+해커톤 준비의 v4 사전 생성 의견, 현장 재빌드 팩(`ralphathon/`, 현재 미생성) 및 드라이런은 별도 남은 작업입니다. 데모·모바일·A4 인쇄 절차는 이미 [DEMO](docs/DEMO.md)에 정리했습니다.
