@@ -81,7 +81,7 @@ jobs:
       - name: Link Vercel project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel link --yes --project grand-site-dc --scope camp-it-ralph --token="$VERCEL_TOKEN"
+        run: vercel link --yes --project grand-site-dc --token="$VERCEL_TOKEN"
 
       - name: Pull production project settings
         env:
