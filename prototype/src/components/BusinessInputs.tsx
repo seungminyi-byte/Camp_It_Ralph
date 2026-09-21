@@ -21,6 +21,8 @@ type Props = {
   hasSite: boolean;
   onProject: (value: ProjectAssumptions) => void;
   onConditions: (value: SiteConditions) => void;
+  areaUnit?: 'm2' | 'pyeong';
+  onAreaUnit?: (unit: 'm2' | 'pyeong') => void;
 };
 function NumberField({
   label,
@@ -61,8 +63,12 @@ export function BusinessInputs({
   hasSite,
   onProject,
   onConditions,
+  areaUnit,
+  onAreaUnit,
 }: Props) {
-  const [unit, setUnit] = useState<'m2' | 'pyeong'>('m2');
+  const [localUnit, setLocalUnit] = useState<'m2' | 'pyeong'>('m2');
+  const unit = areaUnit ?? localUnit;
+  const setUnit = onAreaUnit ?? setLocalUnit;
   const factor = data.constants.scoring.review.m2PerPyeong;
   const project = (patch: Partial<ProjectAssumptions>) =>
     onProject({ ...p, ...patch });

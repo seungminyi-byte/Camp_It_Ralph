@@ -50,7 +50,7 @@ export class LookupController<T extends OnlineEvidence> {
       if (!current()) return;
       const fresh = isEvidenceFresh(lookup);
       this.publish({ ...base, status: fresh ? 'done' : 'partial', lookup });
-      if (fresh) {
+      if (fresh && current()) {
         const remaining = lookup.fetchedAt ? Date.parse(lookup.fetchedAt) + LOOKUP_TTL_MS - Date.now() : LOOKUP_TTL_MS;
         this.expiry = setTimeout(() => { if (current()) this.start(request, true); }, Math.max(1, remaining));
       }

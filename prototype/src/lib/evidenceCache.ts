@@ -26,6 +26,10 @@ export class EvidenceCache<T extends OnlineEvidence> {
     const value = this.observed.get(key);
     return value ? { ...value, complete: false, stale: true } : undefined;
   }
+  /** A caller-validated pin snapshot can retain observations after bounded cache eviction. */
+  seed(key: string, value: T) {
+    if (!this.peek(key) && this.hasObservations(value)) this.put(this.observed, key, { ...value, complete: false, stale: true });
+  }
   async load(key: string, fetcher: () => Promise<T>, signal?: AbortSignal, force = false): Promise<T> {
     const cached = this.peek(key);
     if (!force && cached && isEvidenceFresh(cached)) {

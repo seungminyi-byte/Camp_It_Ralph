@@ -34,7 +34,7 @@ export function validDataCenters(file: unknown): file is DataCenterSiteFile {
 /** Optional map evidence never blocks the scoring dataset. */
 export async function loadDataCenters(): Promise<DataCenterSiteFile | null> {
   try {
-    const response = await fetch('data/data_centers.json');
+    const response = await fetch('/data/data_centers.json');
     if (!response.ok) return null;
     const file: unknown = await response.json();
     return validDataCenters(file) ? file : null;

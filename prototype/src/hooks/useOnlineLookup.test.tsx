@@ -44,3 +44,17 @@ it('does not request or crash for a map selection outside the service coordinate
   await act(async () => root.render(<Outside />));
   expect(container.textContent).toBe('idle,idle,idle,idle'); expect(fetch).not.toHaveBeenCalled();
 });
+
+it('same-coordinate nearby reselection invalidates the prior request through an explicit revision', async () => {
+  const signals: AbortSignal[] = [];
+  vi.stubGlobal('fetch', vi.fn((_url, options) => { signals.push(options.signal); return new Promise(() => {}); }));
+  function NearbyRevision({ revision }: { revision: number }) {
+    const state = useNearbySites({ lat: 37.5123, lng: 127.1234 }, revision);
+    return <output>{state.selectionRevision}|{state.requestRevision}|{state.status}</output>;
+  }
+  await act(async () => root.render(<NearbyRevision revision={1} />));
+  const previous = container.textContent;
+  await act(async () => root.render(<NearbyRevision revision={2} />));
+  expect(signals).toHaveLength(2); expect(signals[0].aborted).toBe(true); expect(signals[1].aborted).toBe(false);
+  expect(container.textContent).toMatch(/^2\|\d+\|loading$/); expect(container.textContent).not.toBe(previous);
+});

@@ -124,7 +124,7 @@ export function SiteSearch({ centroids, selection, selectionRevision = 0, onPick
       if (c.signal.aborted || epoch.current !== revision) return;
       setOpen(false);
       onPick(
-        { lat: hit.lat, lng: hit.lng, label: hit.label, source: 'geocode' },
+        { lat: hit.lat, lng: hit.lng, label: hit.label.slice(0, 200), source: 'geocode' },
         ZOOM.address,
       );
     } catch (e) {
@@ -183,6 +183,7 @@ export function SiteSearch({ centroids, selection, selectionRevision = 0, onPick
           onKeyDown={onKeyDown}
           placeholder="읍면동·주소·위경도 검색"
           aria-label="부지 검색"
+          maxLength={200}
           role="combobox"
           aria-expanded={open && results.length > 0}
           aria-controls="site-search-results"

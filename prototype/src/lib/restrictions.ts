@@ -20,3 +20,5 @@ export async function fetchRestrictions(lat: number, lng: number, bufferM: numbe
   const c = coordinate(lat, lng, 4);
   return cache.load(restrictionCacheKey(lat, lng, bufferM), async () => parseRestrictionLookup(await boundedJson(`/api/restrictions?lat=${c.lat}&lng=${c.lng}&buffer=${bufferM}${refreshQuery(force)}`, { signal }), lat, lng, bufferM), signal, force);
 }
+
+export const seedRestrictions = (key: string, value: RestrictionLookup) => cache.seed(key, value);

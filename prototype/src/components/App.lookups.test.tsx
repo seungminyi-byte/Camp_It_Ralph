@@ -11,6 +11,8 @@ import App from '../App';
 let container: HTMLDivElement, root: Root;
 function button(label: string) { return [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === label)!; }
 beforeEach(() => {
+  window.history.replaceState(null, '', '/review');
+  window.sessionStorage.clear();
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.open = true; } });
   Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.open = false; } });
@@ -30,7 +32,7 @@ describe('current candidate and pin evidence integration', () => {
       }
       throw new Error(`Unexpected test URL ${url}`);
     }));
-    await act(async () => root.render(<App />));
+    await act(async () => { await import('../review/ReviewApp'); root.render(<App />); });
     await act(async () => button('test select candidate').click());
     expect(container.textContent).toContain('개발제한구역');
     await act(async () => button('현재지점 담기+').click());

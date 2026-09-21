@@ -25,3 +25,5 @@ export async function lookupZoning(lat: number, lng: number, signal?: AbortSigna
   const c = coordinate(lat, lng, 4);
   return cache.load(zoningCacheKey(lat, lng), async () => parseZoningLookup(await boundedJson(`/api/zoning?lat=${c.lat}&lng=${c.lng}${refreshQuery(force)}`, { signal }), lat, lng), signal, force);
 }
+
+export const seedZoning = (key: string, value: ZoningLookup) => cache.seed(key, value);

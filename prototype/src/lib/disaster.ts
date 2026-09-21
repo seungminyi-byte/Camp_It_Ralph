@@ -19,3 +19,5 @@ export async function fetchDisaster(lat: number, lng: number, signal?: AbortSign
   const c = coordinate(lat, lng, 5);
   return cache.load(disasterCacheKey(lat, lng), async () => parseDisasterLookup(await boundedJson(`/api/disaster?lat=${c.lat}&lng=${c.lng}${refreshQuery(force)}`, { signal }), lat, lng), signal, force);
 }
+
+export const seedDisaster = (key: string, value: DisasterLookup) => cache.seed(key, value);

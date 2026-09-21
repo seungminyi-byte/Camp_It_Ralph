@@ -274,13 +274,16 @@ export interface FlyToTarget {
 interface Props {
   data: AppData;
   site: SiteSelection | null;
+  selectionRevision?: number;
   flyTo: FlyToTarget | null;
   /** ids of the bundled zones the current site falls in (drawn heavier) */
   highlightZoneIds: string[];
   onSelect: (lat: number, lng: number) => void;
 }
 
-export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
+export function MapView({ data, site, selectionRevision = 0, flyTo, highlightZoneIds, onSelect }: Props) {
+  // Leaflet treats these as constructor options; later selections use the existing FlyTo path.
+  const [initialView] = useState(() => ({ center: (site ? [site.lat, site.lng] : [37.4, 127.0]) as [number, number], zoom: site ? 13 : 9 }));
   const [showSubs, setShowSubs] = useState(true);
   const [showDataCenters, setShowDataCenters] = useState(true);
   const [dataCenterCategories, setDataCenterCategories] = useState<
@@ -292,7 +295,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
   // Off by default: four more VWorld tile layers per view, and the bundled polygons already show the parks.
   const [showRestrictions, setShowRestrictions] = useState(false);
   const [showZones, setShowZones] = useState(true);
-  const [zoom, setZoom] = useState(9);
+  const [zoom, setZoom] = useState(initialView.zoom);
   // On phones the layer panel would cover the map, so it collapses behind a button under lg.
   const [layersOpen, setLayersOpen] = useState(false);
   const [zoningError, setZoningError] = useState<string | null>(null);
@@ -308,7 +311,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
     return () => query.removeEventListener('change', update);
   }, []);
 
-  const nearbySites = useNearbySites(site);
+  const nearbySites = useNearbySites(site, selectionRevision);
 
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
@@ -340,7 +343,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
 
   return (
     <div className="h-full">
-      <MapContainer center={[37.4, 127.0]} zoom={9} className="h-full" preferCanvas>
+      <MapContainer center={initialView.center} zoom={initialView.zoom} className="h-full" preferCanvas>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
