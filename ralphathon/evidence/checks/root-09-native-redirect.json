@@ -1,0 +1,155 @@
+{
+  "at": "2026-09-21T13:12:13.742Z",
+  "scope": "Root independent actual Node HTTP transport against loopback fixture; production handlers imported, only upstream destination rewritten; not Vercel runtime or live provider proof. Synthetic credentials only.",
+  "sourceHashes": {
+    "prototype/api/_vworld.ts": "3c851fc9383b798ef0ddd0297cdc0ee4611871d362151f2887664780707e6f57",
+    "prototype/api/generate.ts": "e7463a743bd9ed85f497429372a9f7a369cc60c1159660da421c59678b963748"
+  },
+  "results": [
+    {
+      "kind": "vworld",
+      "upstreamStatus": 200,
+      "handlerStatus": 200,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "vworld",
+      "upstreamStatus": 301,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "vworld",
+      "upstreamStatus": 302,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "vworld",
+      "upstreamStatus": 303,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "vworld",
+      "upstreamStatus": 307,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "vworld",
+      "upstreamStatus": 308,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 200,
+      "handlerStatus": 200,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 301,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 302,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 303,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 307,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    },
+    {
+      "kind": "ai",
+      "upstreamStatus": 308,
+      "handlerStatus": 502,
+      "actualTransportRequests": [
+        "/upstream"
+      ],
+      "redirectModes": [
+        "manual"
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true
+}
