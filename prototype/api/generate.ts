@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' };
 import { ApiError, boundedBytes, cancelBody, cleanString, errorResponse, isRecord, methodNotAllowed, Operation } from './_http.js';
 import { generationGate } from './_generation.js';
+import { GenerationDiagnostic } from './_generationDiagnostic.js';
 
 declare const process: { env: Record<string, string | undefined> };
 const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
@@ -9,7 +10,7 @@ const OVERALL_MS = 55_000, IDLE_MS = 15_000;
 const INPUT_MAX_BYTES = 96 * 1024, OUTPUT_MAX_BYTES = 128 * 1024;
 const SSE_MAX_BYTES = 1024 * 1024;
 
-function sseToText(res: Response, operation: Operation, release: () => void): ReadableStream<Uint8Array> {
+function sseToText(res: Response, operation: Operation, release: () => void, diagnostic: GenerationDiagnostic): ReadableStream<Uint8Array> {
   const enc = new TextEncoder(), dec = new TextDecoder('utf-8', { fatal: true });
   const reader = res.body!.getReader();
   let buffer = '', inputBytes = 0, outputBytes = 0, textEmitted = false, cancelled = false, finished = false;
@@ -45,7 +46,10 @@ function sseToText(res: Response, operation: Operation, release: () => void): Re
         let data: unknown;
         try { data = JSON.parse(payload); } catch { throw new ApiError('UPSTREAM_INVALID'); }
         if (!isRecord(data)) throw new ApiError('UPSTREAM_INVALID');
-        if (data.error !== undefined) throw new ApiError('UPSTREAM_UNAVAILABLE');
+        if (data.error !== undefined) {
+          diagnostic.upstreamError('top_level', data.error);
+          throw new ApiError('UPSTREAM_UNAVAILABLE');
+        }
         if (!Array.isArray(data.choices) || data.choices.length > 1) throw new ApiError('UPSTREAM_INVALID');
         // OpenRouter may send a usage-only frame with an empty choices array.
         if (data.choices.length === 0) {
@@ -54,7 +58,10 @@ function sseToText(res: Response, operation: Operation, release: () => void): Re
         }
         const choice = data.choices[0];
         if (!isRecord(choice) || !isRecord(choice.delta)) throw new ApiError('UPSTREAM_INVALID');
-        if (choice.error !== undefined && choice.error !== null || choice.finish_reason === 'error') throw new ApiError('UPSTREAM_UNAVAILABLE');
+        if (choice.error !== undefined && choice.error !== null || choice.finish_reason === 'error') {
+          diagnostic.upstreamError(choice.error !== undefined && choice.error !== null ? 'choice' : 'finish_reason', choice.error);
+          throw new ApiError('UPSTREAM_UNAVAILABLE');
+        }
         const content = choice.delta.content;
         if (content !== undefined && content !== null) {
           if (typeof content !== 'string') throw new ApiError('UPSTREAM_INVALID');
@@ -86,8 +93,10 @@ function sseToText(res: Response, operation: Operation, release: () => void): Re
           if (completed) break;
           if (buffer.length > OUTPUT_MAX_BYTES) throw new ApiError('OUTPUT_TOO_LARGE');
         }
+        diagnostic.complete();
       } catch (error) {
         const code = error instanceof ApiError ? error.code : 'UPSTREAM_INVALID';
+        diagnostic.fail(code, textEmitted);
         if (!cancelled) controller.enqueue(enc.encode(`\n## ERROR\n${code}\n`));
         operation.abort(error instanceof ApiError ? error : new ApiError('UPSTREAM_INVALID'));
       } finally {
@@ -97,6 +106,7 @@ function sseToText(res: Response, operation: Operation, release: () => void): Re
     },
     cancel() {
       cancelled = true;
+      diagnostic.fail('REQUEST_CANCELLED', textEmitted);
       operation.abort();
       cleanup();
     },
@@ -104,7 +114,11 @@ function sseToText(res: Response, operation: Operation, release: () => void): Re
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'POST') return methodNotAllowed('POST');
+  const diagnostic = new GenerationDiagnostic(FREE_MODELS);
+  if (req.method !== 'POST') {
+    diagnostic.fail('METHOD_NOT_ALLOWED');
+    return methodNotAllowed('POST');
+  }
   const operation = new Operation(req.signal, OVERALL_MS);
   let release: (() => void) | undefined;
   let streaming = false;
@@ -116,13 +130,17 @@ export default async function handler(req: Request): Promise<Response> {
     catch { throw new ApiError('BAD_REQUEST', 400); }
     if (!isRecord(body) || typeof body.prompt !== 'string' || !body.prompt.trim() || body.prompt.length > 20000) throw new ApiError('BAD_REQUEST', 400);
     const prompt = body.prompt;
+    diagnostic.enter('config');
     const key = process.env.OPENROUTER_API_KEY;
     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
     if (!key || !cleanString(key, 512) || /\s/.test(key) || !FREE_MODELS.has(model)) throw new ApiError('SERVER_UNAVAILABLE', 503);
     const models = model === DEFAULT_MODEL ? [model, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'] : [model];
+    diagnostic.selectModels(models);
+    diagnostic.enter('gate');
     const digest = await operation.wait(crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify({ model, prompt }))));
     operation.check();
     release = generationGate.reserve(Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(''));
+    diagnostic.enter('upstream_fetch');
     const pending = fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', signal: operation.signal, redirect: 'manual',
       headers: {
@@ -135,16 +153,22 @@ export default async function handler(req: Request): Promise<Response> {
     });
     void pending.then((res) => { if (operation.signal.aborted) cancelBody(res.body); }, () => {});
     const res = await operation.wait(pending);
+    diagnostic.enter('upstream_http');
+    diagnostic.response(res.status);
     if (!res.ok || !res.body || res.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'text/event-stream') {
       cancelBody(res.body);
       throw new ApiError(res.ok ? 'UPSTREAM_INVALID' : 'UPSTREAM_UNAVAILABLE');
     }
-    const response = new Response(sseToText(res, operation, release), { headers: {
+    diagnostic.enter('upstream_sse');
+    const response = new Response(sseToText(res, operation, release, diagnostic), { headers: {
       'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff', 'X-LLM-Model': models.length > 1 ? 'OpenRouter' : model,
     } });
     streaming = true;
     return response;
-  } catch (error) { operation.abort(); return errorResponse(error); }
+  } catch (error) {
+    diagnostic.fail(error instanceof ApiError ? error.code : 'UPSTREAM_UNAVAILABLE');
+    operation.abort(); return errorResponse(error);
+  }
   finally { if (!streaming) { operation.dispose(); release?.(); } }
 }
