@@ -1,0 +1,110 @@
+{
+  "sourceId": "cbcf461c8677889c31ebda76c3fa10bfc2049fd686ac55c565063d97bf9be47d",
+  "retrievedAt": "2026-09-21T09:11:24.499Z",
+  "target": "law",
+  "endpoint": "/DRF/lawSearch.do",
+  "conditions": {
+    "type": "XML",
+    "target": "law",
+    "query": "근현대문화유산의 보존 및 활용에 관한 법률",
+    "display": "50"
+  },
+  "officialLinks": [],
+  "totalCharacters": 1680,
+  "sha256": "696a0703d76868274a116a08651a47e12464fa8fc1f5b8dc5b941479a030423e",
+  "credentialRedacted": true,
+  "provider": "법제처 국가법령정보센터 OPEN API",
+  "identityFields": [
+    {
+      "path": "LawSearch.law.0.법령일련번호",
+      "value": "283675"
+    },
+    {
+      "path": "LawSearch.law.0.법령명한글",
+      "value": "근현대문화유산의 보존 및 활용에 관한 법률"
+    },
+    {
+      "path": "LawSearch.law.0.법령ID",
+      "value": "014506"
+    },
+    {
+      "path": "LawSearch.law.0.공포일자",
+      "value": "20260227"
+    },
+    {
+      "path": "LawSearch.law.0.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.0.시행일자",
+      "value": "20260828"
+    },
+    {
+      "path": "LawSearch.law.1.법령일련번호",
+      "value": "288261"
+    },
+    {
+      "path": "LawSearch.law.1.법령명한글",
+      "value": "근현대문화유산의 보존 및 활용에 관한 법률 시행령"
+    },
+    {
+      "path": "LawSearch.law.1.법령ID",
+      "value": "014733"
+    },
+    {
+      "path": "LawSearch.law.1.공포일자",
+      "value": "20260721"
+    },
+    {
+      "path": "LawSearch.law.1.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.1.시행일자",
+      "value": "20260828"
+    },
+    {
+      "path": "LawSearch.law.2.법령일련번호",
+      "value": "288303"
+    },
+    {
+      "path": "LawSearch.law.2.법령명한글",
+      "value": "근현대문화유산의 보존 및 활용에 관한 법률 시행규칙"
+    },
+    {
+      "path": "LawSearch.law.2.법령ID",
+      "value": "014739"
+    },
+    {
+      "path": "LawSearch.law.2.공포일자",
+      "value": "20260721"
+    },
+    {
+      "path": "LawSearch.law.2.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.2.시행일자",
+      "value": "20260828"
+    }
+  ],
+  "identityFieldsTruncated": false,
+  "offset": 0,
+  "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><LawSearch><target>law</target><키워드>근현대문화유산의 보존 및 활용에 관한 법률</키워드><section>lawNm</section><totalCnt>3</totalCnt><page>1</page><numOfRows>3</numOfRows><resultCode>00</resultCode><resultMsg>success</resultMsg><law id=\"1\"><법령일련번호>283675</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[근현대문화유산의 보존 및 활용에 관한 법률]]></법령명한글><법령약칭명><![CDATA[근현대문화유산법]]></법령약칭명><법령ID>014506</법령ID><공포일자>20260227</공포일자><공포번호>21399</공포번호><제개정구분명>일부개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>법률</법령구분명><공동부령정보></공동부령정보><시행일자>20260828</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=283675&amp;type=HTML&amp;mobileYn=&amp;efYd=20260828</법령상세링크></law><law id=\"2\"><법령일련번호>288261</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[근현대문화유산의 보존 및 활용에 관한 법률 시행령]]></법령명한글><법령약칭명><![CDATA[근현대문화유산법 시행령]]></법령약칭명><법령ID>014733</법령ID><공포일자>20260721</공포일자><공포번호>36517</공포번호><제개정구분명>일부개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>대통령령</법령구분명><공동부령정보></공동부령정보><시행일자>20260828</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=288261&amp;type=HTML&amp;mobileYn=&amp;efYd=20260828</법령상세링크></law><law id=\"3\"><법령일련번호>288303</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[근현대문화유산의 보존 및 활용에 관한 법률 시행규칙]]></법령명한글><법령약칭명><![CDATA[근현대문화유산법 시행규칙]]></법령약칭명><법령ID>014739</법령ID><공포일자>20260721</공포일자><공포번호>00639</공포번호><제개정구분명>일부개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>문화체육관광부령</법령구분명><공동부령정보></공동부령정보><시행일자>20260828</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=288303&amp;type=HTML&amp;mobileYn=&amp;efYd=20260828</법령상세링크></law></LawSearch>\n\r\n",
+  "nextOffset": null,
+  "truncated": false,
+  "completeSourceStored": true,
+  "offsetUnit": "UTF-16 code units",
+  "verification": {
+    "sources": [],
+    "requests": [],
+    "queriedTargets": [],
+    "unqueriedTargets": [],
+    "completeness": "only_listed_requests_no_global_completeness_claim",
+    "limitations": [
+      "조회되지 않은 자료는 부존재가 아닙니다.",
+      "존재 확인과 구절 일치만으로 주장의 뒷받침 또는 판례의 현행 유효성을 확정할 수 없습니다.",
+      "본문 생략 여부는 각 출력 및 read_source의 nextOffset을 확인하세요."
+    ]
+  }
+}

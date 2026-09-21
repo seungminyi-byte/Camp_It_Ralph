@@ -56,18 +56,18 @@ zoning/disaster partial, stale 및 만료는 인허가·종합 숫자점수를 �
 
 | 검사 | 결과·근거 |
 |---|---|
-| 구현 전 malformed5종 | 3실패/2통과. restrictions/zoning/nearby의 HTTP200 `{}` 정상통과를 재현. [red](../../../evidence/04A-red.log) |
-| 404 추가 red | HTML/JSON/다른text/공백/과대404를 미발견으로 분류한 문제를 확인. [red](../../../evidence/04A-geocode404-red.log), [관련green](../../../evidence/04A-geocode404-green.log) |
-| 최초 전체 회귀 실패 | 구형 disaster fixture2건(새 wire/취소계약)과 법령시각검사1건(TTL시계) 실패. fixture는 새 공식 envelope로 갱신하고 취소는 reject를 요구, 날짜 분리검사는 해당 날짜의 clock을 고정했다. 기대한 법적 review/E 정책은 유지. [로그](../../../evidence/04A-first-full.log) |
-| DOM 검사 초기 환경 실패 | jsdom에 native dialog.showModal/close가 없어1실패. 테스트에 dialog 상태 polyfill을 추가했고 제품 dialog 동작은 바꾸지 않음. [초기](../../../evidence/04A-app-dom-initial.log), [green](../../../evidence/04A-app-dom-second.log) |
-| 최종 전체 Vitest | **31파일401건 전부 통과**. 기존336건+신규65건. [전체](../../../evidence/04A-all-tests-final.log) |
-| 타입·린트 | 앱/API/스크립트 typecheck, lint 종료0·최종 경고 없음. [타입](../../../evidence/04A-typecheck-final.log), [린트](../../../evidence/04A-lint-final.log) |
-| 데이터·빌드·diff | VALIDATION PASSED, production build 성공, diff-check0. [자료](../../../evidence/04A-data-validation-final.log), [빌드](../../../evidence/04A-build-final.log), [diff](../../../evidence/04A-diff-check-final.log) |
-| 명령·시각·종료코드 | [최종 기록](../../../evidence/04A-check-results.json). 1회 순차 검사 스크립트는 work/run_checks_04A.py이며 Goal 반복 실행기가 아님 |
+| 구현 전 malformed5종 | 3실패/2통과. restrictions/zoning/nearby의 HTTP200 `{}` 정상통과를 재현. [red](../evidence/checks/04A-red.log) |
+| 404 추가 red | HTML/JSON/다른text/공백/과대404를 미발견으로 분류한 문제를 확인. [red](../evidence/checks/04A-geocode404-red.log), [관련green](../evidence/checks/04A-geocode404-green.log) |
+| 최초 전체 회귀 실패 | 구형 disaster fixture2건(새 wire/취소계약)과 법령시각검사1건(TTL시계) 실패. fixture는 새 공식 envelope로 갱신하고 취소는 reject를 요구, 날짜 분리검사는 해당 날짜의 clock을 고정했다. 기대한 법적 review/E 정책은 유지. [로그](../evidence/checks/04A-first-full.log) |
+| DOM 검사 초기 환경 실패 | jsdom에 native dialog.showModal/close가 없어1실패. 테스트에 dialog 상태 polyfill을 추가했고 제품 dialog 동작은 바꾸지 않음. [초기](../evidence/checks/04A-app-dom-initial.log), [green](../evidence/checks/04A-app-dom-second.log) |
+| 최종 전체 Vitest | **31파일401건 전부 통과**. 기존336건+신규65건. [전체](../evidence/checks/04A-all-tests-final.log) |
+| 타입·린트 | 앱/API/스크립트 typecheck, lint 종료0·최종 경고 없음. [타입](../evidence/checks/04A-typecheck-final.log), [린트](../evidence/checks/04A-lint-final.log) |
+| 데이터·빌드·diff | VALIDATION PASSED, production build 성공, diff-check0. [자료](../evidence/checks/04A-data-validation-final.log), [빌드](../evidence/checks/04A-build-final.log), [diff](../evidence/checks/04A-diff-check-final.log) |
+| 명령·시각·종료코드 | [최종 기록](../evidence/checks/04A-check-results.json). 1회 순차 검사 스크립트는 work/run_checks_04A.py이며 Goal 반복 실행기가 아님 |
 
 신규 회귀는 malformed/version/좌표/레이어집합·중복/반경/name→landUse, all-failed+관찰, body stall/abort/bytes/MIME/UTF-8, TTL/old CDN/nonce, fresh-partial와과거hit분리, 같은key독립consumer, same-keyretry/lateA→B, 검색 모든 의도변경, App현재후보·핀의 knownhit실패보존, 3필수근거partial엔진gate를 포함한다. jsdom 검사는 React DOM 상태·이벤트 통합이며 실제 브라우저 픽셀·네이티브 dialog/지도 동작 검수를 대체하지 않는다.
 
-총괄 독립 검사는 실행자의 회귀와 구분한다. 최종 실제 서버handler→현재parser bridge8건 [기록](../../../evidence/root-server-client-contract-final-04A.json), cache4건 [기록](../../../evidence/root-client-cache-green.json), 주소4043건 [기록](../../../evidence/root-geocode-404-green.json), 실제시계 본문deadline/취소 등5건 [기록](../../../evidence/root-client-body-deadline-final-04A.json), 기존산식·비교12건 [기록](../../../evidence/independent-engine-after-04A.json), G005분류13건 [기록](../../../evidence/root-heritage-after-04A.json)으로 총45개 기대값이 통과했다. 최종 helper는 15,008ms에서 본문stall종료·reader취소·signalabort, parentabort28ms를 보였다. 이는 합성 upstream/로컬 body 검사이고 외부 운영연결 증거가 아니다. 총괄은 제품 diff와 DOM 회귀 검수 후 추가 제품수정 요청 없음을 회신했다.
+총괄 독립 검사는 실행자의 회귀와 구분한다. 최종 실제 서버handler→현재parser bridge8건 [기록](../evidence/checks/root-server-client-contract-final-04A.json), cache4건 [기록](../evidence/checks/root-client-cache-green.json), 주소4043건 [기록](../evidence/checks/root-geocode-404-green.json), 실제시계 본문deadline/취소 등5건 [기록](../evidence/checks/root-client-body-deadline-final-04A.json), 기존산식·비교12건 [기록](../evidence/checks/independent-engine-after-04A.json), G005분류13건 [기록](../evidence/checks/root-heritage-after-04A.json)으로 총45개 기대값이 통과했다. 최종 helper는 15,008ms에서 본문stall종료·reader취소·signalabort, parentabort28ms를 보였다. 이는 합성 upstream/로컬 body 검사이고 외부 운영연결 증거가 아니다. 총괄은 제품 diff와 DOM 회귀 검수 후 추가 제품수정 요청 없음을 회신했다.
 
 초기 코드 작성 명령1회가 prototype을 cwd로 사용하면서 prototype 접두경로를 다시 써 새 DOM 테스트 파일 작성을 실패했다. 출력에 FileNotFound를 확인한 뒤 정확한 저장소 cwd에서 파일을 생성하고 실제7파일87건 통과를 별도로 기록했다. 그 실패한 명령의 마지막 기존 테스트 exit0을 새 DOM 검증 성공으로 사용하지 않았다.
 
@@ -81,6 +81,6 @@ zoning/disaster partial, stale 및 만료는 인허가·종합 숫자점수를 �
 
 ## 7. 파일·소유권
 
-수정 파일 및 SHA-256은 [manifest](../../../evidence/04A-changed-files.json)에 기록한다. 핵심 신규 파일은 shared/zoning, boundedJson, lookupContract, EvidenceCache, LookupController, useOnlineLookup 및 관련 회귀다. 기존 온라인lib/hooks·SiteSearch/SitePanel/MapView/App·types·engine/restriction·pins·재해요약/체크리스트를 연결했다. 데이터/상수/사진·원문은 수정하지 않았다.
+수정 파일 및 SHA-256은 [manifest](../evidence/checks/04A-changed-files.json)에 기록한다. 핵심 신규 파일은 shared/zoning, boundedJson, lookupContract, EvidenceCache, LookupController, useOnlineLookup 및 관련 회귀다. 기존 온라인lib/hooks·SiteSearch/SitePanel/MapView/App·types·engine/restriction·pins·재해요약/체크리스트를 연결했다. 데이터/상수/사진·원문은 수정하지 않았다.
 
 04A 제품 파일 소유권을 총괄 독립 검수에 반환한다. 이후 수정은 총괄의 후속 요청 또는 지정된 다음 실행자가 맡는다. 커밋·푸시·PR·배포·대회제출은 실행하지 않았다.

@@ -34,27 +34,27 @@
 
 ## 3. 검사와 실패 보존
 
-환경: Node 24.20.0을 실행별 PATH로 지정, Python 3.12.14는 번들 절대경로를 지정했다. 설치·전역 설정 변경 없음. [명령·시각·종료 코드](../../../evidence/03M-check-results.json)에 최종 검사를 기록했다.
+환경: Node 24.20.0을 실행별 PATH로 지정, Python 3.12.14는 번들 절대경로를 지정했다. 설치·전역 설정 변경 없음. [명령·시각·종료 코드](../evidence/checks/03M-check-results.json)에 최종 검사를 기록했다.
 
 | 검사 | 결과 | 근거 |
 |---|---|---|
-| 구현 전 L01~L25 | 25건 중 23실패/2통과. production constants로 기존 결함 확인 | [03M-red.log](../../../evidence/03M-red.log) |
-| 최초 상수 동기화 | 기존 validator가 review/reference enum을 거부하여 1실패. 실패를 숨기지 않고 enum 허용·G005 자료검증 추가 | [03M-sync.log](../../../evidence/03M-sync.log) |
-| 정상 경로 상수 동기화 | curated→`build_all.py --sync-only` 검증·복사 성공. 기존 indent=1 유지, 앱 복사본 직접 편집 없음 | [03M-sync-final.log](../../../evidence/03M-sync-final.log) |
-| 첫 관련 검사 | restriction/engine/checklist/heritage 4파일 80건 통과 | [03M-related.log](../../../evidence/03M-related.log) |
-| 추가 분류·소비자 검사 | L01~L25 + 표기정규화·날짜·반경·partial·비교/AI/면적/금융 5건 = 30건 통과 | [03M-extra-check.log](../../../evidence/03M-extra-check.log) |
-| 최종 전체 Vitest | **24파일 336건 통과**. 원래 306건과 신규 30건. 기존 공원 E/40, 재해15, 농업보호15, 해상/범위 밖, 비용 비교 포함 | [03M-all-tests-final.log](../../../evidence/03M-all-tests-final.log) |
-| 타입·린트 | 앱/API/스크립트 타입검사 및 lint 종료0 | [타입](../../../evidence/03M-typecheck-final.log), [린트](../../../evidence/03M-lint-final.log) |
-| 데이터 검증 | VALIDATION PASSED. 전국 자료/323 공통유형·정확 이름 규칙·법령 source ID 연결 검증 | [데이터](../../../evidence/03M-data-validation-final.log) |
-| 프로덕션 빌드·diff | 빌드 성공, `git diff --check` 종료0 | [빌드](../../../evidence/03M-build-final.log), [diff](../../../evidence/03M-diff-check-final.log) |
+| 구현 전 L01~L25 | 25건 중 23실패/2통과. production constants로 기존 결함 확인 | [03M-red.log](../evidence/checks/03M-red.log) |
+| 최초 상수 동기화 | 기존 validator가 review/reference enum을 거부하여 1실패. 실패를 숨기지 않고 enum 허용·G005 자료검증 추가 | [03M-sync.log](../evidence/checks/03M-sync.log) |
+| 정상 경로 상수 동기화 | curated→`build_all.py --sync-only` 검증·복사 성공. 기존 indent=1 유지, 앱 복사본 직접 편집 없음 | [03M-sync-final.log](../evidence/checks/03M-sync-final.log) |
+| 첫 관련 검사 | restriction/engine/checklist/heritage 4파일 80건 통과 | [03M-related.log](../evidence/checks/03M-related.log) |
+| 추가 분류·소비자 검사 | L01~L25 + 표기정규화·날짜·반경·partial·비교/AI/면적/금융 5건 = 30건 통과 | [03M-extra-check.log](../evidence/checks/03M-extra-check.log) |
+| 최종 전체 Vitest | **24파일 336건 통과**. 원래 306건과 신규 30건. 기존 공원 E/40, 재해15, 농업보호15, 해상/범위 밖, 비용 비교 포함 | [03M-all-tests-final.log](../evidence/checks/03M-all-tests-final.log) |
+| 타입·린트 | 앱/API/스크립트 타입검사 및 lint 종료0 | [타입](../evidence/checks/03M-typecheck-final.log), [린트](../evidence/checks/03M-lint-final.log) |
+| 데이터 검증 | VALIDATION PASSED. 전국 자료/323 공통유형·정확 이름 규칙·법령 source ID 연결 검증 | [데이터](../evidence/checks/03M-data-validation-final.log) |
+| 프로덕션 빌드·diff | 빌드 성공, `git diff --check` 종료0 | [빌드](../evidence/checks/03M-build-final.log), [diff](../evidence/checks/03M-diff-check-final.log) |
 
 테스트 기대값을 현재 출력으로 바꾸지 않았다. L24의 엔진 회귀는 실제 반경 1000m와 명시 0 우선, queried 반경 fallback을 검사한다. 기존 서버 회귀 `vworld-boundaries.test.ts`는 buffer0에서 upstream 5회·주변 query/hit 없음도 확인하므로 엔진 테스트의 합성 queried 배열만으로 API 동작을 주장하지 않는다. 변경 내용 때문에 전체 재검사를 했으며 이후 제품 변화가 없으면 반복하지 않는다.
 
-총괄의 독립검수는 별도 근거다. [문화유산 13probe](../../../evidence/root-heritage-green-initial.json), [독립 산식/비교 12건](../../../evidence/independent-engine-after-03M-initial.json), [서울시청 실제 브라우저](../../../evidence/root-heritage-browser-initial.json)를 읽었다. 총괄은 기존 운영 API 응답에 등록문화재구역이 있는 상태에서 새 로컬 UI의 법적 적용 확인 필요·숫자점수 미산정·잘못된 E 미표시를 확인했다. 실행자가 실브라우저를 직접 재조작한 것으로 기록하지 않는다. 이 검사는 배포 변경, 전 반응형 폭, PDF 전체페이지 검증을 뜻하지 않는다.
+총괄의 독립검수는 별도 근거다. [문화유산 13probe](../evidence/checks/root-heritage-green-initial.json), [독립 산식/비교 12건](../evidence/checks/independent-engine-after-03M-initial.json), [서울시청 실제 브라우저](../evidence/checks/root-heritage-browser-initial.json)를 읽었다. 총괄은 기존 운영 API 응답에 등록문화재구역이 있는 상태에서 새 로컬 UI의 법적 적용 확인 필요·숫자점수 미산정·잘못된 E 미표시를 확인했다. 실행자가 실브라우저를 직접 재조작한 것으로 기록하지 않는다. 이 검사는 배포 변경, 전 반응형 폭, PDF 전체페이지 검증을 뜻하지 않는다.
 
 ## 4. 수정 파일과 보존 근거
 
-[파일 SHA-256 manifest](../../../evidence/03M-changed-files.json)에 기준 HEAD, 아래 변경 파일, 동기화 상수 동일성, AGENTS·보호지역 번들의 기준 HEAD와 동일성을 기록했다.
+[파일 SHA-256 manifest](../evidence/checks/03M-changed-files.json)에 기준 HEAD, 아래 변경 파일, 동기화 상수 동일성, AGENTS·보호지역 번들의 기준 HEAD와 동일성을 기록했다.
 
 - `data-pack/curated/constants.json`, `prototype/public/data/constants.json`: 공통 분류·출처·별칭·주의문. 수치 40/15/500과 다른 규제유형 유지.
 - `data-pack/scripts/validate_out.py`: 신상태 및 문화유산 매핑 자료 검증.

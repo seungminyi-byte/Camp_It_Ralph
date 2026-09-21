@@ -1,0 +1,45 @@
+npm notice run prototype@0.0.0 test:e2e
+npm notice run tsx e2e/fixtures.ts && playwright test
+{
+  empty: { bytes: 681, noteLengths: [ 0, 0, 0 ], labels: [] },
+  numeric: { bytes: 2065, noteLengths: [ 0, 0, 0 ], labels: [ 7, 7 ] },
+  zero: { bytes: 1439, noteLengths: [ 0, 0, 0 ], labels: [ 7 ] },
+  'long-partial': {
+    bytes: 79075,
+    noteLengths: [ 2000, 2000, 2000 ],
+    labels: [ 200, 200, 200, 200 ]
+  },
+  ai: { bytes: 903, noteLengths: [ 0, 0, 0 ], labels: [] }
+}
+[WebServer] npm notice run prototype@0.0.0 test:e2e:serve
+[WebServer] npm notice run tsx e2e/fixtures.ts && node e2e/server.mjs
+[WebServer] (node:20332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20333) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20334) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 17 tests using 1 worker
+
+(node:20335) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 e2e/accessibility.spec.ts:4:35 › R35 axe major states 390 (5.4s)
+  ✓   2 e2e/accessibility.spec.ts:4:35 › R35 axe major states 768 (4.9s)
+  ✓   3 e2e/accessibility.spec.ts:4:35 › R35 axe major states 1440 (5.1s)
+  ✓   4 e2e/ai-pending.spec.ts:5:1 › R30 pending AI is invalid after change-revert and route unmount; late response cannot return (2.7s)
+  ✓   5 e2e/lifecycle.spec.ts:7:1 › R26-R28 strict wire errors, partial known hit, no-hit invalidation and retry (2.7s)
+  ✓   6 e2e/lifecycle.spec.ts:16:1 › R26 15-second boundary and retry in integrated UI (16.5s)
+  ✓   7 e2e/lifecycle.spec.ts:22:1 › R27 slow A cannot overwrite B; route unmount cancels pending (2.3s)
+  ✓   8 e2e/lifecycle.spec.ts:27:1 › R28 nonselected pin expires after ten minutes and report reevaluates (2.6s)
+  ✓   9 e2e/lifecycle.spec.ts:31:1 › R29-R31 AI empty, error, stop, unsafe claims, revisions and default report (3.1s)
+  ✓  10 e2e/lifecycle.spec.ts:43:1 › R29 AI 65-second integrated deadline using virtual browser clock (2.4s)
+  ✓  11 e2e/numbers.spec.ts:3:1 › R18-R21 independent area, finance, 0/null and complete/mixed/incomplete cost across input, comparison and report (3.0s)
+  ✓  12 e2e/recovery.spec.ts:3:1 › R26 production lazy chunk failure preserves shell and reload restores inputs (2.0s)
+  ✓  13 e2e/recovery.spec.ts:11:1 › R25 search empty, invalid/outside coordinates, then recovery and map click (2.4s)
+  ✓  14 e2e/security.spec.ts:4:1 › R25 R40 invalid core bundle fails visibly and retry; hostile external names and links stay text (2.5s)
+  ✓  15 e2e/workflow.spec.ts:3:37 › R12-R24 R32-R34 complete workflow 390 (6.8s)
+  ✓  16 e2e/workflow.spec.ts:3:37 › R12-R24 R32-R34 complete workflow 768 (6.5s)
+  ✓  17 e2e/workflow.spec.ts:3:37 › R12-R24 R32-R34 complete workflow 1440 (7.4s)
+
+  17 passed (1.3m)

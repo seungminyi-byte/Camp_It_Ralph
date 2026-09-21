@@ -1,0 +1,460 @@
+
+ RUN  v4.1.11 [WORKSPACE]/work/Camp_It_Ralph/prototype
+
+ ❯ src/scoring/heritage.test.ts (25 tests | 23 failed) 144ms
+     × L01 direct registered heritage requires legal review without a penalty 21ms
+     × L02 nearby registration preserves the baseline score 11ms
+     × L03 explicit cultural designation refers to article 35 without a penalty 6ms
+     × L04 legacy designation keeps cultural or natural law uncertain 6ms
+     × L05 provincial designation includes article 74 and local ordinance 8ms
+     × L06 provincial registration uses modern heritage article 43 5ms
+     × L07 natural monument and scenic designation use natural heritage law 5ms
+     × L08 all 323 bundled natural heritage shapes share review, not prohibition 0ms
+     × L09 null, blank and unknown raw names are preserved as unknown heritage types 5ms
+     × L10 named historic environment polygon still needs boundary review 5ms
+     × L11 nearby named historic environment and designated polygons remain references 5ms
+     × L12 direct registration does not suppress nearby designation in the same layer 5ms
+     × L13 same name keeps both relations and explains possible duplicate observations 5ms
+     × L14 other prohibition alone supplies the 40 point penalty and E cap 5ms
+     × L15 nearby heritage leaves other prohibition scores unchanged 9ms
+     × L16 conditional penalty remains 15 while direct heritage suspends scores 5ms
+     × L19 direct review survives partial lookup as review, never a zero 5ms
+     × L20 nearby reference survives partial lookup but is not the cause of withholding 4ms
+     × L21 valid empty results preserve baseline and limit absence claims 4ms
+     × L22 no lookup or all failed without bundle stays unknown 0ms
+     × L23 mixed review, reference, prohibition and failure preserve all evidence 5ms
+     × L24 actual buffer is shown and zero disables nearby observations 0ms
+     × L25 nonregistration and withdrawn names cannot match by substring 5ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 23 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L01 direct registered heritage requires legal review without a penalty
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:37:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L02 nearby registration preserves the baseline score
+AssertionError: expected 'conditional' to be 'reference' // Object.is equality
+
+Expected: "reference"
+Received: "conditional"
+
+ ❯ src/scoring/heritage.test.ts:46:33
+     44|   it('L02 nearby registration preserves the baseline score', () => {
+     45|     const r = evaluate([heritage(undefined, true)]);
+     46|     expect(r.restriction.level).toBe('reference');
+       |                                 ^
+     47|     expect(r.restriction.hits[0].relation).toBe('nearby');
+     48|     expect(r.restriction.hits[0].name).toBe('등록문화재구역');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L03 explicit cultural designation refers to article 35 without a penalty
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:55:51
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L04 legacy designation keeps cultural or natural law uncertain
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:59:50
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L05 provincial designation includes article 74 and local ordinance
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:64:52
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L06 provincial registration uses modern heritage article 43
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:68:52
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L07 natural monument and scenic designation use natural heritage law
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:73:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L08 all 323 bundled natural heritage shapes share review, not prohibition
+AssertionError: expected 'prohibited' to be 'review' // Object.is equality
+
+Expected: "review"
+Received: "prohibited"
+
+ ❯ src/scoring/heritage.test.ts:80:77
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L09 null, blank and unknown raw names are preserved as unknown heritage types
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:86:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L10 named historic environment polygon still needs boundary review
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:93:52
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L11 nearby named historic environment and designated polygons remain references
+AssertionError: expected 'conditional' to be 'reference' // Object.is equality
+
+Expected: "reference"
+Received: "conditional"
+
+ ❯ src/scoring/heritage.test.ts:98:79
+     96|   it('L11 nearby named historic environment and designated polygons re…
+     97|     for (const name of ['역사문화환경 보존지역', '국가지정문화유산구역']) {
+     98|       const r = evaluate([heritage(name, true)]); expect(r.restriction…
+       |                                                                               ^
+     99|       expect(r.composite).toEqual(evaluate().composite); expect(row(r)…
+    100|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L12 direct registration does not suppress nearby designation in the same layer
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:103:68
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L13 same name keeps both relations and explains possible duplicate observations
+AssertionError: expected [ undefined ] to deeply equal [ 'direct', 'nearby' ]
+
+- Expected
++ Received
+
+  [
+-   "direct",
+-   "nearby",
++   undefined,
+  ]
+
+ ❯ src/scoring/heritage.test.ts:108:53
+    106|   it('L13 same name keeps both relations and explains possible duplica…
+    107|     const r = evaluate([heritage(), heritage(undefined, true)]);
+    108|     expect(r.restriction.hits.map(h => h.relation)).toEqual(['direct',…
+       |                                                     ^
+    109|     expect(summarizeRestriction(r.restriction)).toContain('동일 대상이 중복 포…
+    110|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L14 other prohibition alone supplies the 40 point penalty and E cap
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ src/scoring/heritage.test.ts:113:95
+    111|   it('L14 other prohibition alone supplies the 40 point penalty and E …
+    112|     const r = evaluate([heritage(), prohibited]);
+    113|     expect(r.restriction.level).toBe('prohibited'); expect(r.restricti…
+       |                                                                                               ^
+    114|     expect(restrictionDeductions(r).map(d => d.points)).toEqual([40]);
+    115|     expect(restrictionDeductions(r)[0].evidence).not.toContain('등록문화');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L15 nearby heritage leaves other prohibition scores unchanged
+AssertionError: expected '개발제한구역 — 개발제한구역의 지정 및 관리에 관한 특별조치법 제1…' not to contain '등록문화'
+
+Expected: "등록문화"
+Received: "개발제한구역 — 개발제한구역의 지정 및 관리에 관한 특별조치법 제12조 — 해제 전 신축 불가 [VWorld 조회] / 등록문화재구역 (역사문화환경 보존지역(추정)) — 문화유산법 제13조 — 보호구역 외곽 500m 이내 추정, 시·도 조례 범위·허용기준 확인 [VWorld 조회] · 고시 도면·토지이용계획확인서 우선"
+
+ ❯ src/scoring/heritage.test.ts:123:54
+    121|     expect(r.composite).toEqual(evaluate([prohibited]).composite);
+    122|     expect(restrictionDeductions(r).map(d => d.points)).toEqual([40]);
+    123|     expect(restrictionDeductions(r)[0].evidence).not.toContain('등록문화');
+       |                                                      ^
+    124|   });
+    125|   it('L16 conditional penalty remains 15 while direct heritage suspend…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L16 conditional penalty remains 15 while direct heritage suspends scores
+AssertionError: expected [ 40 ] to deeply equal [ 15 ]
+
+- Expected
++ Received
+
+  [
+-   15,
++   40,
+  ]
+
+ ❯ src/scoring/heritage.test.ts:127:57
+    125|   it('L16 conditional penalty remains 15 while direct heritage suspend…
+    126|     const r = evaluate([heritage(), conditional]);
+    127|     expect(restrictionDeductions(r).map(d => d.points)).toEqual([15]);
+       |                                                         ^
+    128|     expect(r.restriction.requiresLegalReview).toBe(true);
+    129|     expect(r.composite).toMatchObject({ score: null, grade: null, capR…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L19 direct review survives partial lookup as review, never a zero
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:143:55
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L20 nearby reference survives partial lookup but is not the cause of withholding
+AssertionError: expected 'conditional' to be 'reference' // Object.is equality
+
+Expected: "reference"
+Received: "conditional"
+
+ ❯ src/scoring/heritage.test.ts:148:33
+    146|   it('L20 nearby reference survives partial lookup but is not the caus…
+    147|     const r = evaluate([heritage(undefined, true)], ['LT_C_UD801']);
+    148|     expect(r.restriction.level).toBe('reference'); expect(r.restrictio…
+       |                                 ^
+    149|     expect(r.composite.score).toBeNull(); expect(r.review.actions.join…
+    150|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L21 valid empty results preserve baseline and limit absence claims
+AssertionError: expected '해당 없음 (공원경계·보호지역 도형 + VWorld 규제 레이어 확…' to contain '조회한 자료'
+
+Expected: "조회한 자료"
+Received: "해당 없음 (공원경계·보호지역 도형 + VWorld 규제 레이어 확인)"
+
+ ❯ src/scoring/heritage.test.ts:153:49
+    151|   it('L21 valid empty results preserve baseline and limit absence clai…
+    152|     const r = evaluate(); expect(r.restriction.level).toBe('none'); ex…
+    153|     expect(summarizeRestriction(r.restriction)).toContain('조회한 자료');
+       |                                                 ^
+    154|   });
+    155|   it('L22 no lookup or all failed without bundle stays unknown', () =>…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L22 no lookup or all failed without bundle stays unknown
+AssertionError: expected 'none' to be 'unknown' // Object.is equality
+
+Expected: "unknown"
+Received: "none"
+
+ ❯ src/scoring/heritage.test.ts:158:122
+    156|     const cfg = data.constants.scoring.restriction;
+    157|     expect(lookupRestrictions(null, null, 36.5, 127.3, cfg).level).toB…
+    158|     expect(lookupRestrictions(null, lookup([], ['LT_C_UD801', 'LT_C_UO…
+       |                                                                                                                          ^
+    159|     expect(scoreSite(input(null), { ...data, protectedZones: null }).c…
+    160|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L23 mixed review, reference, prohibition and failure preserve all evidence
+AssertionError: expected [ Array(2) ] to have a length of 3 but got 2
+
+- Expected
++ Received
+
+- 3
++ 2
+
+ ❯ src/scoring/heritage.test.ts:163:32
+    161|   it('L23 mixed review, reference, prohibition and failure preserve al…
+    162|     const r = evaluate([heritage(), heritage('국가지정문화재구역', true), prohi…
+    163|     expect(r.restriction.hits).toHaveLength(3); expect(r.restriction.r…
+       |                                ^
+    164|     expect(restrictionDeductions(r).map(d => d.points)).toEqual([40]);
+    165|     expect(restrictionDeductions(r)[0].evidence).not.toContain('문화재');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L24 actual buffer is shown and zero disables nearby observations
+AssertionError: expected '등록문화재구역 (역사문화환경 보존지역(추정))' to contain '1000m'
+
+Expected: "1000m"
+Received: "등록문화재구역 (역사문화환경 보존지역(추정))"
+
+ ❯ src/scoring/heritage.test.ts:171:37
+    169|     const cfg = data.constants.scoring.restriction;
+    170|     const r = lookupRestrictions(emptyZones.protectedZones, lookup([he…
+    171|     expect(summarizeRestriction(r)).toContain('1000m'); expect(summari…
+       |                                     ^
+    172|     const zero = lookup([], [], 0); expect(zero.queried).not.toContain…
+    173|     expect(lookupRestrictions(emptyZones.protectedZones, { ...zero, hi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/23]⎯
+
+ FAIL  src/scoring/heritage.test.ts > 03L independent heritage mapping cases with production constants > L25 nonregistration and withdrawn names cannot match by substring
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ expectReview src/scoring/heritage.test.ts:26:45
+     24| const row = (r: ReturnType<typeof evaluate>) => buildChecklist(r, data…
+     25| function expectReview(r: ReturnType<typeof evaluate>) {
+     26|   expect(r.restriction.requiresLegalReview).toBe(true);
+       |                                             ^
+     27|   expect(r.permit.score).toBeNull();
+     28|   expect(r.composite.score).toBeNull();
+ ❯ src/scoring/heritage.test.ts:177:45
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/23]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  23 failed | 2 passed (25)
+   Start at  18:23:11
+   Duration  282ms (transform 35ms, setup 0ms, import 85ms, tests 144ms, environment 0ms)
+

@@ -1,0 +1,110 @@
+{
+  "sourceId": "c599cdfb7c07ac45532cb6b05370d48e01e81326414f42d8560a6b8e8f18ed4d",
+  "retrievedAt": "2026-09-21T09:11:12.918Z",
+  "target": "law",
+  "endpoint": "/DRF/lawSearch.do",
+  "conditions": {
+    "type": "XML",
+    "target": "law",
+    "query": "자연유산의 보존 및 활용에 관한 법률",
+    "display": "50"
+  },
+  "officialLinks": [],
+  "totalCharacters": 1659,
+  "sha256": "5b718b5ba8359fab20904849ce40b33ac4cbcee3e39d5dd0161f5826dcda347a",
+  "credentialRedacted": true,
+  "provider": "법제처 국가법령정보센터 OPEN API",
+  "identityFields": [
+    {
+      "path": "LawSearch.law.0.법령일련번호",
+      "value": "283307"
+    },
+    {
+      "path": "LawSearch.law.0.법령명한글",
+      "value": "자연유산의 보존 및 활용에 관한 법률"
+    },
+    {
+      "path": "LawSearch.law.0.법령ID",
+      "value": "014410"
+    },
+    {
+      "path": "LawSearch.law.0.공포일자",
+      "value": "20260210"
+    },
+    {
+      "path": "LawSearch.law.0.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.0.시행일자",
+      "value": "20260624"
+    },
+    {
+      "path": "LawSearch.law.1.법령일련번호",
+      "value": "286009"
+    },
+    {
+      "path": "LawSearch.law.1.법령명한글",
+      "value": "자연유산의 보존 및 활용에 관한 법률 시행령"
+    },
+    {
+      "path": "LawSearch.law.1.법령ID",
+      "value": "014653"
+    },
+    {
+      "path": "LawSearch.law.1.공포일자",
+      "value": "20260512"
+    },
+    {
+      "path": "LawSearch.law.1.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.1.시행일자",
+      "value": "20260517"
+    },
+    {
+      "path": "LawSearch.law.2.법령일련번호",
+      "value": "279217"
+    },
+    {
+      "path": "LawSearch.law.2.법령명한글",
+      "value": "자연유산의 보존 및 활용에 관한 법률 시행규칙"
+    },
+    {
+      "path": "LawSearch.law.2.법령ID",
+      "value": "014669"
+    },
+    {
+      "path": "LawSearch.law.2.공포일자",
+      "value": "20251002"
+    },
+    {
+      "path": "LawSearch.law.2.소관부처명",
+      "value": "국가유산청"
+    },
+    {
+      "path": "LawSearch.law.2.시행일자",
+      "value": "20251009"
+    }
+  ],
+  "identityFieldsTruncated": false,
+  "offset": 0,
+  "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><LawSearch><target>law</target><키워드>자연유산의 보존 및 활용에 관한 법률</키워드><section>lawNm</section><totalCnt>3</totalCnt><page>1</page><numOfRows>3</numOfRows><resultCode>00</resultCode><resultMsg>success</resultMsg><law id=\"1\"><법령일련번호>283307</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[자연유산의 보존 및 활용에 관한 법률]]></법령명한글><법령약칭명><![CDATA[자연유산법]]></법령약칭명><법령ID>014410</법령ID><공포일자>20260210</공포일자><공포번호>21335</공포번호><제개정구분명>타법개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>법률</법령구분명><공동부령정보></공동부령정보><시행일자>20260624</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=283307&amp;type=HTML&amp;mobileYn=&amp;efYd=20260624</법령상세링크></law><law id=\"2\"><법령일련번호>286009</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[자연유산의 보존 및 활용에 관한 법률 시행령]]></법령명한글><법령약칭명><![CDATA[자연유산법 시행령]]></법령약칭명><법령ID>014653</법령ID><공포일자>20260512</공포일자><공포번호>36324</공포번호><제개정구분명>타법개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>대통령령</법령구분명><공동부령정보></공동부령정보><시행일자>20260517</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=286009&amp;type=HTML&amp;mobileYn=&amp;efYd=20260517</법령상세링크></law><law id=\"3\"><법령일련번호>279217</법령일련번호><현행연혁코드>현행</현행연혁코드><법령명한글><![CDATA[자연유산의 보존 및 활용에 관한 법률 시행규칙]]></법령명한글><법령약칭명><![CDATA[자연유산법 시행규칙]]></법령약칭명><법령ID>014669</법령ID><공포일자>20251002</공포일자><공포번호>00612</공포번호><제개정구분명>일부개정</제개정구분명><소관부처코드>1833100</소관부처코드><소관부처명>국가유산청</소관부처명><법령구분명>문화체육관광부령</법령구분명><공동부령정보></공동부령정보><시행일자>20251009</시행일자><자법타법여부></자법타법여부><법령상세링크>/DRF/lawService.do?OC=[REDACTED]&amp;target=law&amp;MST=279217&amp;type=HTML&amp;mobileYn=&amp;efYd=20251009</법령상세링크></law></LawSearch>\n\r\n",
+  "nextOffset": null,
+  "truncated": false,
+  "completeSourceStored": true,
+  "offsetUnit": "UTF-16 code units",
+  "verification": {
+    "sources": [],
+    "requests": [],
+    "queriedTargets": [],
+    "unqueriedTargets": [],
+    "completeness": "only_listed_requests_no_global_completeness_claim",
+    "limitations": [
+      "조회되지 않은 자료는 부존재가 아닙니다.",
+      "존재 확인과 구절 일치만으로 주장의 뒷받침 또는 판례의 현행 유효성을 확정할 수 없습니다.",
+      "본문 생략 여부는 각 출력 및 read_source의 nextOffset을 확인하세요."
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+[
+  {
+    "name": "typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "prototype",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph",
+    "startedAt": "2026-09-21T09:31:26.518651+00:00",
+    "endedAt": "2026-09-21T09:31:28.751381+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-typecheck-final.log"
+  },
+  {
+    "name": "lint",
+    "command": [
+      "npm",
+      "--prefix",
+      "prototype",
+      "run",
+      "lint"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph",
+    "startedAt": "2026-09-21T09:31:28.751678+00:00",
+    "endedAt": "2026-09-21T09:31:28.884372+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-lint-final.log"
+  },
+  {
+    "name": "all-tests",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph/prototype",
+    "startedAt": "2026-09-21T09:31:28.884484+00:00",
+    "endedAt": "2026-09-21T09:31:29.992632+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-all-tests-final.log"
+  },
+  {
+    "name": "data-validation",
+    "command": [
+      "[USER_HOME]/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "data-pack/scripts/validate_out.py"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph",
+    "startedAt": "2026-09-21T09:31:29.992823+00:00",
+    "endedAt": "2026-09-21T09:31:30.178693+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-data-validation-final.log"
+  },
+  {
+    "name": "build",
+    "command": [
+      "npm",
+      "--prefix",
+      "prototype",
+      "run",
+      "build"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph",
+    "startedAt": "2026-09-21T09:31:30.178882+00:00",
+    "endedAt": "2026-09-21T09:31:31.444014+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-build-final.log"
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "cwd": "[WORKSPACE]/work/Camp_It_Ralph",
+    "startedAt": "2026-09-21T09:31:31.444145+00:00",
+    "endedAt": "2026-09-21T09:31:31.518865+00:00",
+    "exitCode": 0,
+    "log": "work/evidence/03M-diff-check-final.log"
+  }
+]
