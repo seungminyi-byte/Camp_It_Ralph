@@ -10,12 +10,14 @@ export function reportFileTitle(areaLabel: string | null, at: Date): string {
 
 export function printWithTitle(title: string): void {
   const previous = document.title;
+  const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const restore = () => {
     document.title = previous;
+    focused?.focus();
     window.removeEventListener('afterprint', restore);
   };
   // Safari can return from print() before the dialog closes, so restore on the event, not inline.
   window.addEventListener('afterprint', restore);
   document.title = title;
-  window.print();
+  try { window.print(); } catch (error) { restore(); throw error; }
 }

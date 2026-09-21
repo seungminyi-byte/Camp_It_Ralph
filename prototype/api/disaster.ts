@@ -3,10 +3,12 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 
 // Point lookup only. The engine applies the configured deduction to validated results.
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
+import { fetchVworld, jsonResponse, vworldEnv, vworldJson, vworldFeatures, vworldPageComplete, LOOKUP_VERSION, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
+import { coordinateQuery, errorResponse, methodNotAllowed, Operation, queryParams } from './_http.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/data';
 const LAYER = 'LT_C_UP201';
+const PAGE_SIZE = 10;
 
 type Scalar = string | number | boolean | null;
 
@@ -39,25 +41,7 @@ function riskZoneName(attributes: Record<string, Scalar>): string | null {
 }
 
 export function parseDisasterRiskHits(body: Record<string, unknown>): DisasterRiskHit[] {
-  const response = body.response as
-    | {
-        status?: string;
-        result?: { featureCollection?: { features?: { properties?: Record<string, unknown> }[] } };
-      }
-    | undefined;
-
-  if (response?.status === 'NOT_FOUND') return [];
-  if (response?.status !== 'OK') {
-    throw new Error(`${LAYER}: status ${String(response?.status)}`);
-  }
-
-  const features = response.result?.featureCollection?.features;
-  if (!Array.isArray(features)) throw new Error(`${LAYER}: malformed feature collection`);
-  return features.map((feature) => {
-    if (!feature || typeof feature !== 'object' || !feature.properties ||
-      typeof feature.properties !== 'object' || Array.isArray(feature.properties)) {
-      throw new Error(`${LAYER}: malformed feature`);
-    }
+  return vworldFeatures(body).map((feature) => {
     const attributes = scalarAttributes(feature.properties ?? {});
     return { name: riskZoneName(attributes), attributes };
   });
@@ -68,7 +52,8 @@ async function queryDisasterRisk(
   lng: number,
   key: string,
   domain: string,
-): Promise<DisasterRiskHit[]> {
+  operation: Operation,
+): Promise<{ hits: DisasterRiskHit[]; complete: boolean }> {
   const url = new URL(UPSTREAM);
   const set = (name: string, value: string) => url.searchParams.set(name, value);
   set('service', 'data');
@@ -76,7 +61,7 @@ async function queryDisasterRisk(
   set('request', 'GetFeature');
   set('format', 'json');
   set('errorFormat', 'json');
-  set('size', '10');
+  set('size', String(PAGE_SIZE));
   set('page', '1');
   set('geometry', 'false');
   set('attribute', 'true');
@@ -84,38 +69,23 @@ async function queryDisasterRisk(
   set('data', LAYER);
   set('geomFilter', `POINT(${lng} ${lat})`);
 
-  return parseDisasterRiskHits(await vworldJson(await fetchVworld(url, key, domain)));
+  const body = await vworldJson(await fetchVworld(url, key, domain, operation));
+  const hits = parseDisasterRiskHits(body);
+  return { hits, complete: vworldPageComplete(body, hits.length, PAGE_SIZE) };
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'GET') return textResponse('method not allowed', 405);
-
-  const { key, domain } = vworldEnv();
-  if (!key) return textResponse('no VWORLD_API_KEY configured on server', 503);
-
-  const query = new URL(req.url).searchParams;
-  const lat = Number(query.get('lat'));
-  const lng = Number(query.get('lng'));
-  if (!(lat >= 33 && lat <= 39.5 && lng >= 124 && lng <= 132)) {
-    return textResponse('lat/lng outside Korea', 400);
-  }
-
-  const roundedLat = Math.round(lat * 1e5) / 1e5;
-  const roundedLng = Math.round(lng * 1e5) / 1e5;
-
+  if (req.method !== 'GET') return methodNotAllowed('GET');
+  const operation = new Operation(req.signal, UPSTREAM_TIMEOUT_MS);
   try {
-    const hits = await queryDisasterRisk(roundedLat, roundedLng, key, domain);
-    return jsonResponse(
-      {
-        found: hits.length > 0,
-        layer: LAYER,
-        coordinate: { lat: roundedLat, lng: roundedLng },
-        hits,
-      },
-      'public, max-age=600, s-maxage=3600',
-    );
-  } catch {
-    // Do not reflect upstream bodies, which can contain the server's credential.
-    return textResponse('vworld disaster-risk lookup failed', 502);
-  }
+    const coordinate = coordinateQuery(queryParams(req), 5);
+    const { key, domain } = vworldEnv();
+    const { hits, complete } = await queryDisasterRisk(coordinate.lat, coordinate.lng, key, domain, operation);
+    return jsonResponse({
+      found: hits.length > 0, layer: LAYER, coordinate, hits,
+      queried: [LAYER], failed: complete ? [] : [LAYER], complete,
+      fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION,
+    }, complete ? 'public, max-age=600, s-maxage=3600' : 'no-store');
+  } catch (error) { return errorResponse(error); }
+  finally { operation.dispose(); }
 }

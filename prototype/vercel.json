@@ -1,4 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["icn1"]
+  "regions": ["icn1"],
+  "rewrites": [
+    { "source": "/project", "destination": "/index.html" },
+    { "source": "/team", "destination": "/index.html" },
+    { "source": "/review", "destination": "/index.html" },
+    { "source": "/project/", "destination": "/index.html" },
+    { "source": "/team/", "destination": "/index.html" },
+    { "source": "/review/", "destination": "/index.html" }
+  ]
 }

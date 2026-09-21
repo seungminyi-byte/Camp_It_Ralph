@@ -1,47 +1,23 @@
-import type { DisasterLookup, DisasterRiskHit } from '../types';
-
-const cache = new Map<string, DisasterLookup>();
-const CACHE_LIMIT = 500;
-
-export function disasterCacheKey(lat: number, lng: number): string {
-  return `${lat.toFixed(5)},${lng.toFixed(5)}`;
-}
-
-export function peekDisaster(lat: number, lng: number): DisasterLookup | undefined {
-  return cache.get(disasterCacheKey(lat, lng));
-}
-
+import type { DisasterLookup } from '../types';
+import { boundedJson } from './boundedJson';
+import { EvidenceCache } from './evidenceCache';
+import { refreshQuery, cleanText, completeness, coordinate, DISASTER_LAYERS, envelope, lookupKey, record } from './lookupContract';
+const cache = new EvidenceCache<DisasterLookup>((v) => v.hits.length > 0, (previous, next) => ({ ...next, found: true,
+  hits: [...new Map([...previous.hits, ...next.hits].map((h) => [JSON.stringify(h), h])).values()],
+}));
+export const disasterCacheKey = (lat: number, lng: number) => lookupKey('disaster', lat, lng, 5, DISASTER_LAYERS.join(','));
+export const peekDisaster = (lat: number, lng: number) => cache.peek(disasterCacheKey(lat, lng));
 export function parseDisasterLookup(raw: unknown, lat: number, lng: number): DisasterLookup {
-  if (!raw || typeof raw !== 'object') throw new Error('invalid disaster response');
-  const r = raw as Partial<DisasterLookup>;
-  if (r.layer !== 'LT_C_UP201' || typeof r.found !== 'boolean' || !Array.isArray(r.hits) ||
-    !r.coordinate || !Number.isFinite(r.coordinate.lat) || !Number.isFinite(r.coordinate.lng) ||
-    disasterCacheKey(r.coordinate.lat, r.coordinate.lng) !== disasterCacheKey(lat, lng) ||
-    r.found !== (r.hits.length > 0)) throw new Error('invalid disaster response');
-  for (const hit of r.hits) {
-    if (!hit || typeof hit !== 'object' || (hit.name !== null && typeof hit.name !== 'string') ||
-      !hit.attributes || typeof hit.attributes !== 'object' || Array.isArray(hit.attributes) ||
-      !Object.values(hit.attributes).every((v) => v === null || typeof v === 'string' ||
-        typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v)))) {
-      throw new Error('invalid disaster hit');
-    }
-  }
-  return { found: r.found, layer: r.layer, coordinate: r.coordinate, hits: r.hits as DisasterRiskHit[] };
+  const meta = envelope(raw, lat, lng, 5);
+  if (!record(raw) || raw.layer !== 'LT_C_UP201' || typeof raw.found !== 'boolean' || !Array.isArray(raw.hits) || raw.hits.length > 10 ||
+      raw.found !== (raw.hits.length > 0) || raw.hits.some((h) => !record(h) || h.name !== null && !cleanText(h.name) ||
+        !record(h.attributes) || Object.keys(h.attributes).length > 128 || Object.entries(h.attributes).some(([k, v]) =>
+          !cleanText(k, 128) || !(v === null || typeof v === 'boolean' || typeof v === 'number' && Number.isFinite(v) || cleanText(v, 500))))) throw new Error('invalid disaster response');
+  return { ...meta, ...completeness(raw, DISASTER_LAYERS, raw.hits.length), found: raw.found, layer: 'LT_C_UP201', hits: raw.hits as DisasterLookup['hits'] };
+}
+export async function fetchDisaster(lat: number, lng: number, signal?: AbortSignal, force = false): Promise<DisasterLookup> {
+  const c = coordinate(lat, lng, 5);
+  return cache.load(disasterCacheKey(lat, lng), async () => parseDisasterLookup(await boundedJson(`/api/disaster?lat=${c.lat}&lng=${c.lng}${refreshQuery(force)}`, { signal }), lat, lng), signal, force);
 }
 
-export async function fetchDisaster(lat: number, lng: number, signal?: AbortSignal): Promise<DisasterLookup> {
-  const key = disasterCacheKey(lat, lng);
-  const cached = cache.get(key);
-  if (cached) return cached;
-  const timeout = AbortSignal.timeout(15_000);
-  const response = await fetch(`/api/disaster?lat=${lat.toFixed(5)}&lng=${lng.toFixed(5)}`, {
-    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-  });
-  if (!response.ok) throw new Error(`disaster ${response.status}`);
-  const result = parseDisasterLookup(await response.json(), lat, lng);
-  if (!signal?.aborted) {
-    if (cache.size >= CACHE_LIMIT) cache.clear();
-    cache.set(key, result);
-  }
-  return result;
-}
+export const seedDisaster = (key: string, value: DisasterLookup) => cache.seed(key, value);

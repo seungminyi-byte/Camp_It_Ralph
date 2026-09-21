@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Circle,
@@ -38,7 +39,7 @@ const DATA_CENTER_META: Record<
 > = {
   edgeSmall: { label: '엣지·소형', color: '#397d8a', size: 22, short: 'E' },
   colocation: { label: '일반 코로케이션', color: '#665c91', size: 26, short: 'C' },
-  hyperscale: { label: '초대형', color: '#d65b16', size: 30, short: 'H' },
+  hyperscale: { label: '초대형', color: '#b94708', size: 30, short: 'H' },
 };
 
 // VWorld 용도지역 layers: 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역 (WMS allows up to 4 per request).
@@ -66,7 +67,7 @@ type RestrictionTypes = Constants['scoring']['restriction']['types'];
 function siteIcon(): ReturnType<typeof divIcon> {
   return divIcon({
     className: '',
-    html: '<div class="marker-badge" style="width:26px;height:26px;background:#e77524">P</div>',
+    html: '<div class="marker-badge" style="width:26px;height:26px;background:#b94708">P</div>',
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
@@ -254,7 +255,7 @@ function ProtectedZoneLayer({
               {types[z.type]?.law ?? ''}
               <br />
               <span style={{ color: '#6b7280' }}>
-                {level === 'prohibited' ? '법적 입지 제한' : '검토 필요'} · 단순화 도형, 고시 도면 우선
+                {level === 'prohibited' ? '법적 입지 제한' : level === 'review' ? '국가유산 관련 확인 필요 · 감점 없음' : level === 'reference' ? '주변 참고 · 점수 반영 없음' : '검토 필요'} · 단순화 도형, 고시 도면 우선
               </span>
             </Popup>
           </Polygon>
@@ -273,13 +274,16 @@ export interface FlyToTarget {
 interface Props {
   data: AppData;
   site: SiteSelection | null;
+  selectionRevision?: number;
   flyTo: FlyToTarget | null;
   /** ids of the bundled zones the current site falls in (drawn heavier) */
   highlightZoneIds: string[];
   onSelect: (lat: number, lng: number) => void;
 }
 
-export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
+export function MapView({ data, site, selectionRevision = 0, flyTo, highlightZoneIds, onSelect }: Props) {
+  // Leaflet treats these as constructor options; later selections use the existing FlyTo path.
+  const [initialView] = useState(() => ({ center: (site ? [site.lat, site.lng] : [37.4, 127.0]) as [number, number], zoom: site ? 13 : 9 }));
   const [showSubs, setShowSubs] = useState(true);
   const [showDataCenters, setShowDataCenters] = useState(true);
   const [dataCenterCategories, setDataCenterCategories] = useState<
@@ -291,7 +295,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
   // Off by default: four more VWorld tile layers per view, and the bundled polygons already show the parks.
   const [showRestrictions, setShowRestrictions] = useState(false);
   const [showZones, setShowZones] = useState(true);
-  const [zoom, setZoom] = useState(9);
+  const [zoom, setZoom] = useState(initialView.zoom);
   // On phones the layer panel would cover the map, so it collapses behind a button under lg.
   const [layersOpen, setLayersOpen] = useState(false);
   const [zoningError, setZoningError] = useState<string | null>(null);
@@ -307,7 +311,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
     return () => query.removeEventListener('change', update);
   }, []);
 
-  const nearbySites = useNearbySites(site);
+  const nearbySites = useNearbySites(site, selectionRevision);
 
   const named154 = useMemo(
     () => data.substations.filter((s) => s.name),
@@ -339,7 +343,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
 
   return (
     <div className="h-full">
-      <MapContainer center={[37.4, 127.0]} zoom={9} className="h-full" preferCanvas>
+      <MapContainer center={initialView.center} zoom={initialView.zoom} className="h-full" preferCanvas>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -402,7 +406,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                       : 100
                 }
                 riseOnHover
-                eventHandlers={{ click: () => setLayersOpen(false) }}
+                eventHandlers={{ add: event => { event.target.getElement()?.setAttribute('aria-label', `${meta.label} · ${dc.name}`); }, click: () => setLayersOpen(false) }}
               >
                 <Popup
                   maxWidth={340}
@@ -423,9 +427,9 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                     <dt>분류 근거</dt><dd>{dc.categoryReason}</dd>
                   </dl>
                   <small>{dc.coordinateBasis}</small>
-                  <a href={dc.sourceUrl} target="_blank" rel="noreferrer">
+                  <SafeExternalLink href={dc.sourceUrl}>
                     {dc.sourceName} ↗
-                  </a>
+                  </SafeExternalLink>
                 </Popup>
               </Marker>
             );
@@ -450,9 +454,9 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                 <br />
                 {c.summary}
                 <br />
-                <a href={c.source_url} target="_blank" rel="noreferrer">
+                <SafeExternalLink href={c.source_url}>
                   출처 기사
-                </a>
+                </SafeExternalLink>
               </Popup>
             </CircleMarker>
           ))}
@@ -466,7 +470,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             />
           ))}
         {site && (
-          <Marker position={[site.lat, site.lng]} icon={siteIcon()}>
+          <Marker position={[site.lat, site.lng]} icon={siteIcon()} title="현재 검토 중인 후보" alt="현재 검토 중인 후보" eventHandlers={{ add: event => { event.target.getElement()?.setAttribute('aria-label', '현재 검토 중인 후보'); } }}>
             <Popup>{site.label ?? '선택 부지'}</Popup>
           </Marker>
         )}
@@ -476,7 +480,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             <RadiusRing lat={site.lat} lng={site.lng} km={0.2} color="#ef4444" />
           </>
         )}
-        {nearbySites.status === 'done' &&
+        {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result &&
           nearbySites.result.candidates.flatMap((candidate) =>
             candidate.rings.map((ring, ringIndex) => (
               <Polygon
@@ -501,12 +505,13 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
           type="button"
           onClick={() => setLayersOpen((v) => !v)}
           aria-expanded={layersOpen}
+          aria-controls="map-layer-options"
           className="flex w-full items-center justify-between gap-2 font-semibold"
         >
           지도 레이어
           <span aria-hidden>{layersOpen ? '▲' : '▼'}</span>
         </button>
-        <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1`}>
+        <div id="map-layer-options" className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1`}>
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} />
           변전소 (OSM)
@@ -612,7 +617,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
         )}
         {showRestrictions && zoom >= VWORLD_MIN_ZOOM && !restrictionError && (
           <div className="max-w-[200px] border-t border-gray-200 pt-1 text-[11px] text-gray-500">
-            개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역 (VWorld 기본 색상)
+            개발제한구역·상수원보호구역·국가유산 관련 도형·농업진흥지역 (VWorld 기본 색상). 국가유산 도형은 법적 적용 확인이 필요합니다.
           </div>
         )}
         {data.protectedZones && (
@@ -658,7 +663,7 @@ function NearbySiteControl({
   nearbySites: NearbySitesStatus;
   onSelect: (lat: number, lng: number) => void;
 }) {
-  const [open, setOpen] = useState(site !== null);
+  const [open, setOpen] = useState(false);
   return (
     <details
       className="nearby-site-control"
@@ -667,27 +672,27 @@ function NearbySiteControl({
     >
         <summary>
           <span>
-            <b>인근 추천부지</b>
+            <b>인근 필지 탐색</b>
             <small>엣지·소형 · 1,000평 이상</small>
           </span>
           <i aria-hidden="true">⌄</i>
         </summary>
         <div className="nearby-site-body">
           {!site && <p className="nearby-site-empty">예상 부지를 지도에서 선택하면 주변 15km를 탐색합니다.</p>}
+          {site && nearbySites.status === 'idle' && <p className="nearby-site-empty">온라인 자료 범위 밖 지점입니다.</p>}
           {site && nearbySites.status === 'loading' && (
             <p className="nearby-site-empty"><span className="candidate-spinner" />1,000평 이상 필지를 찾는 중…</p>
           )}
           {site && nearbySites.status === 'error' && (
             <p className="nearby-site-empty">
-              {nearbySites.code === 'not-deployed'
-                ? '로컬 프리뷰 서버에 추천 API가 아직 연결되지 않았습니다.'
-                : '추천 후보를 불러오지 못했습니다. 잠시 후 지점을 다시 선택해 주세요.'}
+              {nearbySites.message}
             </p>
           )}
-          {nearbySites.status === 'done' && nearbySites.result.candidates.length === 0 && (
-            <p className="nearby-site-empty">반경 {nearbySites.result.searchRadiusKm}km 안에서 면적 기준을 충족한 후보를 찾지 못했습니다.</p>
+          {site && <button type="button" disabled={nearbySites.status === 'idle'} onClick={nearbySites.retry}>주변 필지 다시 조회</button>}
+          {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result && nearbySites.result.candidates.length === 0 && (
+            <p className="nearby-site-empty">탐색한 구역에서 면적 기준을 충족한 후보를 찾지 못했습니다.{nearbySites.status === 'partial' ? ' 일부 조회가 미완료되어 후보 없음으로 확정할 수 없습니다.' : ''}</p>
           )}
-          {nearbySites.status === 'done' && nearbySites.result.candidates.length > 0 && (
+          {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result && nearbySites.result.candidates.length > 0 && (
             <>
               <ol className="nearby-site-list">
                 {nearbySites.result.candidates.map((candidate, index) => (

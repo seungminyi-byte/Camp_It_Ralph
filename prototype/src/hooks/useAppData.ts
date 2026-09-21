@@ -13,25 +13,9 @@ import type {
 } from '../types';
 import { decodeTerrain } from '../scoring/terrain';
 import { decodeProtectedZones } from '../scoring/restriction';
-import { loadDataCenters } from '../lib/dataCenters';
-import { parseCsv } from '../lib/csv';
-
-async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return res.json() as Promise<T>;
-}
-
-/** Optional data file: a missing or broken file disables the feature instead of failing the app. */
-async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(path);
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { validDataCenters } from '../lib/dataCenters';
+import { bundleLoader, type BundleLoader } from '../lib/bundleLoader';
+import { parseBundleCsv, parseBundleJson } from '../lib/bundleValidation';
 
 /** A corrupt terrain file disables the terrain signal instead of blanking the app. */
 function safeDecodeTerrain(file: TerrainGridFile | null): TerrainGrid | null {
@@ -57,18 +41,25 @@ function safeDecodeProtectedZones(
   }
 }
 
-async function fetchCsv(path: string): Promise<Record<string, string>[]> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return parseCsv(await res.text());
-}
-
-export function useAppData(): { data: AppData | null; error: string | null } {
+export function useAppData(loader: BundleLoader = bundleLoader) {
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [attempt, setAttempt] = useState(0);
+  const [warnings, setWarnings] = useState<string[]>([]);
   useEffect(() => {
     let cancelled = false;
+    const leases: (() => void)[] = [];
+    const failed: string[] = [];
+    const acquire = <T,>(name: string, parse: (text: string) => T) => {
+      const lease = loader.acquire(name, parse); leases.push(lease.release); return lease.promise;
+    };
+    const json = <T,>(name: string) => acquire<T>(name, text => parseBundleJson<T>(name, text));
+    const optional = <T,>(name: string, validate?: (value: T) => boolean) => acquire<T>(name, text => {
+      const value = parseBundleJson<T>(name, text);
+      if (validate && !validate(value)) throw Error('Invalid optional bundle');
+      return value;
+    }).catch(() => { failed.push(name); return null; });
     (async () => {
       try {
         const [
@@ -88,21 +79,21 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           protectedZonesFile,
           households,
         ] = await Promise.all([
-          fetchJson<AppData['emdPower']>('data/emd_power.json'),
-          fetchJson<AppData['emdCentroids']>('data/emd_centroids.json'),
-          fetchJson<AppData['substations']>('data/substations_osm.json'),
-          fetchJson<AppData['schools']>('data/schools.json'),
-          fetchJson<AppData['popGrid']>('data/pop_grid.json'),
-          fetchJson<AppData['dcStats']>('data/dc_stats.json'),
-          loadDataCenters(),
-          fetchJson<AppData['constants']>('data/constants.json'),
-          fetchCsv('data/cases.csv'),
-          fetchCsv('data/regulations.csv'),
-          fetchJsonOrNull<PermitDelayFile>('data/permit_delay.json'),
-          fetchJsonOrNull<NewsSignalFile>('data/news_signal.json'),
-          fetchJsonOrNull<TerrainGridFile>('data/terrain_grid.json'),
-          fetchJsonOrNull<ProtectedZonesFile>('data/protected_zones.json'),
-          fetchJsonOrNull<HouseholdGridFile>('data/households_grid.json'),
+          json<AppData['emdPower']>('emd_power.json'),
+          json<AppData['emdCentroids']>('emd_centroids.json'),
+          json<AppData['substations']>('substations_osm.json'),
+          json<AppData['schools']>('schools.json'),
+          json<AppData['popGrid']>('pop_grid.json'),
+          json<AppData['dcStats']>('dc_stats.json'),
+          optional<AppData['dataCenters']>('data_centers.json', validDataCenters),
+          json<AppData['constants']>('constants.json'),
+          acquire('cases.csv', text => parseBundleCsv('cases.csv', text)),
+          acquire('regulations.csv', text => parseBundleCsv('regulations.csv', text)),
+          optional<PermitDelayFile>('permit_delay.json'),
+          optional<NewsSignalFile>('news_signal.json'),
+          optional<TerrainGridFile>('terrain_grid.json', value => safeDecodeTerrain(value) !== null),
+          optional<ProtectedZonesFile>('protected_zones.json', value => safeDecodeProtectedZones(value) !== null),
+          optional<HouseholdGridFile>('households_grid.json', validHouseholds),
         ]);
         const cases: CaseRow[] = casesRaw.map((r) => ({
           id: r.id,
@@ -128,6 +119,7 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           source_url: r.source_url,
         }));
         if (!cancelled) {
+          setWarnings(failed);
           setData({
             households: validHouseholds(households) ? households : null,
             emdPower,
@@ -147,15 +139,17 @@ export function useAppData(): { data: AppData | null; error: string | null } {
           });
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+        if (!cancelled) setError(e instanceof Error ? e.message : '자료를 확인할 수 없습니다.');
+        leases.forEach(release => release());
       }
     })();
     return () => {
       cancelled = true;
+      leases.forEach(release => release());
     };
-  }, []);
+  }, [attempt, loader]);
 
-  return { data, error };
+  return { data, error, warnings, retry: () => { setError(null); setAttempt(value => value + 1); } };
 }
 
 function validHouseholds(f: HouseholdGridFile | null): boolean {

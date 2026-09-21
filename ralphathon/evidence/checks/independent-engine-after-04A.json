@@ -1,0 +1,86 @@
+{
+  "at": "2026-09-21T09:56:42.738Z",
+  "scope": "engine and shared comparison only; UI/PDF unverified",
+  "scenario": "goyang-deogi",
+  "pass": true,
+  "checks": [
+    {
+      "case": "area-15000",
+      "expected": {
+        "minimumLandM2": 15000,
+        "shortfallM2": 5000
+      },
+      "actual": {
+        "minimumLandM2": 15000,
+        "shortfallM2": 5000
+      },
+      "pass": true
+    },
+    {
+      "case": "finance-60-eok",
+      "expected": 6000000000,
+      "actual": 6000000000,
+      "pass": true
+    },
+    {
+      "case": "finance-explicit-zero",
+      "expected": 0,
+      "actual": 0,
+      "pass": true
+    },
+    {
+      "case": "finance-unknown",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"floors\":3.5}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"floors\":0}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"coveragePct\":0}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"coveragePct\":101}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"plannedAreaM2\":null}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "invalid-area-inputs:{\"plannedAreaM2\":-1}",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    },
+    {
+      "case": "complete-like-for-like-cost-difference",
+      "expected": 30000000000,
+      "actual": 30000000000,
+      "pass": true
+    },
+    {
+      "case": "incomplete-cost-is-not-cheapest",
+      "expected": null,
+      "actual": null,
+      "pass": true
+    }
+  ]
+}

@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+
+# Reproducible browser QA output and generated fixtures
+e2e/artifacts/
+e2e/fixtures.json
+e2e/ai.txt

@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import type { AppData, ScoreResult } from '../types';
 import { fmtCount } from '../lib/format';
 import { summarizeRestriction } from '../scoring/restriction';
@@ -112,13 +113,15 @@ export function AnalysisDetails({
           <b>
             {r.restriction.level === 'prohibited'
               ? '입지 제한 · E등급 상한'
-              : r.disaster.status === 'hit'
+              : r.restriction.requiresLegalReview
+                ? '국가유산 관련 확인 필요 · 미산정'
+                : r.disaster.status === 'hit'
                 ? '재해 검토 필요'
                 : `감점 ${permitDeduction}점`}
           </b>
         </summary>
         <div className="detail-body">
-          <p>{summarizeRestriction(r.restriction)}</p>
+          <p>{summarizeRestriction(r.restriction, true)}</p>
           <p>{summarizeDisaster(r.disaster)}</p>
           {r.disaster.status === 'hit' && (
             <p>{data.constants.scoring.disaster.reviewNote}</p>
@@ -184,17 +187,17 @@ export function AnalysisDetails({
           </p>
           {r.permit.newsSignal?.row.top.map((a, i) => (
             <p key={i}>
-              <a href={a.link} target="_blank" rel="noreferrer">
+              <SafeExternalLink href={a.link}>
                 {a.title}
-              </a>{' '}
+              </SafeExternalLink>{' '}
               ({a.date})
             </p>
           ))}
           {r.permit.matchedCases.map((c) => (
             <article className="case-reference" key={c.id}>
-              <a href={c.source_url} target="_blank" rel="noreferrer">
+              <SafeExternalLink href={c.source_url}>
                 {c.name}
-              </a>
+              </SafeExternalLink>
               <p>{c.summary}</p>
               <button
                 type="button"

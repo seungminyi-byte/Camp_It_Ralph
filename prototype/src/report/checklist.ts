@@ -112,8 +112,8 @@ export function buildChecklist(
     'permit.landUse',
     '인허가',
     '용도지역',
-    ctx.input.landUse === 'unknown' ? 'na' : 'good',
-    `${LAND_USE_LABEL[ctx.input.landUse]} · ${ctx.landUseSource === 'manual' ? '사용자 선택' : ctx.landUseSource === 'auto' ? `VWorld 자동 조회: ${ctx.zoningName ?? LAND_USE_LABEL[ctx.input.landUse]}` : '자동 조회 미확인'} · 건축 가능 여부·적용 용적률은 별도 확인.`,
+    ctx.input.landUse === 'unknown' ? 'na' : r.evidence.find((e) => e.key === 'zoning')?.status === 'available' ? 'good' : 'caution',
+    `${LAND_USE_LABEL[ctx.input.landUse]} · ${ctx.landUseSource === 'manual' ? '사용자 선택' : ctx.landUseSource === 'auto' ? `VWorld 자동 조회: ${ctx.zoningName ?? LAND_USE_LABEL[ctx.input.landUse]}` : '자동 조회 미확인'}${r.evidence.find((e) => e.key === 'zoning')?.status === 'available' ? '' : ' · 온라인 근거 미완료 또는 재확인 필요'} · 건축 가능 여부·적용 용적률은 별도 확인.`,
     source('zoning'),
   );
   add(
@@ -153,13 +153,21 @@ export function buildChecklist(
     '법정 보호·규제구역',
     r.restriction.level === 'prohibited'
       ? 'risk'
-      : r.restriction.level === 'conditional'
+      : ['conditional', 'review', 'reference'].includes(r.restriction.level)
         ? 'caution'
         : r.restriction.checked.bundled && r.restriction.checked.vworld === 'ok'
           ? 'good'
           : 'na',
-    summarizeRestriction(r.restriction),
-    source('restrictions'),
+    summarizeRestriction(r.restriction, true),
+    [...new Set([
+      ...source('restrictions'),
+      ...(r.restriction.mapping && r.restriction.hits.some(h => h.level === 'review' || h.level === 'reference')
+        ? [r.restriction.mapping.vworldDocumentUrl] : []),
+      ...r.restriction.hits.flatMap(h => h.sourceIds ?? []).flatMap(id => {
+        const legalSource = r.restriction.mapping?.sources[id];
+        return legalSource ? [legalSource.url] : [];
+      }),
+    ])],
     r.permit.deductions.find(
       (x) =>
         x.label === '법적 입지 제한 구역' || x.label === '규제구역 검토 필요',

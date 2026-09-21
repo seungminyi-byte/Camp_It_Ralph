@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ScoreResult } from '../types';
+import { reviewGroups } from '../report/presentation';
+import { EvidenceList } from './ReviewFacts';
 export function ResultOverview({
   result: r,
   loading,
@@ -23,6 +25,7 @@ export function ResultOverview({
   const hasDetailedInputs = r.area.hasInputs;
   const areaFitPct = r.area.fitPct;
   const overview = r.review.overview;
+  const groups = reviewGroups(r);
   const topDeductions = [...r.permit.deductions]
     .filter((item) => item.points > 0)
     .sort((a, b) => b.points - a.points)
@@ -40,7 +43,7 @@ export function ResultOverview({
           {loading ? '공공자료 조회 중' : '현재 입력 기준'}
         </span>
       </div>
-      <h2>
+      <h2 tabIndex={-1}>
         {r.emd && r.site.status !== 'outside'
           ? `${r.emd.sigungu} ${r.emd.emd}`
           : '선택 지점'}
@@ -50,6 +53,45 @@ export function ResultOverview({
           법정 보호·규제구역 해당으로 E등급으로 제한
         </p>
       )}
+      {r.restriction.requiresLegalReview && (
+        <p className="data-gap" role="status">
+          국가유산 관련 법적 적용 확인 필요 · 인허가·종합 참고점수 미산정
+          {r.restriction.level === 'prohibited' && ' · 다른 확인된 법적 입지 제한으로 E등급 상한 유지'}
+        </p>
+      )}
+      <div className={`review-decision tone-${overview.tone}`}>
+        <span>현재 검토 상태</span><strong>{overview.label}</strong><p>{overview.reason}</p>
+      </div>
+      <section className="overview-priorities" aria-label="주요 제약과 미확인">
+        <h3>확인된 주요 제약·검토 신호</h3>
+        {groups.constraints.length ? <ul>{groups.constraints.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul>
+          : <p>현재 확인한 자료에서 주요 제약을 찾지 못했습니다. 미확인 자료의 제약 없음은 뜻하지 않습니다.</p>}
+        <h3>중요한 미확인 사항</h3>
+        {groups.unknowns.length ? <><ul className="unknown-summary">{groups.unknowns.slice(0, 3).map((issue, i) => <li key={i}>{issue.title}</li>)}</ul><details className="all-unknowns"><summary>미확인 {groups.unknowns.length}개 전체와 상세 근거</summary><ul>{groups.unknowns.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul></details></>
+          : <p>기록된 추가 미확인 항목이 없습니다. 실제 공급·설계·인허가는 후속 확인이 필요합니다.</p>}
+        <h3>다음 확인사항</h3>
+        <ol>{r.review.actions.slice(0, 3).map((action, i) => <li key={i}>{action}</li>)}</ol>
+        {r.review.actions.length > 3 && <details><summary>전체 확인사항 {r.review.actions.length}개</summary><ol>{r.review.actions.map((action, i) => <li key={i}>{action}</li>)}</ol></details>}
+      </section>
+      {children}
+      {hasDetailedInputs && (
+        <div className={`design-assessment is-${r.area.status}`}>
+          <div>
+            <span>상세 설계조건 반영</span>
+            <strong>{r.area.label}</strong>
+          </div>
+          {areaFitPct !== null ? (
+            <div className="design-fit">
+              <span>면적 충족률</span>
+              <strong>{areaFitPct}%</strong>
+            </div>
+          ) : (
+            <small>{r.area.missing.join(' · ')} 확인 필요</small>
+          )}
+        </div>
+      )}
+      <details className="overview-evidence"><summary>근거 출처·기준일·범위 확인</summary><EvidenceList result={r} /></details>
+      <details className="overview-reference-score"><summary>공개자료 기반 참고점수 · {score === null ? '미산정' : `${score}점`}</summary>
       <div className="overview-score" aria-label="참고점수">
         <div className={`overview-grade tone-${scoreTone}`}>
           <strong>{grade ?? '—'}</strong>
@@ -135,46 +177,7 @@ export function ResultOverview({
           </p>
         )}
       </section>
-      {hasDetailedInputs && (
-        <div className={`design-assessment is-${r.area.status}`}>
-          <div>
-            <span>상세 설계조건 반영</span>
-            <strong>{r.area.label}</strong>
-          </div>
-          {areaFitPct !== null ? (
-            <div className="design-fit">
-              <span>면적 충족률</span>
-              <strong>{areaFitPct}%</strong>
-            </div>
-          ) : (
-            <small>{r.area.missing.join(' · ')} 확인 필요</small>
-          )}
-        </div>
-      )}
-      <div className={`review-decision tone-${overview.tone}`}>
-        <span>우선 확인사항</span>
-        <strong>{overview.label}</strong>
-        <p>{overview.reason}</p>
-      </div>
-      {children}
-      {overview.issues.length > 0 && (
-        <details className="verdict-reasons">
-          <summary>
-            확인할 사항 <small>{overview.issues.length}개 · 펼쳐보기</small>
-          </summary>
-          <div>
-            {overview.issues.map((issue, i) => (
-              <article key={i}>
-                <span className={`reason-dot tone-${issue.tone}`} />
-                <div>
-                  <strong>{issue.title}</strong>
-                  <p>{issue.detail}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </details>
-      )}
+      </details>
       <p className="score-disclaimer">
         자료가 없는 항목을 낮은 위험으로 해석하지 않으며, 점수만으로 사업 적합
         여부를 확정하지 않습니다.

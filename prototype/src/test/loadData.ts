@@ -41,7 +41,7 @@ export function loadAppData(): AppData {
     popGrid: readJson('pop_grid.json'),
     households: readJsonOrNull('households_grid.json'),
     dcStats: readJson('dc_stats.json'),
-    dataCenters: readJsonOrNull<DataCenterSiteFile>('data/data_centers.json'),
+    dataCenters: readJsonOrNull<DataCenterSiteFile>('data_centers.json'),
     constants: readJson('constants.json'),
     cases: casesRaw.map((r) => ({
       ...r,

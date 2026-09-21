@@ -1,0 +1,16 @@
+import { test,expect } from '@playwright/test';
+import { fixtures, onlyLocal,report } from './helpers';
+test('R18-R21 independent area, finance, 0/null and complete/mixed/incomplete cost across input, comparison and report',async({page},info)=>{
+ await onlyLocal(page);await page.addInitScript(s=>sessionStorage.setItem('ralph.review.v1',s),fixtures.numeric.session);await page.goto('/review');await page.waitForLoadState('networkidle');
+ await page.getByRole('button',{name:'담은 후보 2',exact:true}).click();await expect(page.locator('dialog')).toContainText('입력 사업비 차이: 300억원');await expect(page.locator('dialog')).toContainText('15,000㎡');await expect(page.locator('dialog')).toContainText('5,000㎡');
+ const matrix=await page.locator('dialog .sensitivity-table').first().locator('tbody td').allTextContents();expect(matrix).toEqual(['20억원','40억원','80억원','30억원','60억원','120억원','40억원','80억원','160억원']);await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:/상세조건 입력/}).click();await page.locator('summary').filter({hasText:'사업비와 차입조건'}).click();await page.locator('summary').filter({hasText:'금리·지연기간 가정'}).click();
+ const debt=page.getByRole('spinbutton',{name:/지연 중 평균 차입잔액/});
+ for(const [value,expected] of [['0','0원'],['','계산 보류'],['1000','60억원']]){await debt.fill(value);await report(page);await expect(page.locator('#print-root')).toContainText(`평균 차입잔액 ${value==='0'?'0원':value===''?'계산 보류':'1,000억원'}`);await expect(page.locator('#print-root .sensitivity-table').first().locator('tbody tr').nth(1).locator('td').nth(1)).toHaveText(expected);await page.locator('.report-close-button').click();}
+ await page.getByRole('spinbutton',{name:/금리 가정 2/}).fill('7');await page.getByRole('button',{name:'담은 후보 2',exact:true}).click();for(const t of await page.locator('dialog .sensitivity-table').all())await expect(t.locator('tbody tr').nth(1).locator('td').nth(1)).toHaveText('70억원');await page.keyboard.press('Escape');await page.getByRole('spinbutton',{name:/금리 가정 2/}).fill('6');
+ await page.getByRole('spinbutton',{name:/계획 지상층수/}).fill('2.5');await report(page);await expect(page.locator('#print-root .report-brief-inputs')).toContainText('면적 계산 보류');await page.locator('.report-close-button').click();await page.getByRole('spinbutton',{name:/계획 지상층수/}).fill('4');
+ await page.getByRole('spinbutton',{name:'총사업비 (억원)',exact:true}).fill('');await page.getByRole('button',{name:'담은 후보 2',exact:true}).click();await expect(page.locator('dialog')).toContainText('사업비 차액 계산 보류');await expect(page.locator('dialog')).not.toContainText('입력 사업비 차이:');await page.keyboard.press('Escape');
+ await page.getByLabel('사업비 입력 방식').selectOption('items');for(const label of ['토지비','건축·설비비','토목비','전력 인입비','통신 인입비','기타비용']){const field=page.getByRole('spinbutton',{name:new RegExp(label)});await field.fill('0');}
+ await page.getByRole('button',{name:'담은 후보 2',exact:true}).click();await expect(page.locator('dialog')).toContainText('사업비 차액 계산 보류');await page.keyboard.press('Escape');await report(page);await expect(page.locator('#print-root')).toContainText('사업비 차액 계산 보류');
+ await info.attach('independent-expected',{body:JSON.stringify({area:15000,shortfall:5000,finance60:'1000억원 * 6% * 12/12',completeDifference:300,matrix,origin:'ralphathon/validation/independent-cases.json; fixed before implementation'}),contentType:'application/json'});
+});

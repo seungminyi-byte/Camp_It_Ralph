@@ -1,3 +1,4 @@
+import type { EvidenceSeed } from '../lib/evidenceSeed';
 import type {
   DisasterLookup,
   LandUse,
@@ -23,9 +24,10 @@ export interface PinnedSite {
   /** restored when the pin is reopened, so the card matches the chip */
   manualLandUse: LandUse | null;
   zoning: ZoningLookup | null;
-  /** VWorld 규제구역 answer as pinned, so re-scoring the tray never refetches */
+  /** In-memory observations; the review refresh queue updates evidence separately from inputs. */
   restrictions: RestrictionLookup | null;
   disaster: DisasterLookup | null;
+  evidence?: { zoning: EvidenceSeed<ZoningLookup>; restrictions: EvidenceSeed<RestrictionLookup>; disaster: EvidenceSeed<DisasterLookup> };
 }
 
 export interface CompareEntry {
@@ -63,6 +65,7 @@ export function toScoreInput(
     lat: pin.selection.lat,
     lng: pin.selection.lng,
     landUse: pin.landUse,
+    landUseSource: pin.manualLandUse !== null ? 'manual' : pin.zoning?.found ? 'auto' : 'unknown',
     project,
     conditions: pin.conditions,
     zoning: pin.zoning,

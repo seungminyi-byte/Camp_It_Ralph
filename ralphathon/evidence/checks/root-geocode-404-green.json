@@ -1,0 +1,23 @@
+{
+  "at": "2026-09-21T09:56:42.283Z",
+  "checks": [
+    {
+      "name": "missing-route-html404-is-unavailable",
+      "actualNotFound": false,
+      "expectedNotFound": false,
+      "pass": true
+    },
+    {
+      "name": "unexpected-json404-is-unavailable",
+      "actualNotFound": false,
+      "expectedNotFound": false,
+      "pass": true
+    },
+    {
+      "name": "explicit-api-not-found",
+      "actualNotFound": true,
+      "expectedNotFound": true,
+      "pass": true
+    }
+  ]
+}

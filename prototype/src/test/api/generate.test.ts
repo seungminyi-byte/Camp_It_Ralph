@@ -20,10 +20,11 @@ describe('report model routing', () => {
       },
       cancel,
     });
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(upstream)));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(upstream, { headers: { 'Content-Type': 'text/event-stream' } })));
     const response = await handler(
       new Request('https://example.test/api/generate', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: 'test' }),
       }),
     );
@@ -33,6 +34,7 @@ describe('report model routing', () => {
   const request = () =>
     new Request('https://example.test/api/generate', {
       method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: '검토 의견' }),
     });
   const setup = (model: string) => {
@@ -43,6 +45,7 @@ describe('report model routing', () => {
       .mockResolvedValue(
         new Response(
           'data: {"model":"alternate-model","choices":[{"delta":{"content":"검토 결과"}}]}\n\ndata: [DONE]\n\n',
+          { headers: { 'Content-Type': 'text/event-stream' } },
         ),
       );
     vi.stubGlobal('fetch', fetch);
@@ -59,13 +62,13 @@ describe('report model routing', () => {
     expect(await response.text()).toBe('검토 결과');
     expect(response.headers.get('X-LLM-Model')).toBe('OpenRouter');
   });
-  it('honors an explicitly configured model without adding alternatives', async () => {
-    const fetch = setup('configured/model');
+  it('honors an explicitly configured free router without adding alternatives', async () => {
+    const fetch = setup('openrouter/free');
     const response = await handler(request());
     expect(JSON.parse(fetch.mock.calls[0][1].body).models).toEqual([
-      'configured/model',
+      'openrouter/free',
     ]);
     expect(await response.text()).toBe('검토 결과');
-    expect(response.headers.get('X-LLM-Model')).toBe('configured/model');
+    expect(response.headers.get('X-LLM-Model')).toBe('openrouter/free');
   });
 });

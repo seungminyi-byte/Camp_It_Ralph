@@ -320,14 +320,23 @@ def main() -> int:
         for t, n in [("국립공원", 22), ("습지보호지역", 1), ("생태·경관보전지역", 1), ("상수원보호구역", 1), ("백두대간보호지역", 1)]:
             check(counts.get(t, 0) >= n, f"protected_zones has >= {n} {t} ({counts.get(t, 0)})")
         check(
-            all(v.get("level") in ("prohibited", "conditional") for v in rtypes.values()),
-            "restriction types levels are prohibited/conditional",
+            all(v.get("level") in ("prohibited", "conditional", "review", "reference") for v in rtypes.values()),
+            "restriction types levels are prohibited/conditional/review/reference",
         )
         vl = restriction.get("vworldLayers") or {}
         vl_types = [v["type"] for v in vl.values()]
         vl_types += [v["buffered"] for v in vl.values() if v.get("buffered")]
         vl_types += [r["type"] for v in vl.values() for r in v.get("nameRules", [])]
         check(all(t in rtypes for t in vl_types), "restriction vworldLayers types exist in restriction.types")
+        mapping = restriction.get("heritageMapping") or {}
+        check(mapping.get("mappingVersion") == "heritage-mapping-20260921-v1", "heritage mapping version recorded")
+        check(mapping.get("legalReviewedAt") == "2026-09-21", "heritage legal review date recorded separately from transport time")
+        check(rtypes.get("천연기념물·명승 지정구역", {}).get("level") == "review", "bundled natural heritage requires review without a penalty")
+        heritage_layer = vl.get("LT_C_UO301") or {}
+        check(rtypes.get(heritage_layer.get("type"), {}).get("level") == "review", "direct heritage default is review")
+        check(rtypes.get(heritage_layer.get("buffered"), {}).get("level") == "reference", "nearby heritage default is reference")
+        check(all(rule.get("equals") and not rule.get("includes") for rule in heritage_layer.get("nameRules", [])), "heritage aliases use finite exact matches")
+        check(all(source_id in mapping.get("sources", {}) for value in rtypes.values() for source_id in value.get("sourceIds", [])), "heritage legal source identifiers resolve")
         grades = [g["grade"] for g in rcfg["scoring"]["composite"]["grades"]]
         check(rcfg["scoring"]["composite"].get("restrictionGradeCap") in grades, "composite.restrictionGradeCap is a grade")
         check(bool(rcfg.get("disclaimer", {}).get("restriction")), "disclaimer.restriction present")

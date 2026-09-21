@@ -137,9 +137,10 @@ describe('ARIA integration across summary surfaces', () => {
     expect(rendered.compare).toContain('개발제한구역');
     expect(rendered.rows).toHaveLength(CHECKLIST_KEYS.length);
     for (const html of rendered.reports) {
-      expect(html).toContain('법정 보호·규제구역 해당으로 E등급으로 제한');
+      expect(html).toContain('확인된 법적 입지 제한 · E등급 상한 유지');
       expect(html).not.toContain('공급가능 변전소 미확인으로');
-      expect(html).toContain('데이터센터팀');
+      expect(html).not.toContain('데이터센터팀');
+      expect(html).toContain('여기 DC 돼요?');
       expect(html).not.toContain('GS E');
     }
   });
@@ -173,7 +174,8 @@ describe('ARIA integration across summary surfaces', () => {
     expect(rendered.overview).toContain('주요 감점 요인');
     expect(rendered.overview).toContain('상세 설계 · 선택');
     expect(rendered.overview).toContain('선택 미입력');
-    expect(rendered.overview).not.toContain('면적 계산 보류');
+    expect(rendered.overview).toContain('중요한 미확인 사항');
+    expect(rendered.overview).toContain('면적 계산 보류');
     for (const report of rendered.reports) {
       for (const title of ['면적 계산 보류', '사업비 범위 확인', '금융비용 계산 보류', '전력 공급조건 확인']) expect(report).toContain(title);
     }

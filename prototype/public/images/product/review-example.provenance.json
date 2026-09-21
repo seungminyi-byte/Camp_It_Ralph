@@ -1,0 +1,292 @@
+{
+  "generatedAt": "2026-09-21T11:51:56.132Z",
+  "publicCoordinates": [
+    36.4967,
+    127.3007
+  ],
+  "scope": "Actual product ResultOverview screenshot excerpt, not live operating assessment",
+  "viewport": {
+    "width": 1440,
+    "height": 1500,
+    "scale": 2
+  },
+  "clip": {
+    "x": 855,
+    "y": 337.5,
+    "width": 565,
+    "height": 489.296875
+  },
+  "input": {
+    "site": {
+      "lat": 36.4967,
+      "lng": 127.3007,
+      "source": "coords",
+      "label": "합성 후보 A"
+    },
+    "conditions": {
+      "landAreaM2": 10000,
+      "plannedAreaM2": 30000,
+      "existingAreaM2": null,
+      "farPct": 200,
+      "coveragePct": 50,
+      "floors": 4,
+      "costMode": "total",
+      "totalCostKrw": 200000000000,
+      "costs": {
+        "land": null,
+        "building": null,
+        "civil": null,
+        "power": null,
+        "telecom": null,
+        "other": null
+      },
+      "averageDebtKrw": 100000000000,
+      "consultations": {
+        "power": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        },
+        "water": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        },
+        "telecom": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        }
+      }
+    },
+    "manualLandUse": null,
+    "projectOverride": {
+      "type": "standard",
+      "businessType": "generalCloud",
+      "targetMw": 40,
+      "development": "new",
+      "areaMethod": "manual",
+      "itMw": null,
+      "rackKw": null,
+      "rackAreaM2": null,
+      "whiteSpacePct": null,
+      "rates": [
+        0.04,
+        0.06,
+        0.08
+      ],
+      "delays": [
+        6,
+        12,
+        24
+      ]
+    },
+    "openedPinId": "A",
+    "pins": [
+      {
+        "id": "A",
+        "selection": {
+          "lat": 36.4967,
+          "lng": 127.3007,
+          "source": "coords",
+          "label": "합성 후보 A"
+        },
+        "conditions": {
+          "landAreaM2": 10000,
+          "plannedAreaM2": 30000,
+          "existingAreaM2": null,
+          "farPct": 200,
+          "coveragePct": 50,
+          "floors": 4,
+          "costMode": "total",
+          "totalCostKrw": 200000000000,
+          "costs": {
+            "land": null,
+            "building": null,
+            "civil": null,
+            "power": null,
+            "telecom": null,
+            "other": null
+          },
+          "averageDebtKrw": 100000000000,
+          "consultations": {
+            "power": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            },
+            "water": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            },
+            "telecom": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            }
+          }
+        },
+        "manualLandUse": "industrial",
+        "landUse": "industrial",
+        "zoning": null,
+        "restrictions": null,
+        "disaster": null
+      },
+      {
+        "id": "B",
+        "selection": {
+          "lat": 36.4997,
+          "lng": 127.3007,
+          "source": "coords",
+          "label": "합성 후보 B"
+        },
+        "conditions": {
+          "landAreaM2": 10000,
+          "plannedAreaM2": 30000,
+          "existingAreaM2": null,
+          "farPct": 200,
+          "coveragePct": 50,
+          "floors": 4,
+          "costMode": "total",
+          "totalCostKrw": 230000000000,
+          "costs": {
+            "land": null,
+            "building": null,
+            "civil": null,
+            "power": null,
+            "telecom": null,
+            "other": null
+          },
+          "averageDebtKrw": 100000000000,
+          "consultations": {
+            "power": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            },
+            "water": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            },
+            "telecom": {
+              "status": "unknown",
+              "note": "",
+              "date": ""
+            }
+          }
+        },
+        "manualLandUse": "industrial",
+        "landUse": "industrial",
+        "zoning": null,
+        "restrictions": null,
+        "disaster": null
+      }
+    ],
+    "areaUnit": "m2",
+    "selectionRevision": 0
+  },
+  "resultText": "후보 부지 1차 사업검토\n현재 입력 기준\n세종특별자치시 반곡동\n현재 검토 상태\n입력 조건 재검토\n\n5,000㎡ 부족 · 입력 조건을 재검토하세요.\n\n확인된 주요 제약·검토 신호\n입력 조건상 면적 부족\n\n5,000㎡ 부족 · 입력 조건을 재검토하세요.\n\n중요한 미확인 사항\n공개자료 추가 확인\n전력 공급조건 확인\n용수 공급조건 확인\n미확인 4개 전체와 상세 근거\n다음 확인사항\n입력 조건상 면적 부족: 5,000㎡ 부족 · 입력 조건을 재검토하세요.\n공개자료 추가 확인: 주변 가구\n전력 공급조건 확인: 전력 협의 내용과 확인일을 기록하세요. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.\n전체 확인사항 7개\n데이터센터 규모\n소형\n엣지\n중형\n일반\n대규모\n초대형\n\n일반 규모 데이터센터의 초기 검토이며 실제 용량은 별도 입력합니다.\n\n사업·설계 조건\n선택 입력\n입력하면 면적·비용 검토가 정교해집니다\n상세 설계조건 반영\n입력 조건상 면적 부족\n면적 충족률\n67%\n근거 출처·기준일·범위 확인\n공개자료 기반 참고점수 · 77점\n\n자료가 없는 항목을 낮은 위험으로 해석하지 않으며, 점수만으로 사업 적합 여부를 확정하지 않습니다.",
+  "sourceBundles": "committed prototype/public/data, no refresh",
+  "fixedOnlineResponses": {
+    "zoning": "industrial hit, complete",
+    "restrictions": "no hits, complete",
+    "disaster": "no hits, complete",
+    "source": "work/07-design/server.mjs adapted from06; fetchedAt is generation time, not source period"
+  },
+  "scriptSha256": "023ceefce3aec070bd5e52dedd3f68bea2d832e3e647febb6ab5663629ad0374",
+  "image": {
+    "width": 1130,
+    "height": 978,
+    "bytes": 31142,
+    "sha256": "558d6f2fa8eb6e6610dae62ecdb0c2290081ae7637d50127693eb05ec1fa5c66"
+  },
+  "mobileImage": {
+    "width": 716,
+    "height": 1042,
+    "bytes": 31612,
+    "sha256": "ada7363da9290acf36de5e8111a588f648a3814bb20e7bc9085803c8b91d36f3"
+  },
+  "mobileCapturedAt": "2026-09-21T11:53:06.698Z",
+  "bundles": [
+    {
+      "file": "data/cases.csv",
+      "sha256": "817d69553864251893d6e0a774eeb96465b20a5366da9a079e66548b1181eb38"
+    },
+    {
+      "file": "data/constants.json",
+      "sha256": "6c776bcb97a6aae231e542deb48c69b6698a8b820625e32054a3fbb4aef25f04"
+    },
+    {
+      "file": "data/data_centers.json",
+      "sha256": "9aa791f17827b5e508963c510233cfe8e04b86213941353c19beb6955bc68100"
+    },
+    {
+      "file": "data/dc_stats.json",
+      "sha256": "7b5646848b6de5bddac7559483c89544b3e8172e4f6c6c392fad55b06720dc1f"
+    },
+    {
+      "file": "data/emd_centroids.json",
+      "sha256": "a565213a5e7be99c16c735dbac1f50eb4734a77a3172e499cfa9a60c19fb75c4"
+    },
+    {
+      "file": "data/emd_power.json",
+      "sha256": "812d042f3d9606a0006c31412052aabc938b53f72fb6d6202081c938c6c6fcb9"
+    },
+    {
+      "file": "data/households_grid.json",
+      "sha256": "c8a0b0e41b3c12bd897d16a7ce7e9452ea7872f05fa030e68c1b7121fbb1f133"
+    },
+    {
+      "file": "data/news_signal.json",
+      "sha256": "4282a24b54db09520c50cd6a8287a3c63a80cb1ef86c616e400474c1f24bef86"
+    },
+    {
+      "file": "data/permit_delay.json",
+      "sha256": "8543e403a4f793237668824fa5a0233cff1c227791fe229520616be235e75f0b"
+    },
+    {
+      "file": "data/pop_grid.json",
+      "sha256": "352a8101e8db0cbe65ddce5bfbd7c371a9c615797fddd05ce5b42502807dc04d"
+    },
+    {
+      "file": "data/protected_zones.json",
+      "sha256": "e470bc843977a0d781278d2f935ea7644590ef1d2fab974d142737cb6d476f29"
+    },
+    {
+      "file": "data/regulations.csv",
+      "sha256": "56d64fffabf36af8c752df07086f73e18f593bb1c28fadb286ccfe6898f9ff65"
+    },
+    {
+      "file": "data/scenarios.json",
+      "sha256": "ef2bca263b0f8011f14df8eed5af0d4c29bb70cc180c187d44c3416b2def5c07"
+    },
+    {
+      "file": "data/schools.json",
+      "sha256": "f3b8438ad307deda7522be2e08611d6302d228bb44f327a5e1c7b26005d119f8"
+    },
+    {
+      "file": "data/substations_osm.json",
+      "sha256": "a7035ef9cbe8dca68071a6bd2e2ddac4c38fea2e215057f134ceca5c3bb3cf00"
+    },
+    {
+      "file": "data/terrain_grid.json",
+      "sha256": "9b45ffb32ef9377f738bea5ea624bdb6b7674830755165a82ccc7b9a4efc5a9f"
+    }
+  ],
+  "productFilesAtHandoff": [
+    {
+      "file": "prototype/src/scoring/engine.ts",
+      "sha256": "0f15baa5298a3613f171ddfbe0b124a90beb2f4b94004b30d26220b721f3e586"
+    },
+    {
+      "file": "prototype/src/components/ResultOverview.tsx",
+      "sha256": "43ef31cbad824cdd5594b2db94966419ef83ef6dc3d44d33245a052edc682a05"
+    },
+    {
+      "file": "prototype/src/report/presentation.ts",
+      "sha256": "f0aa916b24795d4e058cefd75125300b3966ce6eb5937b4e4c25dd206513ddd0"
+    }
+  ]
+}

@@ -1,27 +1,23 @@
-import { useEffect, useState } from 'react';
+import { matchingSeed, type EvidenceSeed } from '../lib/evidenceSeed';
+import { serviceCoordinate } from '../lib/lookupContract';
+import { useMemo } from 'react';
 import type { DisasterLookup } from '../types';
 import { disasterCacheKey, fetchDisaster, peekDisaster } from '../lib/disaster';
-
-export type DisasterStatus =
-  | { status: 'idle' | 'loading' | 'error' }
-  | { status: 'done'; lookup: DisasterLookup };
-
-export function useDisaster(site: { lat: number; lng: number } | null): DisasterStatus {
-  const lat = site?.lat;
-  const lng = site?.lng;
-  const [settled, setSettled] = useState<{ key: string; state: DisasterStatus } | null>(null);
-  useEffect(() => {
-    if (lat === undefined || lng === undefined || peekDisaster(lat, lng)) return;
-    const key = disasterCacheKey(lat, lng);
-    const ctrl = new AbortController();
-    fetchDisaster(lat, lng, ctrl.signal).then(
-      (lookup) => { if (!ctrl.signal.aborted) setSettled({ key, state: { status: 'done', lookup } }); },
-      () => { if (!ctrl.signal.aborted) setSettled({ key, state: { status: 'error' } }); },
-    );
-    return () => ctrl.abort();
-  }, [lat, lng]);
-  if (lat === undefined || lng === undefined) return { status: 'idle' };
-  const cached = peekDisaster(lat, lng);
-  if (cached) return { status: 'done', lookup: cached };
-  return settled?.key === disasterCacheKey(lat, lng) ? settled.state : { status: 'loading' };
+import { seedDisaster } from '../lib/disaster';
+import { useOnlineLookup } from './useOnlineLookup';
+export type DisasterStatus = ReturnType<typeof useDisaster>;
+export function useDisaster(site: { lat: number; lng: number } | null, selectionRevision = 0, seed?: EvidenceSeed<DisasterLookup>) {
+  const lat = site?.lat, lng = site?.lng;
+  const request = useMemo(() => lat === undefined || lng === undefined || !serviceCoordinate(lat, lng) ? null : ({
+    queryKey: disasterCacheKey(lat, lng), selectionRevision,
+    peek: () => {
+      const key = disasterCacheKey(lat, lng);
+      const value = matchingSeed(seed, key);
+      if (value) seedDisaster(key, value);
+      return peekDisaster(lat, lng);
+    },
+    fetch: (signal: AbortSignal, force: boolean) => fetchDisaster(lat, lng, signal, force),
+    hasObservations: (v: DisasterLookup) => v.found,
+  }), [lat, lng, selectionRevision, seed]);
+  return useOnlineLookup(request);
 }

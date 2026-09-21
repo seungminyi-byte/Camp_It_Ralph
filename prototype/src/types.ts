@@ -124,7 +124,21 @@ export interface NearbySiteCandidate {
   rings: [number, number][][];
 }
 
-export interface NearbySiteCandidates {
+export interface OnlineEvidence {
+  complete?: boolean;
+  queried?: string[];
+  failed?: string[];
+  coordinate?: { lat: number; lng: number };
+  version?: string;
+  /** Transport observation time, never a source publication or legal effective date. */
+  fetchedAt?: string;
+  /** Remembered observations cannot establish current absence or completeness. */
+  stale?: boolean;
+  /** Earliest retained observation when an incomplete response merges prior hits. */
+  previousFetchedAt?: string;
+}
+
+export interface NearbySiteCandidates extends OnlineEvidence {
   basis: 'vworld-continuous-cadastral-map';
   minimumAreaM2: number;
   minimumAreaPyeong: number;
@@ -358,16 +372,19 @@ export interface ReclaimedOverride {
 }
 
 /** Wire shape of api/restrictions.ts: raw VWorld hits, judged by the engine through constants. */
-export interface RestrictionLookup {
+export interface RestrictionLookup extends OnlineEvidence {
   hits: { layer: string; name: string | null; buffered: boolean }[];
   queried: string[];
   failed: string[];
   /** true when every queried layer answered — only then is "no hit" evidence of absence */
   complete: boolean;
+  /** Actual search radius and transport time, distinct from legal/source dates. */
+  bufferM?: number;
+  fetchedAt?: string;
 }
 
 export type RestrictionLevel =
-  'prohibited' | 'conditional' | 'none' | 'unknown';
+  'prohibited' | 'conditional' | 'review' | 'reference' | 'none' | 'unknown';
 /** Which cap is in force on the composite grade (the strictest one, whether or not it lowered the grade). */
 export type CapReason = 'restriction';
 
@@ -375,11 +392,24 @@ export interface RestrictionHit {
   /** canonical type — a key of constants.scoring.restriction.types */
   type: string;
   name: string;
-  level: 'prohibited' | 'conditional';
+  rawName: string | null;
+  level: 'prohibited' | 'conditional' | 'review' | 'reference';
+  relation: 'direct' | 'nearby';
   law: string;
+  reviewNote?: string;
+  sourceIds?: string[];
+  bufferM?: number;
   source: 'bundled' | 'vworld';
   zoneId?: string;
   layer?: string;
+}
+
+export interface HeritageMapping {
+  mappingVersion: string;
+  legalReviewedAt: string;
+  vworldDocumentUpdatedAt: string;
+  vworldDocumentUrl: string;
+  sources: Record<string, { title: string; url: string; effectiveAt: string }>;
 }
 
 /** One protected-area polygon from protected_zones.json (p08_protected_zones.py). */
@@ -416,7 +446,7 @@ export interface ProtectedZones {
 }
 
 /** VWorld 용도지역 point lookup (api/zoning.ts). */
-export interface ZoningLookup {
+export interface ZoningLookup extends OnlineEvidence {
   found: boolean;
   layer: string | null;
   name: string | null;
@@ -504,12 +534,13 @@ export interface Constants {
     restriction: {
       prohibitedDeduction: number;
       conditionalDeduction: number;
-      /** metres; the 국가유산 layer is queried again with this buffer for 역사문화환경 보존지역 */
+      /** Search radius in metres; this does not establish a statutory boundary. */
       heritageBufferM: number;
+      heritageMapping?: HeritageMapping;
       /** canonical zone type → verdict and the statute behind it; bundled zones and VWorld layers share it */
       types: Record<
         string,
-        { level: 'prohibited' | 'conditional'; law: string }
+        { level: RestrictionHit['level']; law: string; reviewNote?: string; sourceIds?: string[] }
       >;
       /** VWorld 2D Data API layer → canonical type; `buffered` names the type of the buffered query's hits */
       vworldLayers: Record<
@@ -517,7 +548,7 @@ export interface Constants {
         {
           type: string;
           buffered?: string;
-          nameRules?: { includes: string; type: string }[];
+          nameRules?: { includes?: string; equals?: string[]; type: string }[];
         }
       >;
     };
@@ -566,6 +597,8 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
+  /** Explicit for live reviews; omitted only by legacy offline scenario inputs. */
+  landUseSource?: LandUseSource;
   /** Legacy input accepted by saved scenario scripts; never interpreted as a debt balance. */
   projectType?: ProjectType;
   capexKrw?: number;
@@ -585,7 +618,7 @@ export interface DisasterRiskHit {
   attributes: Record<string, string | number | boolean | null>;
 }
 
-export interface DisasterLookup {
+export interface DisasterLookup extends OnlineEvidence {
   found: boolean;
   layer: 'LT_C_UP201';
   coordinate: { lat: number; lng: number };
@@ -595,6 +628,7 @@ export interface DisasterLookup {
 export interface ScoreResult {
   disaster: {
     status: 'hit' | 'none' | 'unknown';
+    complete?: boolean;
     hits: DisasterRiskHit[];
     deduction: number;
   };
@@ -699,6 +733,10 @@ export interface ScoreResult {
   restriction: {
     level: RestrictionLevel;
     hits: RestrictionHit[];
+    scoringHits: RestrictionHit[];
+    requiresLegalReview: boolean;
+    mapping: HeritageMapping | null;
+    fetchedAt: string | null;
     checked: { bundled: boolean; vworld: 'ok' | 'partial' | 'none' };
   };
   composite: {

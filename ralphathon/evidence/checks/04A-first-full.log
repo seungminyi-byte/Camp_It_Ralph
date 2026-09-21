@@ -1,0 +1,63 @@
+
+ RUN  v4.1.11 [WORKSPACE]/work/Camp_It_Ralph/prototype
+
+ ❯ src/lib/disaster.test.ts (6 tests | 2 failed) 15ms
+     × caches valid responses and retries failed or malformed responses 12ms
+     × never caches a late response after the selection was aborted 1ms
+ ❯ src/scoring/heritage.test.ts (30 tests | 1 failed) 465ms
+     × holds legal review apart from transport completeness and distinct dates 22ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/disaster.test.ts > disaster client confidence and cancellation > caches valid responses and retries failed or malformed responses
+Error: invalid lookup metadata
+ ❯ metadata src/lib/lookupContract.ts:31:62
+     29|       !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(raw.fetche…
+     30|       !Number.isFinite(Date.parse(raw.fetchedAt)) || new Date(raw.fetc…
+     31|       Date.parse(raw.fetchedAt) > Date.now() + 60_000) throw new Error…
+       |                                                              ^
+     32|   return { version: LOOKUP_VERSION, fetchedAt: raw.fetchedAt };
+     33| }
+ ❯ envelope src/lib/lookupContract.ts:38:15
+ ❯ parseDisasterLookup src/lib/disaster.ts:11:16
+ ❯ src/lib/disaster.ts:20:61
+ ❯ EvidenceCache.load src/lib/evidenceCache.ts:37:20
+ ❯ src/lib/disaster.test.ts:17:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/lib/disaster.test.ts > disaster client confidence and cancellation > never caches a late response after the selection was aborted
+AbortError: 조회가 취소되었습니다
+ ❯ AbortSignal.parentAbort src/lib/boundedJson.ts:14:46
+     12|   const controller = new AbortController();
+     13|   const signal = controller.signal;
+     14|   const parentAbort = () => controller.abort(new DOMException('조회가 취소되…
+       |                                              ^
+     15|   const timer = setTimeout(() => controller.abort(new Error('조회 제한시간을 …
+     16|   options.signal?.addEventListener('abort', parentAbort, { once: true …
+ ❯ src/lib/disaster.test.ts:27:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/scoring/heritage.test.ts > heritage provenance and consumer boundaries > holds legal review apart from transport completeness and distinct dates
+AssertionError: expected 'partial' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "partial"
+
+ ❯ src/scoring/heritage.test.ts:36:42
+     34|     const at = input({ ...lookup([heritage()]), fetchedAt: '2026-09-21…
+     35|     const r = scoreSite(at, emptyZones);
+     36|     expect(r.restriction.checked.vworld).toBe('ok');
+       |                                          ^
+     37|     expect(r.evidence.find(e => e.key === 'restrictions')?.status).toB…
+     38|     const evidence = row(r).evidence;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed | 23 passed (25)
+      Tests  3 failed | 338 passed (341)
+   Start at  18:40:50
+   Duration  926ms (transform 671ms, setup 0ms, import 1.85s, tests 3.02s, environment 1ms)
+
