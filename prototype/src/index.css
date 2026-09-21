@@ -529,3 +529,79 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
   .report-first-page .report-priorities { margin:4px 0; }
   .report-first-page .report-priorities li { margin:3px 0; }
 }
+
+/* Result and report hierarchy: evidence remains visible independently of AI. */
+.overview-priorities { font-size:13px; line-height:1.65; color:#33433c; }
+.overview-priorities h3 { font-size:15px; font-weight:750; margin:20px 0 8px; }
+.overview-priorities ul,.overview-priorities ol { padding-left:20px; list-style:revert; }
+.overview-priorities li { margin:8px 0; overflow-wrap:anywhere; }
+.overview-priorities p { margin:3px 0; }
+.overview-priorities details,.overview-evidence,.overview-reference-score { margin-top:16px; border-top:1px solid #d9dfd7; padding-top:12px; }
+.overview-evidence>summary,.overview-reference-score>summary { cursor:pointer; font-weight:650; font-size:13px; min-height:44px; }
+.comparison-cards { display:none; }
+.report-open-button,.report-close-button { min-height:44px; border:1px solid #68756d; border-radius:6px; padding:8px 12px; font-size:13px; background:#fff; color:#243b31; }
+.report-start-note,.report-frozen-preview>p { font-size:13px; line-height:1.65; margin:12px 0; }
+.report-changed-notice { padding:12px; background:#fff2d5; border-left:3px solid #925a0a; color:#654006; }
+.report-actions { flex-wrap:wrap; }
+.report-frozen-preview { outline-offset:4px; }
+.business-report h3 { font-size:13px; font-weight:750; margin:15px 0 6px; }
+.business-report h4 { font-weight:700; margin:10px 0 4px; }
+.business-report-title { border-top-color:#b94708; }
+.business-report-title>span { color:#52645a; }
+.report-priority-columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.report-priority-columns ul { margin:0; }
+.report-first-page h2 { margin:12px 0 5px; }
+.report-comparison table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:10px; }
+.report-comparison th,.report-comparison td { text-align:left; vertical-align:top; border:1px solid #c8d3cd; padding:5px; }
+.report-comparison thead th { background:#edf2ee; }
+.report-comparison th:first-child { width:27%; }
+.report-comparison th:nth-child(2) { width:31%; }
+.report-comparison th:nth-child(3) { width:21%; }
+.report-comparison th:nth-child(4) { width:21%; }
+.report-source-note { color:#485e51; }
+.report-restrictions article { margin:10px 0; border-left:2px solid #b94708; padding-left:10px; }
+.business-report .review-facts article p,.business-report .report-restrictions p { white-space:pre-wrap; }
+.report-source-url { overflow-wrap:anywhere; word-break:break-word; }
+.report-pin-detail { margin-top:28px; }
+@media(max-width:600px) {
+  .comparison-cards { display:grid; gap:14px; margin-block:18px; }
+  .comparison-cards article { padding:14px; border:1px solid #c7d0c9; border-radius:8px; font-size:14px; line-height:1.6; overflow-wrap:anywhere; }
+  .comparison-cards h3 { font-size:16px; font-weight:750; }
+  .comparison-cards h4 { font-weight:700; margin-top:10px; }
+  .comparison-cards p { margin:5px 0; }
+  .comparison-cards .text-button { min-height:44px; font-size:14px; }
+  .comparison-scroll { border:1px solid #c7d0c9; }
+  .report-priority-columns { grid-template-columns:1fr; gap:0; }
+}
+@media print {
+  @page { size:A4 portrait; margin:13mm; @bottom-right { content:counter(page) ' / ' counter(pages); font:8pt sans-serif; color:#52645a; } }
+  .business-report { font-size:9pt; line-height:1.42; overflow:visible; }
+  .business-report h1 { font-size:18pt; margin:3px 0; }
+  .business-report h2 { font-size:11pt; margin:11px 0 5px; }
+  .business-report h3 { font-size:10pt; break-after:avoid; margin:10px 0 4px; }
+  .business-report h4 { break-after:avoid; }
+  .business-report-title { padding-top:7px; }
+  .business-report-title>span,.business-report footer { font-size:9pt; }
+  .business-report .report-decision { padding:6px 8px; margin-top:6px; }
+  .business-report .report-decision>strong { font-size:11pt; }
+  .report-priority-columns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .report-first-page p,.report-first-page li { margin:3px 0; }
+  .report-first-page h2 { font-size:10pt; margin:9px 0 4px; }
+  .report-comparison table { font-size:8.5pt; line-height:1.35; }
+  .report-comparison th,.report-comparison td { padding:4px; }
+  .report-next ol { margin:3px 0; }
+  .business-report .fact-note,.business-report .sensitivity-table,.business-report .sensitivity-table caption,.business-report .evidence-list article { font-size:9pt; }
+  .business-report .review-facts dl>div { display:flex; }
+  .business-report .review-facts dt { float:none; }
+  .business-report .review-facts dd { text-align:right; }
+  .business-report tr,.business-report .evidence-list article,.business-report .review-facts article,.business-report .report-restrictions article { break-inside:auto; }
+  .business-report thead { display:table-header-group; }
+  .business-report .sensitivity-table { break-inside:avoid; }
+  .business-report .evidence-list article { padding:4px 0; line-height:1.45; }
+  .business-report .evidence-list article>strong { display:block; break-after:avoid; }
+  .business-report .report-first-page { break-after:page; }
+  .business-report .report-comparison-detail,.business-report .report-ai { break-before:page; }
+  .business-report .report-pin-detail { margin-top:18px; }
+  .business-report li,.business-report p { orphans:2; widows:2; }
+  .business-report a { color:#164d61; overflow-wrap:anywhere; }
+}

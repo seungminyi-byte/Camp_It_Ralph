@@ -39,6 +39,7 @@ import {
 import 'leaflet/dist/leaflet.css';
 import { useReviewSession } from './ReviewSession';
 import { usePinRefresh } from './usePinRefresh';
+import { useEvidenceClock } from './useEvidenceClock';
 
 export default function ReviewApp() {
   const { data, error, retry, warnings } = useAppData();
@@ -103,9 +104,14 @@ export default function ReviewApp() {
     disasterLookup,
   ]);
 
+  const evidenceRevision = useEvidenceClock([zoningLookup, restrictionLookup, disasterLookup, ...pins.flatMap(pin => [pin.zoning, pin.restrictions, pin.disaster])]);
   const result = useMemo(
-    () => (data && input ? scoreSite(input, data) : null),
-    [data, input],
+    () => {
+      // Explicit invalidation signals re-evaluate time-dependent evidence in the engine.
+      void evidenceRevision; void compareOpen;
+      return data && input ? scoreSite(input, data) : null;
+    },
+    [data, input, evidenceRevision, compareOpen],
   );
 
   // Project the current settled evidence onto the opened pin; selection events persist this snapshot.
@@ -151,14 +157,16 @@ export default function ReviewApp() {
   }, [resolvedPins, pins, openedPinId, selectionRevision, store]);
   usePinRefresh(store, data, [zoning, restrictions, disaster].every(s => s.status !== 'loading'));
   const pinEntries = useMemo(
-    () =>
-      data && project
+    () => {
+      void evidenceRevision; void compareOpen;
+      return data && project
         ? resolvedPins.map((pin) => ({
             pin,
             result: scoreSite(toScoreInput(pin, project), data),
           }))
-        : [],
-    [data, resolvedPins, project],
+        : [];
+    },
+    [data, resolvedPins, project, evidenceRevision, compareOpen],
   );
 
   if (error) {
@@ -241,10 +249,6 @@ export default function ReviewApp() {
                 : isPinned
                   ? '이미 담긴 지점입니다'
                   : '현재 지점을 비교에 담기';
-
-  const siteKey = site
-    ? `${site.lat.toFixed(5)},${site.lng.toFixed(5)}`
-    : 'none';
 
   const missingEvidence = [
     landUse === 'unknown' ? '공식 용도지역' : null,
@@ -440,13 +444,14 @@ export default function ReviewApp() {
                 onResetAuto={() => store.update(s => ({ ...s, manualLandUse: null, selectionRevision: s.selectionRevision + 1 }))}
               />
             </details>
-            {result?.site.eligible && input && site && (
+            {result && input && site && (
               <details className="report-section">
                 <summary>
                   부지 검토 보고서 · 선택형 AI 의견 <span>PDF 저장 ↗</span>
                 </summary>
                 <MemoPanel
-                  key={siteKey}
+                  entries={pinEntries}
+                  currentPinId={currentPin && isPinned ? currentPin.id : null}
                   selectionRevision={selectionRevision}
                   requestRevision={JSON.stringify([zoning, restrictions, disaster].map(({ queryKey, selectionRevision: selected, requestRevision, status }) => [queryKey, selected, requestRevision, status]))}
                   data={data}
@@ -501,6 +506,7 @@ export default function ReviewApp() {
       <CompareDialog
         open={compareOpen}
         entries={pinEntries}
+        currentPinId={currentPin && isPinned ? currentPin.id : null}
         onClose={() => setCompareOpen(false)}
         onOpen={openPin}
         onRemove={(id) => { setPins(removePin(resolvedPins, id)); store.update(s => ({ ...s, openedPinId: s.openedPinId === id ? null : s.openedPinId })); }}
