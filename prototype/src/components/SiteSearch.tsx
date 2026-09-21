@@ -169,6 +169,7 @@ export function SiteSearch({ centroids, selection, selectionRevision = 0, onPick
         className="flex gap-1"
       >
         <input
+          id="site-search-input"
           type="search"
           value={query}
           onChange={(e) => {
@@ -186,7 +187,8 @@ export function SiteSearch({ centroids, selection, selectionRevision = 0, onPick
           maxLength={200}
           role="combobox"
           aria-expanded={open && results.length > 0}
-          aria-controls="site-search-results"
+          aria-controls={open && results.length > 0 ? 'site-search-results' : undefined}
+          aria-autocomplete="list"
           aria-activedescendant={open && highlight >= 0 ? `site-search-option-${highlight}` : undefined}
           className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
         />

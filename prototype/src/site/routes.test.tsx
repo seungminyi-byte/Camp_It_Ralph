@@ -41,6 +41,24 @@ describe('N01-N03 shell routes and session ownership', () => {
     await act(async () => [...box.querySelectorAll('button')].find(b => b.textContent === '검토 내용 지우기')!.click());
     expect(box.querySelector('output')?.textContent).toBe('empty|null'); expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();
   });
+  it('closes the mobile navigation on Escape and returns focus, and closes it after navigation', async () => {
+    await render();
+    const menu = box.querySelector<HTMLButtonElement>('.site-menu-button')!;
+    await act(async () => menu.click());
+    expect(menu.getAttribute('aria-expanded')).toBe('true');
+    const nav = box.querySelector('nav')!;
+    await act(async () => nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(menu);
+    await act(async () => menu.click()); await click('팀 소개');
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement?.id).toBe('page-title');
+  });
+  it('focuses the requested project section on direct fragment links', async () => {
+    history.replaceState(null, '', '/project#sources'); await render();
+    expect(document.activeElement?.tagName).toBe('H2');
+    expect(document.activeElement?.closest('section')?.id).toBe('sources');
+  });
   it('canonicalizes known trailing slashes and supplies unknown-page return', async () => {
     history.replaceState(null, '', '/team/'); await render(); expect(location.pathname).toBe('/team');
     await act(async () => { history.pushState(null, '', '/does-not-exist'); window.dispatchEvent(new PopStateEvent('popstate')); });

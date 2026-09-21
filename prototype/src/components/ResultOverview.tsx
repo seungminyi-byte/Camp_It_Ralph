@@ -43,7 +43,7 @@ export function ResultOverview({
           {loading ? '공공자료 조회 중' : '현재 입력 기준'}
         </span>
       </div>
-      <h2>
+      <h2 tabIndex={-1}>
         {r.emd && r.site.status !== 'outside'
           ? `${r.emd.sigungu} ${r.emd.emd}`
           : '선택 지점'}
@@ -67,7 +67,7 @@ export function ResultOverview({
         {groups.constraints.length ? <ul>{groups.constraints.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul>
           : <p>현재 확인한 자료에서 주요 제약을 찾지 못했습니다. 미확인 자료의 제약 없음은 뜻하지 않습니다.</p>}
         <h3>중요한 미확인 사항</h3>
-        {groups.unknowns.length ? <ul>{groups.unknowns.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul>
+        {groups.unknowns.length ? <><ul className="unknown-summary">{groups.unknowns.slice(0, 3).map((issue, i) => <li key={i}>{issue.title}</li>)}</ul><details className="all-unknowns"><summary>미확인 {groups.unknowns.length}개 전체와 상세 근거</summary><ul>{groups.unknowns.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul></details></>
           : <p>기록된 추가 미확인 항목이 없습니다. 실제 공급·설계·인허가는 후속 확인이 필요합니다.</p>}
         <h3>다음 확인사항</h3>
         <ol>{r.review.actions.slice(0, 3).map((action, i) => <li key={i}>{action}</li>)}</ol>

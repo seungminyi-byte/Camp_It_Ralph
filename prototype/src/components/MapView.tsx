@@ -39,7 +39,7 @@ const DATA_CENTER_META: Record<
 > = {
   edgeSmall: { label: '엣지·소형', color: '#397d8a', size: 22, short: 'E' },
   colocation: { label: '일반 코로케이션', color: '#665c91', size: 26, short: 'C' },
-  hyperscale: { label: '초대형', color: '#d65b16', size: 30, short: 'H' },
+  hyperscale: { label: '초대형', color: '#b94708', size: 30, short: 'H' },
 };
 
 // VWorld 용도지역 layers: 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역 (WMS allows up to 4 per request).
@@ -67,7 +67,7 @@ type RestrictionTypes = Constants['scoring']['restriction']['types'];
 function siteIcon(): ReturnType<typeof divIcon> {
   return divIcon({
     className: '',
-    html: '<div class="marker-badge" style="width:26px;height:26px;background:#e77524">P</div>',
+    html: '<div class="marker-badge" style="width:26px;height:26px;background:#b94708">P</div>',
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
@@ -406,7 +406,7 @@ export function MapView({ data, site, selectionRevision = 0, flyTo, highlightZon
                       : 100
                 }
                 riseOnHover
-                eventHandlers={{ click: () => setLayersOpen(false) }}
+                eventHandlers={{ add: event => { event.target.getElement()?.setAttribute('aria-label', `${meta.label} · ${dc.name}`); }, click: () => setLayersOpen(false) }}
               >
                 <Popup
                   maxWidth={340}
@@ -470,7 +470,7 @@ export function MapView({ data, site, selectionRevision = 0, flyTo, highlightZon
             />
           ))}
         {site && (
-          <Marker position={[site.lat, site.lng]} icon={siteIcon()}>
+          <Marker position={[site.lat, site.lng]} icon={siteIcon()} title="현재 검토 중인 후보" alt="현재 검토 중인 후보" eventHandlers={{ add: event => { event.target.getElement()?.setAttribute('aria-label', '현재 검토 중인 후보'); } }}>
             <Popup>{site.label ?? '선택 부지'}</Popup>
           </Marker>
         )}
@@ -505,12 +505,13 @@ export function MapView({ data, site, selectionRevision = 0, flyTo, highlightZon
           type="button"
           onClick={() => setLayersOpen((v) => !v)}
           aria-expanded={layersOpen}
+          aria-controls="map-layer-options"
           className="flex w-full items-center justify-between gap-2 font-semibold"
         >
           지도 레이어
           <span aria-hidden>{layersOpen ? '▲' : '▼'}</span>
         </button>
-        <div className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1`}>
+        <div id="map-layer-options" className={`${layersOpen ? 'flex' : 'hidden'} flex-col gap-1`}>
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} />
           변전소 (OSM)
@@ -662,7 +663,7 @@ function NearbySiteControl({
   nearbySites: NearbySitesStatus;
   onSelect: (lat: number, lng: number) => void;
 }) {
-  const [open, setOpen] = useState(site !== null);
+  const [open, setOpen] = useState(false);
   return (
     <details
       className="nearby-site-control"
@@ -671,7 +672,7 @@ function NearbySiteControl({
     >
         <summary>
           <span>
-            <b>인근 추천부지</b>
+            <b>인근 필지 탐색</b>
             <small>엣지·소형 · 1,000평 이상</small>
           </span>
           <i aria-hidden="true">⌄</i>

@@ -37,6 +37,7 @@ import {
 } from '../lib/panelWidth';
 
 import 'leaflet/dist/leaflet.css';
+import './workspace.css';
 import { useReviewSession } from './ReviewSession';
 import { usePinRefresh } from './usePinRefresh';
 import { useEvidenceClock } from './useEvidenceClock';
@@ -51,8 +52,27 @@ export default function ReviewApp() {
   const [pinSeed, setPinSeed] = useState(() => pins.find(p => p.id === openedPinId));
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [workspaceView, setWorkspaceView] = useState<'result' | 'map'>('result');
+  const focusSelection = useRef(false);
   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
   const panelScroll = useRef<HTMLDivElement>(null);
+  const reportSection = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (!focusSelection.current) return;
+    focusSelection.current = false;
+    const id = requestAnimationFrame(() => panelScroll.current?.querySelector<HTMLElement>('.result-overview h2')?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [selectionRevision]);
+  const jumpTo = (target: 'report' | 'inputs') => {
+    setWorkspaceView('result');
+    requestAnimationFrame(() => {
+      const detail = target === 'report' ? reportSection.current : panelScroll.current?.querySelector<HTMLDetailsElement>('.business-inputs');
+      if (!detail) return;
+      detail.open = true;
+      detail.scrollIntoView({ block: 'start', behavior: 'instant' });
+      (target === 'report' ? detail.querySelector<HTMLButtonElement>('.report-open-button') : detail.querySelector<HTMLElement>('summary'))?.focus({ preventScroll: true });
+    });
+  };
 
   const zoning = useZoning(site, selectionRevision, pinSeed?.evidence?.zoning);
   const zoningLookup = zoning.lookup;
@@ -185,6 +205,8 @@ export default function ReviewApp() {
   }
 
   const selectSite = (selection: SiteSelection, zoom?: number) => {
+    setWorkspaceView('result');
+    focusSelection.current = true;
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
     const matching = resolvedPins.filter(
@@ -201,6 +223,8 @@ export default function ReviewApp() {
 
   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
   const openPin = (pin: PinnedSite) => {
+    setWorkspaceView('result');
+    focusSelection.current = true;
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
     setPinSeed(pin);
@@ -292,42 +316,34 @@ export default function ReviewApp() {
   };
 
   return (
-    <div className="dc-workspace print:hidden">
+    <div className={`dc-workspace print:hidden view-${workspaceView}`}>
       {warnings?.length > 0 && <div role="status">일부 선택 자료를 불러오지 못했습니다. 미확인으로 표시합니다. <button onClick={retry}>자료 다시 불러오기</button></div>}
-      <header className="app-header">
-        <div className="brand-symbol" aria-hidden="true">
-          dc<span>↗</span>
+      <header className="workspace-toolbar">
+        <div className="workspace-search">
+          <label className="search-eyebrow" htmlFor="site-search-input">제안받은 후보 주소</label>
+          <SiteSearch selection={site} selectionRevision={selectionRevision} centroids={data.emdCentroids} onPick={selectSite} />
         </div>
-        <div className="brand-name">
-          <h2>여기 DC 돼요?</h2>
-          <span>데이터센터 부지 사전검토</span>
+        <div className="current-selection"><span>현재 검토 중</span><strong title={site?.label}>{site?.label || (site ? `${site.lat.toFixed(5)}, ${site.lng.toFixed(5)}` : '후보를 검색하거나 지도에서 선택하세요')}</strong></div>
+        <div className="workspace-shortcuts">
+          <button className="header-saved" onClick={() => setCompareOpen(true)}>담은 후보 <b>{resolvedPins.length}</b></button>
+          <button className="report-shortcut" disabled={!result} onClick={() => jumpTo('report')}>보고서 · PDF <span aria-hidden="true">↗</span></button>
         </div>
-        <div className="header-context">
-          <span>후보 부지</span>
-          <i>/</i> 1차 사업검토
-        </div>
-        <button className="header-saved" onClick={() => setCompareOpen(true)}>
-          담은 후보 <b>{resolvedPins.length}</b>
-        </button>
       </header>
+      <div className="workspace-view-bar">
+        <div className="workspace-view-toggle" role="group" aria-label="검토 화면 보기">
+          <button aria-pressed={workspaceView === 'result'} onClick={() => setWorkspaceView('result')}>검토 결과</button>
+          <button aria-pressed={workspaceView === 'map'} onClick={() => setWorkspaceView('map')}>지도 보기</button>
+        </div>
+        <button className="inputs-shortcut" onClick={() => jumpTo('inputs')}>상세조건 입력 <span>선택</span></button>
+        <p className="workspace-guide">주소 선택 → 근거 확인 → 조건·비교 → 보고서</p>
+      </div>
       <div
         className="workspace-grid"
         style={{
           gridTemplateColumns: `minmax(360px, 1fr) 6px ${panelWidth}px`,
         }}
       >
-        <div className={`map-column map-tone-${tone}`}>
-          <div className="map-search">
-            <span className="search-eyebrow">
-              제안받은 후보 주소를 입력하세요
-            </span>
-            <SiteSearch
-              selection={site}
-              selectionRevision={selectionRevision}
-              centroids={data.emdCentroids}
-              onPick={selectSite}
-            />
-          </div>
+        <div className={`map-column map-tone-${tone}`}><a className="map-skip-link" href="#review-results" onClick={event => { event.preventDefault(); setWorkspaceView('result'); requestAnimationFrame(() => { const heading = panelScroll.current?.querySelector<HTMLElement>('h2'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }); }}>검토 결과로 이동</a>
           <div className="map-canvas">
             <MapView
               data={data}
@@ -345,7 +361,7 @@ export default function ReviewApp() {
           <div className="map-caption">
             <span className="map-live-dot" />
             {site
-              ? '선택 지점의 분석 결과를 오른쪽 패널에서 확인하세요'
+              ? '선택 지점의 제약과 미확인은 검토 결과에서 확인하세요'
               : '지도 위 원하는 지점을 눌러 분석을 시작하세요'}
             <span>공개자료 기반</span>
           </div>
@@ -360,7 +376,7 @@ export default function ReviewApp() {
             storePanelWidth(width);
           }}
         />
-        <aside className="analysis-panel" aria-label="부지 분석 패널">
+        <aside id="review-results" className="analysis-panel" aria-label="부지 분석 패널">
           <div className="panel-scroll" ref={panelScroll}>
             {result ? (
               <ResultOverview
@@ -377,20 +393,16 @@ export default function ReviewApp() {
               </ResultOverview>
             ) : (
               <section className="empty-state">
-                <span className="eyebrow">SITE ASSESSMENT</span>
+                <span className="eyebrow">데이터센터 후보 부지 1차 검토</span>
                 <h2>
                   제안받은 부지,
                   <br />
                   검토할 근거를 한눈에.
                 </h2>
                 <p>
-                  주소와 사업조건을 입력하면 주요 제약, 부족한 면적, 미확인
-                  비용과 다음 확인사항을 정리합니다.
+                  주소를 검색하면 주요 제약, 미확인 조건과 다음 확인사항을 정리합니다. 상세 사업조건은 필요할 때 입력하세요.
                 </p>
-                <div className="empty-score">
-                  <strong>—</strong>
-                  <span>후보 부지 선택 대기</span>
-                </div>
+                <div className="empty-start"><strong>주소만으로 기본 검토를 시작합니다.</strong><p>읍면동명이나 위경도로도 선택할 수 있습니다. 내부 사업정보와 AI는 필요하지 않습니다.</p><button onClick={() => document.getElementById('site-search-input')?.focus()}>후보 검색하기 →</button><button className="empty-map-button" onClick={() => setWorkspaceView('map')}>지도에서 선택하기</button></div>
                 {scalePicker}
                 <div className="empty-features">
                   <span>
@@ -406,7 +418,7 @@ export default function ReviewApp() {
               </section>
             )}
             {site && (
-              <section className="border-b border-gray-200 p-4 text-sm" aria-label="온라인 근거 조회 상태">
+              <section className="online-evidence-status" aria-label="온라인 근거 조회 상태"><h3>온라인 근거 조회 상태</h3>
                 {[['용도지역', zoning], ['규제구역', restrictions], ['재해위험지구', disaster]].map(([label, rawState]) => {
                   const state = rawState as typeof zoning | typeof restrictions | typeof disaster;
                   return <div key={String(label)} className="mb-2">
@@ -423,7 +435,7 @@ export default function ReviewApp() {
               <AnalysisDetails
                 result={result}
                 data={data}
-                onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
+                onFlyTo={(lat, lng) => { setWorkspaceView('map'); setFlyTo({ lat, lng, zoom: 13 }); }}
               />
             )}
             <details className="settings-section">
@@ -445,7 +457,7 @@ export default function ReviewApp() {
               />
             </details>
             {result && input && site && (
-              <details className="report-section">
+              <details ref={reportSection} className="report-section">
                 <summary>
                   부지 검토 보고서 · 선택형 AI 의견 <span>PDF 저장 ↗</span>
                 </summary>
