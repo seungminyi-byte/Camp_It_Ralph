@@ -1,0 +1,14 @@
+[
+  {
+    "test": "R26 15-second boundary and retry in integrated UI",
+    "name": "real-time-deadline",
+    "contentType": "application/json",
+    "body": "{\"elapsedMs\":16364,\"kind\":\"request-to-error wall time\"}"
+  },
+  {
+    "test": "R18-R21 independent area, finance, 0/null and complete/mixed/incomplete cost across input, comparison and report",
+    "name": "independent-expected",
+    "contentType": "application/json",
+    "body": "{\"area\":15000,\"shortfall\":5000,\"finance60\":\"1000억원 * 6% * 12/12\",\"completeDifference\":300,\"matrix\":[\"20억원\",\"40억원\",\"80억원\",\"30억원\",\"60억원\",\"120억원\",\"40억원\",\"80억원\",\"160억원\"],\"origin\":\"ralphathon/validation/independent-cases.json; fixed before implementation\"}"
+  }
+]

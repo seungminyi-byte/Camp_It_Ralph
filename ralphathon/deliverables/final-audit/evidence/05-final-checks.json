@@ -1,0 +1,41 @@
+{
+  "at": "2026-09-21T10:41:27.075312+00:00",
+  "checks": [
+    {
+      "check": "typecheck",
+      "exitCode": 0,
+      "seconds": 2.690957,
+      "log": "05-final-typecheck.log"
+    },
+    {
+      "check": "lint",
+      "exitCode": 0,
+      "seconds": 0.108778,
+      "log": "05-final-lint.log"
+    },
+    {
+      "check": "vitest",
+      "exitCode": 0,
+      "seconds": 2.534574,
+      "log": "05-final-vitest.log"
+    },
+    {
+      "check": "data",
+      "exitCode": 0,
+      "seconds": 0.168495,
+      "log": "05-final-data.log"
+    },
+    {
+      "check": "build",
+      "exitCode": 0,
+      "seconds": 1.530704,
+      "log": "05-final-build.log"
+    },
+    {
+      "check": "diff",
+      "exitCode": 0,
+      "seconds": 0.014611,
+      "log": "05-final-diff.log"
+    }
+  ]
+}

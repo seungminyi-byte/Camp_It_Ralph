@@ -43,7 +43,7 @@
 | R37 | 외부 API 정상/오류/지연 고정 회귀와 실제 연결 구분 | 결정적 mocked tests와 deployment smoke 별도 로그 | verified: 03~08고정응답회귀와09실제7API본문분리;기본6정상·AI오류·소스연속성명시 |
 | R38 | 타입·린트·전체 Vitest·데이터 검증·빌드 | 최종 커밋과 연결한 5종 명령/종료코드/로그 | verified: 최종제품135dd13/bb18284·47파일563검사/type/lint/data/build·최종Actions성공;관련원로그SHA대조 |
 | R39 | 공개 API 잘못된 형식·과도 입력·중복 요청 | endpoint별 입력 경계·body/size/rate/dedupe·실사용 영향 테스트 | verified: 입력/본문/중복·인스턴스보조제어회귀+09실제잘못된좌표/빈AI400/no-store;분산제한보장아님 |
-| R40 | 외부자료/AI 안전한 표시·비밀키 노출 방지 | DOM/URL sanitization 악성 fixture·번들/추적파일/log 비밀 스캔 | partial: 안전DOM/URL/AI·번들/소유43파일selected패턴0;11실제세션제출사본스캔남음 |
+| R40 | 외부자료/AI 안전한 표시·비밀키 노출 방지 | DOM/URL sanitization 악성 fixture·번들/추적파일/log 비밀 스캔 | verified: 안전DOM/URL·제품번들/선별파일검사 및11제출사본전행재스캔0·원문SHA표식대조;모든비밀형식부재보장아님 |
 | R41 | 발견 취약점 사용 경로·영향별 조치 | 구체적 재현/심각도/수정/재검증, 미해결 경계 | verified: 03~09실제사용경로반례→수정→검수;Edge리디렉션거부경계유지와운영기본조회복구 |
 | R42 | 새 폴더에서 문서만으로 설치·빌드·실행 | 깨끗한 재현 clone/log, 환경/설정 비밀 복제 없음 | verified:09새폴더/별도node_modules·Chromium·11명령0·551/17·IAB실행;이후새의존성없음/최종563 |
 | R43 | 작업 브랜치·PR 통한 반영·기존 권한 Vercel 배포 | PR 검토/병합·Actions 성공·배포 커밋/Ready/alias | verified: PR7/8/9정확head/최신base/merge·Actions35605415209 success·VercelReady/alias bb18284 |
@@ -52,18 +52,18 @@
 | R46 | 최대5페이지 발표자료·5분 대본 | 편집 PPTX/PDF·전페이지 렌더·대본 낭독/분량·검증 기능 일치 | verified: 편집PPTX5·PowerPoint네이티브PDF5·300초구성대본,root47검사·전5쪽;실제인간낭독미측정 명시 |
 | R47 | 실행 안내·예제 입력·실제 출력 PDF·검증 결과 | 사용자용 outputs와 저장소 재현 문서·파일 열기/링크 검사 | verified: docs/RUNNING·EXAMPLE_INPUT·최종11쪽운영PDF/입력JSON/검증요약·새clone79링크확인 |
 | R48 | 기존 재사용 범위와 이번 변경 | baseline 대비 구체적 기능/파일/데이터 표 및 PR diff | verified: ARCHITECTURE_REUSE 기준66e310b/03~08계승·변경표,09서버2곳/문구1곳과PRdiff |
-| R49 | 실제 주요 세션 JSONL·추가 에이전트 로그 원본 보존·제출 사본 | 세션 식별/해시·원본 보존·비밀정보 redaction 점검 manifest | partial: root+13완료실행자 실제세션식별/원본보존;11제출사본·비밀점검·ZIP남음 |
-| R50 | 별도 에이전트 산출물 단위 순차 실행→검증→수정→인계 | 에이전트 ID/실제 모델/파일·검수·인계 로그, 총괄외1 기본 | partial: 01~10 산출물13실행자순차수락·독립검수·인계;새11 최종감사 남음 |
-| R51 | 중요 결정 대안·반론 순차 검토·총괄 결론 | DECISIONS와 관련 에이전트 독립 검토 근거 | partial: G001~G019 대안·반론·총괄결론;11 최종감사·완료결정 남음 |
-| R52 | 품질 우선 모델 선택·실제 설정/위임 정확 기록 | 현재 지원목록과 선택이유·spawn 인수/결과 | partial: root Astra/ultra·완료13실행자Astra/xhigh 실제JSONL 확인;11 실제설정대조 남음 |
-| R53 | 공개/합성 자료만, 새 결제·권한 확대·파괴/제출 승인 | 사용 자료/작업 기록·미승인 경계, secret 미복제 | ongoing |
-| R54 | 로그인·결제·협업 백엔드·대규모 데이터 수집 제외 | diff·네트워크/데이터 작업 기록 | ongoing |
+| R49 | 실제 주요 세션 JSONL·추가 에이전트 로그 원본 보존·제출 사본 | 세션 식별/해시·원본 보존·비밀정보 redaction 점검 manifest | verified: 실제root+14실행자15세션원본보존·제출JSONL/ZIP·원문행/변환SHA대조;root최종응답/cutoff뒤기록제외 |
+| R50 | 별도 에이전트 산출물 단위 순차 실행→검증→수정→인계 | 에이전트 ID/실제 모델/파일·검수·인계 로그, 총괄외1 기본 | verified: 새실행자14개순차완료·수락/G020,독립533검사·실제final_answer/다음세션시각대조;병렬예외없음 |
+| R51 | 중요 결정 대안·반론 순차 검토·총괄 결론 | DECISIONS와 관련 에이전트 독립 검토 근거 | verified: G001~G020 대안·반론·최종감사독립검수와총괄결론 기록 |
+| R52 | 품질 우선 모델 선택·실제 설정/위임 정확 기록 | 현재 지원목록과 선택이유·spawn 인수/결과 | verified: rootAstra/ultra·실행자14개Astra/xhigh actual turn_context/계보대조 |
+| R53 | 공개/합성 자료만, 새 결제·권한 확대·파괴/제출 승인 | 사용 자료/작업 기록·미승인 경계, secret 미복제 | verified: 공개/합성자료·원본/비밀보존·기존권한내PR/배포,새결제/권한확대/대회제출없음 |
+| R54 | 로그인·결제·협업 백엔드·대규모 데이터 수집 제외 | diff·네트워크/데이터 작업 기록 | verified: 최종제품diff·작업내역에서범위외로그인/결제/협업백엔드/대규모수집추가없음 |
 | R55 | 사실/가정/미확인 구별, 공급/인허가/적합·절감효과 단정 금지 | 제품·보고서·AI·발표 문구 검수 및 대표 반례 | verified: 제품/보고서/AI/소개 및10 발표/대본에서 사실·합성조건·미확인/공급·허가/미측정절감 구분 |
-| R56 | GS/Team Attention 행사·OpenAI Goal/Subagents 공식 자료 참조 | 읽은 공식 자료 URL/시점/적용·미확인 조건 기록 | partial: 조사01 공식GS프로그램·OpenAI Goal/Subagents 원문 확인 |
-| R57 | 목표 원문·단계 기준·결정·증거·남은 일 파일 유지 | ralphathon 최신성·원문 해시·압축복구 검증 | partial: 원문SHA보존·10수락STATE/HANDOFF/DECISIONS/EVIDENCE/AGENT_LOG갱신;11완료상태정리 남음 |
-| R58 | 9/22 10:00 KST 미완료이면 안전정리·pause·상태 보고 | 단계 시각/잔여·마감 get_goal/update_goal 반환 상태 | ongoing |
-| R59 | 모두 완료 시 조기 종료, 미완료 허위 완료 금지 | 행별 evidence 직접 감사 후 complete 또는 시한 pause | pending |
-| R60 | 데모·데모영상·포스터 범위 밖 | 산출물 목록에 포함하지 않음 | ongoing |
+| R56 | GS/Team Attention 행사·OpenAI Goal/Subagents 공식 자료 참조 | 읽은 공식 자료 URL/시점/적용·미확인 조건 기록 | verified: 조사01 §9 공식GS/현행Ralphthon·TeamAttention공개자료·OpenAI Goal/Subagents참조;인증된팀별최신공지미확인 |
+| R57 | 목표 원문·단계 기준·결정·증거·남은 일 파일 유지 | ralphathon 최신성·원문 해시·압축복구 검증 | verified: 목표원문SHA·60행·G020·최종근거/로그/인계갱신;문서원격반영은마지막배포확인절차 |
+| R58 | 9/22 10:00 KST 미완료이면 안전정리·pause·상태 보고 | 단계 시각/잔여·마감 get_goal/update_goal 반환 상태 | conditional: 마감2026-09-22 10:00 전완료예정;미완료시pause지침유지,조기종료시발동안함 |
+| R59 | 모두 완료 시 조기 종료, 미완료 허위 완료 금지 | 행별 evidence 직접 감사 후 complete 또는 시한 pause | pending: 필수산출물검수완료;최종문서PR병합/원격대조후Goal complete 도구결과로종료확정 |
+| R60 | 데모·데모영상·포스터 범위 밖 | 산출물 목록에 포함하지 않음 | verified: 별도데모/데모영상/포스터를산출물에추가하지않음 |
 
 ## 주요 시나리오의 독립 기대값
 

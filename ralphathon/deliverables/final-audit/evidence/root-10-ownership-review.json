@@ -1,0 +1,428 @@
+{
+  "at": "2026-09-21T22:50:40.300448+09:00",
+  "pass": true,
+  "checks": [
+    {
+      "path": "outputs/presentation/manifest.json",
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pdf",
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/발표자료_검수결과.md",
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pptx",
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_대본_20260921.md",
+      "pass": true
+    },
+    {
+      "path": "work/Camp_It_Ralph/ralphathon/implementation/10-presentation.md",
+      "pass": true
+    },
+    {
+      "path": "work/evidence/10-final-checks.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/assets/report-page1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/build-final.log",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/build-v2.log",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/build-v3.log",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/build.mjs",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-20260921.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-20260921.pptx.inspect.ndjson",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v1.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v1.pptx.inspect.ndjson",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v2.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v2.pptx.inspect.ndjson",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v3.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/candidate-v3.pptx.inspect.ndjson",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/content.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/finalize_manifest.py",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/closed.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/editable-text.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/editable-text.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/final-pdf.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/open.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/open.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/pdf-export-result.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/pdf-export-settings.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/pdf-fonts-links.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/pypdf-warnings.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-2.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-3.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-4.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/native/slide-5.txt",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/prior/여기_DC_돼요_5분발표_v2.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/prior/여기_DC_돼요_5분발표_v3.pptx",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-1.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-2.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-3.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-4.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-5.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/20260921-slide-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/native-pdf-1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/native-pdf-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/native-pdf-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/native-pdf-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/native-pdf-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-1.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-2.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-3.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-4.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-5.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v1-slide-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-1.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-2.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-3.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-4.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-5.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v2-slide-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-1.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-1.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-2.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-2.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-3.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-3.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-4.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-4.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-5.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/render/v3-slide-5.png",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/validation-20260921.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/validation-v2.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/validation-v3.json",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/verification.log",
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/verify_and_package.py",
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pptx",
+      "unchanged_since_root_review": true,
+      "pass": true
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pdf",
+      "unchanged_since_root_review": true,
+      "pass": true
+    },
+    {
+      "path": "work/presentation-build/content.json",
+      "unchanged_since_root_review": true,
+      "pass": true
+    },
+    {
+      "name": "script_all_five_exact",
+      "pass": true
+    },
+    {
+      "name": "script_timing_disclosures",
+      "pass": true
+    },
+    {
+      "name": "script_relative_links",
+      "pass": true,
+      "links": [
+        {
+          "target": "../09-운영검증요약.md",
+          "exists": true,
+          "within_outputs": true
+        },
+        {
+          "target": "../operating-report-example/여기_DC_돼요_운영조회_예시.pdf",
+          "exists": true,
+          "within_outputs": true
+        }
+      ]
+    },
+    {
+      "name": "only_expected_worktree_changes",
+      "pass": true,
+      "paths": [
+        "ralphathon/AGENT_LOG.jsonl",
+        "ralphathon/HANDOFF.md",
+        "ralphathon/STATE.md",
+        "ralphathon/implementation/10-presentation.md"
+      ]
+    }
+  ],
+  "count": 99,
+  "manifest_sha256": "37a61217587f10bd2ab1c4f153477ed8397151a7840726a6cee6cfd8c5365617",
+  "manifest_self_excluded": "work/evidence/10-owned-files.json",
+  "symlink": "work/presentation-build/node_modules -> bundled runtime dependencies (not copied or modified)",
+  "editing_stopped": true
+}

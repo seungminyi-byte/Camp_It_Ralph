@@ -1,0 +1,86 @@
+[
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-17 001.jpeg",
+    "original_sha256": "4d6eb49ac492b2334c749547eac6c7f5464abd9fc82a4090131bc81b74e6f9e4",
+    "path": "prototype/public/images/team/team-front-480.webp",
+    "width": 480,
+    "height": 640,
+    "bytes": 54716,
+    "sha256": "27f5da223f1777a9d057fa9f7ec45b57fbe93b5d74312c1bb22f9ccce11f167f",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-17 001.jpeg",
+    "original_sha256": "4d6eb49ac492b2334c749547eac6c7f5464abd9fc82a4090131bc81b74e6f9e4",
+    "path": "prototype/public/images/team/team-front-800.webp",
+    "width": 800,
+    "height": 1067,
+    "bytes": 120294,
+    "sha256": "039f5cb20c9f11740d64e4da3ec13a9d1791674cba54a02de7dd898a5c853641",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-17 001.jpeg",
+    "original_sha256": "4d6eb49ac492b2334c749547eac6c7f5464abd9fc82a4090131bc81b74e6f9e4",
+    "path": "prototype/public/images/team/team-front-1200.webp",
+    "width": 1200,
+    "height": 1600,
+    "bytes": 222078,
+    "sha256": "760e5cba62c769a6206e2948fb51b0f556eb11609668c7c0cf2c540839f11348",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-18 002.jpeg",
+    "original_sha256": "3ffe61a386b60814af29c0c352bb32cc70071a84bbe2c331707c7972e78d50f5",
+    "path": "prototype/public/images/team/team-back-wide-800.webp",
+    "width": 800,
+    "height": 600,
+    "bytes": 81324,
+    "sha256": "260d082bf8eafdbeae380e198ade25f6ecd12deecdad5941a3ec22a52e8a5efe",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-18 002.jpeg",
+    "original_sha256": "3ffe61a386b60814af29c0c352bb32cc70071a84bbe2c331707c7972e78d50f5",
+    "path": "prototype/public/images/team/team-back-wide-1440.webp",
+    "width": 1440,
+    "height": 1080,
+    "bytes": 184426,
+    "sha256": "0b0abc59ff262f1c38f15df2814b1dab7eeecd59135886b96b6d23d34dafb74d",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-18 003.jpeg",
+    "original_sha256": "41cfa8dfee3e49defef599436277a0213f0d224ec915f4eb0a4e93c790cf3a03",
+    "path": "prototype/public/images/team/team-back-portrait-480.webp",
+    "width": 480,
+    "height": 640,
+    "bytes": 52320,
+    "sha256": "8c9fe2b582d3f79d17a656b77e50b6f1ba384cd98a2e21d4b47dc4c2b15f11dd",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  },
+  {
+    "original": "KakaoTalk_Photo_2026-09-21-16-32-18 003.jpeg",
+    "original_sha256": "41cfa8dfee3e49defef599436277a0213f0d224ec915f4eb0a4e93c790cf3a03",
+    "path": "prototype/public/images/team/team-back-portrait-800.webp",
+    "width": 800,
+    "height": 1067,
+    "bytes": 116158,
+    "sha256": "fc112da0c75fb604b9fa8a8f47ed5e396cae0fce05e551487c08a07cbd8ae056",
+    "exif_present": false,
+    "crop": "none",
+    "orientation_applied": true
+  }
+]

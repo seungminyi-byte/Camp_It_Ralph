@@ -1,0 +1,141 @@
+{
+  "at": "2026-09-21T13:28:23.427593+00:00",
+  "sha256": "a629910fcb85896769ec3466bf8dd765f4d7b8260542564ae8a7e7dc98c49801",
+  "pdf": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/outputs/operating-report-example/여기_DC_돼요_운영조회_예시.pdf",
+  "deployment_sha": "bb1828450564813d9d91d23142409fa480529106",
+  "pages": 11,
+  "checks": {
+    "expected_sha": true,
+    "deployed_sha_matches": true,
+    "a4": true,
+    "pages11": true,
+    "first_page_five": true,
+    "first_numeric": true,
+    "two_complete_financial_matrices": true,
+    "one_missing_financial_matrix": true,
+    "two_candidates": true,
+    "no_ai_appendix": true,
+    "incomplete_costs": true,
+    "source_label_updated": true,
+    "known_source_dates": true,
+    "no_replacement_glyph": true
+  },
+  "expected_financial_matrix": "연금리/지연6개월12개월24개월4.5%22.5억원45억원90억원6%30억원60억원120억원6.5%32.5억원65억원130억원",
+  "expected_missing_matrix": "연금리/지연6개월12개월24개월4.5%계산보류계산보류계산보류6%계산보류계산보류계산보류6.5%계산보류계산보류계산보류",
+  "automated_pass": true,
+  "visual_review": {
+    "at": "2026-09-21T13:28:52.031533+00:00",
+    "reviewer": "root",
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "contact_images_opened": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "pass": true,
+    "notes": "All 11 pages inspected using six full contact images. Korean glyphs, first-page five sections, both numeric and unentered finance tables, updated source labels on pages7/9, source paragraphs and page numbering are readable; no clipping, overlap or omitted blocks observed."
+  },
+  "render_hashes": [
+    {
+      "file": "contact-01.png",
+      "bytes": 203845,
+      "sha256": "af84d86ffbf38939d7fc4b393b8d44db6b955e57d76b0dda1583e30dc3f20d30"
+    },
+    {
+      "file": "contact-02.png",
+      "bytes": 294675,
+      "sha256": "6bfc5da6be0b4f72817ae4e1130b8e23eecf9adb9bf4967f2aa0c726af30581c"
+    },
+    {
+      "file": "contact-03.png",
+      "bytes": 221659,
+      "sha256": "d069ecb6313d0dea42d1c4eb3b024c989ec22bd673b7196962ab41daf606a186"
+    },
+    {
+      "file": "contact-04.png",
+      "bytes": 290697,
+      "sha256": "d59e86bd050cf53bb892bf4075ab143803e1f0ae7d2c8c3a7557b9b92f30090e"
+    },
+    {
+      "file": "contact-05.png",
+      "bytes": 283282,
+      "sha256": "9933464b449b33dccbe08d1e2d4280d83ac357886918b7f970b7a57c19432078"
+    },
+    {
+      "file": "contact-06.png",
+      "bytes": 124881,
+      "sha256": "aeb3818ec8c57e06d8286db22f4740fc4f0073101afb20e1cafc3d1355450413"
+    },
+    {
+      "file": "page-01.png",
+      "bytes": 105252,
+      "sha256": "65282e0aaabd9dc32d266aa4641ace305c197bb5a860399da04c5186d0792b98"
+    },
+    {
+      "file": "page-02.png",
+      "bytes": 95912,
+      "sha256": "43984f5b0bad0abfed1446eade722253b819d60c2bf834956ed06f29877095bc"
+    },
+    {
+      "file": "page-03.png",
+      "bytes": 160773,
+      "sha256": "f20b4fdec8b8fab8bbc75c996633f42060b1c2520d6dc8b3b3c52c52188b4178"
+    },
+    {
+      "file": "page-04.png",
+      "bytes": 130108,
+      "sha256": "c5c77fa3847a31b47f6cecdfd6d8752253fe81604a22cf89005f07fc084583a4"
+    },
+    {
+      "file": "page-05.png",
+      "bytes": 164317,
+      "sha256": "0cdec5fff81404f9c111f84b2ecb5fe0583f452e065014ba99526402500db427"
+    },
+    {
+      "file": "page-06.png",
+      "bytes": 49370,
+      "sha256": "95804e256ddeb3ea1ca3d46d9f89add3b2c4e7b600d5431392c586e177aed01a"
+    },
+    {
+      "file": "page-07.png",
+      "bytes": 98201,
+      "sha256": "c8068f0063a229acb5c1b910efc384f24415c2ded04480b97d7a7efbf2e39d70"
+    },
+    {
+      "file": "page-08.png",
+      "bytes": 190891,
+      "sha256": "0964edeb5e8306c151377a9decb55d6849dfd19f84fc7cc0e105cdc2a9628611"
+    },
+    {
+      "file": "page-09.png",
+      "bytes": 120780,
+      "sha256": "6236146dc9f664a8ce1e28a1ffada8147a6a8251753732d8f3c0666abd2ab026"
+    },
+    {
+      "file": "page-10.png",
+      "bytes": 165650,
+      "sha256": "f7a3bdc4311b775e01434f1ce0c620d63d31ab02949cfe85c5866181590a6991"
+    },
+    {
+      "file": "page-11.png",
+      "bytes": 121757,
+      "sha256": "6b694273d1406bb442a2262445fd14236f88b91a43d8d871a73fb8b9d625ac85"
+    }
+  ],
+  "pass": true
+}

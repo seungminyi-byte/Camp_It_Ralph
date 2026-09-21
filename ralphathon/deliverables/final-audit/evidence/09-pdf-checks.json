@@ -1,0 +1,232 @@
+{
+  "at": "2026-09-21T13:27:46.583246+00:00",
+  "pdf": "여기_DC_돼요_운영조회_예시.pdf",
+  "sha256": "a629910fcb85896769ec3466bf8dd765f4d7b8260542564ae8a7e7dc98c49801",
+  "pages": 11,
+  "pageBounds": [
+    {
+      "page": 1,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1019,
+      "outside": 0
+    },
+    {
+      "page": 2,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 879,
+      "outside": 0
+    },
+    {
+      "page": 3,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1672,
+      "outside": 0
+    },
+    {
+      "page": 4,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1253,
+      "outside": 0
+    },
+    {
+      "page": 5,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1655,
+      "outside": 0
+    },
+    {
+      "page": 6,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 512,
+      "outside": 0
+    },
+    {
+      "page": 7,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 853,
+      "outside": 0
+    },
+    {
+      "page": 8,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1983,
+      "outside": 0
+    },
+    {
+      "page": 9,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1244,
+      "outside": 0
+    },
+    {
+      "page": 10,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1685,
+      "outside": 0
+    },
+    {
+      "page": 11,
+      "width": 594.95996,
+      "height": 841.91998,
+      "characters": 1298,
+      "outside": 0
+    }
+  ],
+  "checks": {
+    "a4": true,
+    "noEmptyOrOutsideText": true,
+    "noReplacementGlyph": true,
+    "firstPageFive": true,
+    "area15000": true,
+    "short5000": true,
+    "finance60": true,
+    "noAiAppendix": true,
+    "automaticSourceLabel": true,
+    "missingCostsPreserved": true,
+    "sourceDates": true,
+    "allFinanceCellsIndependent": true
+  },
+  "matrices": [
+    {
+      "actual": [
+        [
+          "22.5억원",
+          "45억원",
+          "90억원"
+        ],
+        [
+          "30억원",
+          "60억원",
+          "120억원"
+        ],
+        [
+          "32.5억원",
+          "65억원",
+          "130억원"
+        ]
+      ],
+      "expected": [
+        [
+          "22.5억원",
+          "45억원",
+          "90억원"
+        ],
+        [
+          "30억원",
+          "60억원",
+          "120억원"
+        ],
+        [
+          "32.5억원",
+          "65억원",
+          "130억원"
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "actual": [
+        [
+          "22.5억원",
+          "45억원",
+          "90억원"
+        ],
+        [
+          "30억원",
+          "60억원",
+          "120억원"
+        ],
+        [
+          "32.5억원",
+          "65억원",
+          "130억원"
+        ]
+      ],
+      "expected": [
+        [
+          "22.5억원",
+          "45억원",
+          "90억원"
+        ],
+        [
+          "30억원",
+          "60억원",
+          "120억원"
+        ],
+        [
+          "32.5억원",
+          "65억원",
+          "130억원"
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "actual": [
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ],
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ],
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ]
+      ],
+      "expected": [
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ],
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ],
+        [
+          "계산 보류",
+          "계산 보류",
+          "계산 보류"
+        ]
+      ],
+      "pass": true
+    }
+  ],
+  "automatedPass": true,
+  "visualReviewRequired": false,
+  "visualReview": {
+    "allPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "method": "Poppler110dpi; every one of six contact sheets visually inspected",
+    "pass": true,
+    "notes": "Korean glyphs, first-page five items, numeric/missing data, labels on pages7/9, complete source rows, page numbers and absence of clipping verified."
+  }
+}

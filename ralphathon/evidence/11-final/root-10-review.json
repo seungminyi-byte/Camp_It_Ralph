@@ -1,0 +1,451 @@
+{
+  "at": "2026-09-21T22:46:09.265317+09:00",
+  "status": "pass",
+  "reviewer": "root",
+  "files": [
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pptx",
+      "bytes": 1282523,
+      "sha256": "e072cbcd2a7bb49795e61d9f0e2b3034dd2f273a9b8ba2ded20aeb3109d83c59"
+    },
+    {
+      "path": "outputs/presentation/여기_DC_돼요_5분발표_20260921.pdf",
+      "bytes": 1428564,
+      "sha256": "363ced907705384d62beea8aad280fe35fd5007b488a3eaf3662826197bfca56"
+    },
+    {
+      "path": "work/presentation-build/content.json",
+      "bytes": 9342,
+      "sha256": "477c204e74f232fa1fb04fb0d6e28a2d055c586414df1d0e6d4d19b6941474f0"
+    }
+  ],
+  "checks": [
+    {
+      "name": "one_final_pptx",
+      "pass": true,
+      "details": [
+        "여기_DC_돼요_5분발표_20260921.pptx"
+      ]
+    },
+    {
+      "name": "one_final_pdf",
+      "pass": true,
+      "details": [
+        "여기_DC_돼요_5분발표_20260921.pdf"
+      ]
+    },
+    {
+      "name": "zip_crc",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "five_slides",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "five_notes",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "slide_1_editable_text",
+      "pass": true,
+      "details": {
+        "slide": 1,
+        "editable_text_shapes": 7,
+        "picture_shapes": 0
+      }
+    },
+    {
+      "name": "slide_2_editable_text",
+      "pass": true,
+      "details": {
+        "slide": 2,
+        "editable_text_shapes": 6,
+        "picture_shapes": 1
+      }
+    },
+    {
+      "name": "slide_3_editable_text",
+      "pass": true,
+      "details": {
+        "slide": 3,
+        "editable_text_shapes": 5,
+        "picture_shapes": 1
+      }
+    },
+    {
+      "name": "slide_4_editable_text",
+      "pass": true,
+      "details": {
+        "slide": 4,
+        "editable_text_shapes": 11,
+        "picture_shapes": 1
+      }
+    },
+    {
+      "name": "slide_5_editable_text",
+      "pass": true,
+      "details": {
+        "slide": 5,
+        "editable_text_shapes": 9,
+        "picture_shapes": 1
+      }
+    },
+    {
+      "name": "public_site_hyperlink",
+      "pass": true,
+      "details": [
+        "https://grand-site-dc.vercel.app"
+      ]
+    },
+    {
+      "name": "notes_1_script_exact",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_1_sources_present",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_2_script_exact",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_2_sources_present",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_3_script_exact",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_3_sources_present",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_4_script_exact",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_4_sources_present",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_5_script_exact",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "notes_5_sources_present",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "five_pdf_pages",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_1_wide_slide_ratio",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_1_has_korean",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_1_no_replacement_glyph",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_1_all_native_text_present",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "pdf_2_wide_slide_ratio",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_2_has_korean",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_2_no_replacement_glyph",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_2_all_native_text_present",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "pdf_3_wide_slide_ratio",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_3_has_korean",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_3_no_replacement_glyph",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_3_all_native_text_present",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "pdf_4_wide_slide_ratio",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_4_has_korean",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_4_no_replacement_glyph",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_4_all_native_text_present",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "pdf_5_wide_slide_ratio",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_5_has_korean",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_5_no_replacement_glyph",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "pdf_5_all_native_text_present",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "numeric_example_values",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "independent_area_and_finance",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "team_status_boundaries",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "ai_and_effect_boundaries",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "exact_total_300s",
+      "pass": true,
+      "details": [
+        47,
+        49,
+        72,
+        78,
+        54
+      ]
+    }
+  ],
+  "check_count": 47,
+  "failed": [],
+  "native_objects": [
+    {
+      "slide": 1,
+      "editable_text_shapes": 7,
+      "picture_shapes": 0
+    },
+    {
+      "slide": 2,
+      "editable_text_shapes": 6,
+      "picture_shapes": 1
+    },
+    {
+      "slide": 3,
+      "editable_text_shapes": 5,
+      "picture_shapes": 1
+    },
+    {
+      "slide": 4,
+      "editable_text_shapes": 11,
+      "picture_shapes": 1
+    },
+    {
+      "slide": 5,
+      "editable_text_shapes": 9,
+      "picture_shapes": 1
+    }
+  ],
+  "timing": [
+    {
+      "slide": 1,
+      "allocated_seconds": 47,
+      "characters_including_spaces": 284,
+      "characters_without_spaces": 219,
+      "characters_per_minute_including_pauses": 279.6
+    },
+    {
+      "slide": 2,
+      "allocated_seconds": 49,
+      "characters_including_spaces": 298,
+      "characters_without_spaces": 229,
+      "characters_per_minute_including_pauses": 280.4
+    },
+    {
+      "slide": 3,
+      "allocated_seconds": 72,
+      "characters_including_spaces": 448,
+      "characters_without_spaces": 341,
+      "characters_per_minute_including_pauses": 284.2
+    },
+    {
+      "slide": 4,
+      "allocated_seconds": 78,
+      "characters_including_spaces": 501,
+      "characters_without_spaces": 380,
+      "characters_per_minute_including_pauses": 292.3
+    },
+    {
+      "slide": 5,
+      "allocated_seconds": 54,
+      "characters_including_spaces": 352,
+      "characters_without_spaces": 267,
+      "characters_per_minute_including_pauses": 296.7
+    }
+  ],
+  "human_reading_measured": false,
+  "pdf_extraction_normalization": "NFKC; remove whitespace and U+0000 emitted by native PowerPoint PDF exporter. Raw extraction warnings and initial mismatches retained separately.",
+  "visual_review": {
+    "status": "pass",
+    "reviewer": "root",
+    "at": "2026-09-21T22:46:44.069915+09:00",
+    "pdf_pages_opened": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "native_powerpoint_screenshots_reviewed": [
+      "open",
+      "editable-text",
+      "slide-2",
+      "slide-3",
+      "slide-4",
+      "slide-5"
+    ],
+    "findings": "All five final native PDF pages legible; no clipped text, overlaps, missing Korean glyphs, distorted people, or incorrect stated figures. Real UI and actual 11-page operating report are labeled. Native PowerPoint screenshots show five slides and editable selected heading, Nanum Gothic 36.8pt, with no repair dialog. Root reviewed screenshots supplied by the executing agent; root did not operate PowerPoint.",
+    "files": [
+      {
+        "path": "work/presentation-build/render/native-pdf-1.png",
+        "sha256": "af8869f6f075dc39f84880580d922913d411844acc04f179309b107a5c790f5c",
+        "bytes": 108766
+      },
+      {
+        "path": "work/presentation-build/render/native-pdf-2.png",
+        "sha256": "111deb7d5288c1fb601111071889a4ab8beecbacabb1c7467be0b4e22d9129f9",
+        "bytes": 852442
+      },
+      {
+        "path": "work/presentation-build/render/native-pdf-3.png",
+        "sha256": "aa1e59ee24fb14a7c38181b327d163a6ab2edf2ddaf7e545929165b7cb600bf1",
+        "bytes": 1015479
+      },
+      {
+        "path": "work/presentation-build/render/native-pdf-4.png",
+        "sha256": "e668f5f6bd71b9260b17b4faf703ecad0a18d2e6606fd639ad036fead3824e4d",
+        "bytes": 211253
+      },
+      {
+        "path": "work/presentation-build/render/native-pdf-5.png",
+        "sha256": "851be6adb12c8c4ca0879c9488893d25953a1ba970449549f84762b1713f3c92",
+        "bytes": 514720
+      },
+      {
+        "path": "work/presentation-build/native/open.png",
+        "sha256": "ac9133ef643c4a46dcce0579d2fb6fbafe7819892bf111c89c629e610bad97bb",
+        "bytes": 149794
+      },
+      {
+        "path": "work/presentation-build/native/editable-text.png",
+        "sha256": "c20d9e0aec0b843b96d704ee0d0f402b904fdcd59f322f1d1e75f23a02a23ff8",
+        "bytes": 188028
+      },
+      {
+        "path": "work/presentation-build/native/slide-2.png",
+        "sha256": "e9cd88ff65ea3a8b38be959fd91649e5b35c170809ed8b5e20963203f53b22ec",
+        "bytes": 187873
+      },
+      {
+        "path": "work/presentation-build/native/slide-3.png",
+        "sha256": "0fd43612c2ffad5dbe12b9b165ae4bd9de6f202e11203616466cf1818bd01702",
+        "bytes": 203636
+      },
+      {
+        "path": "work/presentation-build/native/slide-4.png",
+        "sha256": "a16951e7b5d3c9c47342444e323dc539db9a086a2ae33d9794da8b7884a03e1a",
+        "bytes": 170849
+      },
+      {
+        "path": "work/presentation-build/native/slide-5.png",
+        "sha256": "dc82908f39fe75ac2f68d5d2d624d4ac71d21a3f1d87cb9c0ba1f2f0475e710f",
+        "bytes": 178628
+      }
+    ]
+  },
+  "pdfinfo_independent": {
+    "exit_code": 0,
+    "pages": 5,
+    "page_size_points": [
+      960,
+      540
+    ],
+    "encrypted": false,
+    "javascript": false,
+    "suspects": false,
+    "producer": "macOS Quartz PDFContext",
+    "evidence": "work/evidence/root-10-pdfinfo.log"
+  },
+  "extraction_boundary": "pypdf reported native PDF zero-offset unused object warnings; content parses, all native text matches after NFKC/whitespace/NUL normalization, Poppler pdfinfo reports five pages without error, and rendered pages were directly reviewed. Initial mismatch result retained. pdftotext was not on PATH and PyMuPDF was unavailable; neither was claimed as performed."
+}

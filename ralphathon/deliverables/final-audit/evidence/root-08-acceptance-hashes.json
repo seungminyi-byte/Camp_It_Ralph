@@ -1,0 +1,1521 @@
+{
+  "at": "2026-09-21T12:49:38.921617+00:00",
+  "checks": [
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/.gitignore",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/README.md",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/accessibility.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/ai-pending.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/fixtures.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/helpers.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/inspect-pdf.py",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/lifecycle.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/numbers.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/performance.mjs",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/print-cases.mjs",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/recovery.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/security-scan.mjs",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/security.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/server.mjs",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/e2e/workflow.spec.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/package-lock.json",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/package.json",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/playwright.config.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/App.tsx",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/components/CompareDialog.tsx",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/index.css",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/site/ReviewErrorBoundary.tsx",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/site/shell.css",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/src/test/loadData.ts",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/prototype/tsconfig.e2e.json",
+      "pass_": true
+    },
+    {
+      "kind": "owned-file",
+      "path": "work/Camp_It_Ralph/ralphathon/implementation/08-integration-quality.md",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/README.md",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/ai.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/empty.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/long-partial.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/manifest.json",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/numeric.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "delivered-output",
+      "path": "outputs/qa-report-examples/zero.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "final-checks",
+      "path": "work/evidence/08-final-checks.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-ai-pending.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-1440-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-map.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-390-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-map.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-final/axe-768-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-axe-summary.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-bootstrap-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-bootstrap.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-browser-install-plan.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-build-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-data-validation-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-diff-check-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-diff-check-last.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-e2e-attachments.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-e2e-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-e2e-second.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-fixture-requests.jsonl",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-gates.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-iab-1440-compare.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-iab-390-keyboard.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-iab-768-compare.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-iab-observations.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/results.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/.last-run.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-1440/error-context.md",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-1440/test-failed-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-1440/trace.zip",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-768/error-context.md",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-768/test-failed-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/accessibility-R35-axe-major-states-768/trace.zip",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-1440/error-context.md",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-1440/test-failed-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-1440/trace.zip",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-390/error-context.md",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-390/test-failed-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-390/trace.zip",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-768/error-context.md",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-768/test-failed-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-initial-red/test-results/workflow-R12-R24-R32-R34-complete-workflow-768/trace.zip",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-lifecycle-initial.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-lifecycle-recheck.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-lint-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-lint-last.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-lint-probe.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-2.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-3.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-4.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-5.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai-6.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai.extracted.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/ai.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/checks.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/ai-01-02.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/ai-03-04.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/ai-05-06.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/empty-01-02.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/empty-03-04.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/empty-05-06.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-01-02.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-03-04.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-05-06.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-07-08.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-09-10.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-11-12.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-13-14.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-15-16.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-17-18.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-19-20.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-21-22.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-23-24.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/long-partial-25-25.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/numeric-01-02.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/numeric-03-04.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/numeric-05-06.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/numeric-07-08.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/numeric-09-09.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/zero-01-02.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/zero-03-04.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/zero-05-06.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/contact/zero-07-07.jpg",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-2.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-3.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-4.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-5.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty-6.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty.extracted.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/empty.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-01.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-02.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-03.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-04.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-05.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-06.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-07.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-08.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-09.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-10.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-11.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-12.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-13.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-14.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-15.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-16.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-17.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-18.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-19.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-20.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-21.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-22.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-23.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-24.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial-25.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial.extracted.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/long-partial.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/manifest.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-2.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-3.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-4.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-5.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-6.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-7.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-8.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric-9.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric.extracted.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/numeric.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/page-review.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/pdf-validation.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-1.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-2.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-3.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-4.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-5.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-6.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero-7.png",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero.extracted.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero.pdf",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-final/zero.txt",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-generation.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-pdf-inspection.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-performance-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-performance.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-performance.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-playwright-final.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-security-e2e.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-security-scan-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-security-scan.json",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-typecheck-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-typecheck-probe.log",
+      "pass_": true
+    },
+    {
+      "kind": "proof",
+      "path": "work/evidence/08-vitest-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-typecheck-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-lint-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-vitest-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-data-validation-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-build-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-diff-check-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-security-scan-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "gate-log",
+      "path": "work/evidence/08-e2e-final.log",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-map.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-team.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-home.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-compare.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-768-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-expanded-inputs.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-map.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-review-result.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-review-empty.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-project.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-390-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "raw-axe",
+      "path": "work/evidence/08-axe-final/axe-1440-report.json",
+      "pass_": true
+    },
+    {
+      "kind": "independent-pdf-hash",
+      "path": "empty",
+      "pass_": true
+    },
+    {
+      "kind": "independent-pdf-hash",
+      "path": "numeric",
+      "pass_": true
+    },
+    {
+      "kind": "independent-pdf-hash",
+      "path": "zero",
+      "pass_": true
+    },
+    {
+      "kind": "independent-pdf-hash",
+      "path": "long-partial",
+      "pass_": true
+    },
+    {
+      "kind": "independent-pdf-hash",
+      "path": "ai",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/index.html",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/404.html",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/icons.svg",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/favicon.svg",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/constants.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/pop_grid.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/data_centers.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/emd_power.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/terrain_grid.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/substations_osm.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/households_grid.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/cases.csv",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/permit_delay.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/schools.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/dc_stats.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/emd_centroids.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/news_signal.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/regulations.csv",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/scenarios.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/data/protected_zones.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/assets/ReviewApp-CdEnWCwE.css",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/assets/ReviewApp-BHw_eluz.js",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/assets/index-DrCQO3hg.js",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/assets/index-B5qVm_Aq.css",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/product/review-example.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/product/review-example-mobile.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/product/review-example.provenance.json",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-back-portrait-800.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-front-1200.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-front-480.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-back-wide-800.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-back-wide-1440.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-front-800.webp",
+      "pass_": true
+    },
+    {
+      "kind": "production-file",
+      "path": "work/Camp_It_Ralph/prototype/dist/images/team/team-back-portrait-480.webp",
+      "pass_": true
+    }
+  ],
+  "coreContracts": {
+    "at": "2026-09-21T12:49:38.844078+00:00",
+    "base": "9db8ccf",
+    "scope": "Independent non-mutation audit of established calculation, online, AI, session/report and bundled-data contracts before package08 acceptance; not a new functional test.",
+    "correction": "Initial audit named nonexistent data-pack/processed. git ls-files confirms data-pack/out; prior false preserved as audit path error, not product failure.",
+    "groups": [
+      {
+        "group": "prototype/src/scoring",
+        "trackedFiles": 11,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/lib",
+        "trackedFiles": 31,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/genai",
+        "trackedFiles": 11,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/hooks",
+        "trackedFiles": 9,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/report",
+        "trackedFiles": 5,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/review",
+        "trackedFiles": 11,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/src/compare",
+        "trackedFiles": 2,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/api",
+        "trackedFiles": 10,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "data-pack/curated",
+        "trackedFiles": 5,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "data-pack/out",
+        "trackedFiles": 11,
+        "changed": [],
+        "pass_": true
+      },
+      {
+        "group": "prototype/public/data",
+        "trackedFiles": 16,
+        "changed": [],
+        "pass_": true
+      }
+    ],
+    "pass_": true
+  },
+  "allPassed": true,
+  "summary": {
+    "delivered-output": 7,
+    "final-checks": 1,
+    "gate-log": 8,
+    "independent-pdf-hash": 5,
+    "owned-file": 27,
+    "proof": 178,
+    "raw-axe": 26,
+    "production-file": 34
+  }
+}
