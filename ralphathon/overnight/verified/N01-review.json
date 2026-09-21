@@ -1,0 +1,27 @@
+{
+  "_provenance": {
+    "source_id": "S-3204f031177f",
+    "source_bytes": 379,
+    "source_sha256": "e79ddecceda8c40709fb9eb8ae1f3acf0640146ae55163c84326a43ad0f5a2cd"
+  },
+  "selected": {
+    "at": "2026-09-22T00:10:56.345858+09:00",
+    "N01_accepted": true,
+    "owned_hashes_verified": 25,
+    "product_diff_zero": true,
+    "official_error_types_independently_read": 27,
+    "baseline_pass": true,
+    "live_ai_recovered": false
+  },
+  "allowlistedFields": [
+    "at",
+    "N01_accepted",
+    "owned_hashes_verified",
+    "product_diff_zero",
+    "official_error_types_independently_read",
+    "baseline_pass",
+    "live_ai_recovered"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}

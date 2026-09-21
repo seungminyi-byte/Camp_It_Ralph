@@ -1,0 +1,43 @@
+{
+  "_provenance": {
+    "source_id": "S-4c957cdba39c",
+    "source_bytes": 679,
+    "source_sha256": "c7df1f585d3062b85d5bb382d68ac5691f4bca23e9ac48cf10f84389f5751ccf"
+  },
+  "selected": {
+    "at": "2026-09-22T01:01:13.956862+09:00",
+    "decision": "G029",
+    "accepted": true,
+    "regularFilesVerified": 59,
+    "symlinksVerified": 452,
+    "candidateFilesVerified": 8,
+    "independentScenarioGroups": 12,
+    "syntheticFetches": 29,
+    "externalRequests": 0,
+    "blockingFindings": 0,
+    "documentationErratum": {
+      "source": "N09 report I01",
+      "before": "diagnostic 13 fields",
+      "corrected": "diagnostic 12 fields",
+      "basis": "Actual helper object and independent I01 strict keys assertion both enumerate 12; original child report retained as handed off."
+    }
+  },
+  "allowlistedFields": [
+    "at",
+    "decision",
+    "accepted",
+    "regularFilesVerified",
+    "symlinksVerified",
+    "candidateFilesVerified",
+    "independentScenarioGroups",
+    "syntheticFetches",
+    "externalRequests",
+    "blockingFindings",
+    "documentationErratum.source",
+    "documentationErratum.before",
+    "documentationErratum.corrected",
+    "documentationErratum.basis"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}

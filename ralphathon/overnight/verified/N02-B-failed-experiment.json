@@ -1,0 +1,114 @@
+{
+  "note": "정확한 플랫폼 ID 일치는 확인되지 않았습니다. 배포·경로·시간창 상관의 한계를 유지하며 프롬프트·헤더·응답 원문은 제외했습니다.",
+  "probe": {
+    "_provenance": {
+      "source_id": "S-78a2679707e7",
+      "source_bytes": 1277,
+      "source_sha256": "e58cd362a9d080270a11c684ac7c6ce36cd4dc938da9bb2cdc2d1dc115efa7c2"
+    },
+    "selected": {
+      "deploymentSha": "5b843f8b328f9d64b363e57855e694e0f1be086f",
+      "deploymentId": "dpl_5CEPTrLkPgEAmLsaN33k57VJWPwx",
+      "requestsAreLive": true,
+      "inferenceRequests": 1,
+      "noCredentialsRead": true,
+      "results": [
+        {
+          "at": "2026-09-21T16:07:18.241175+00:00",
+          "seconds": 0.82,
+          "status": 502,
+          "bytes": 20,
+          "streamOutcome": "http-error"
+        }
+      ]
+    },
+    "allowlistedFields": [
+      "deploymentSha",
+      "deploymentId",
+      "requestsAreLive",
+      "inferenceRequests",
+      "noCredentialsRead",
+      "results[].at",
+      "results[].seconds",
+      "results[].status",
+      "results[].bytes",
+      "results[].streamOutcome"
+    ],
+    "missingFields": []
+  },
+  "diagnostic": {
+    "_provenance": {
+      "source_id": "S-7040a4a27ad7",
+      "source_bytes": 1712,
+      "source_sha256": "36adcf3fa2f14e2ed6f44554444bab6d72651ca990da8c4eb2dee4ff3279b8b8"
+    },
+    "selected": {
+      "observedAtUtc": "2026-09-21T16:08:11.151927+00:00",
+      "rawSha256": "1b92e2d8265726ce07528167c986ce38c6a6e7ea73ea3adfdca1a7540acac2e6",
+      "rawSaved": false,
+      "requestEnvelopeCount": 1,
+      "observations": [
+        {
+          "deploymentMatches": true,
+          "methodMatches": true,
+          "pathMatches": true,
+          "statusMatches": true,
+          "productionMatches": true,
+          "domainMatches": true,
+          "traceIdExactHeaderMatch": false,
+          "idExactHeaderMatch": false,
+          "canonicalEventCount": 1,
+          "records": [
+            {
+              "event": "ai_generation_failure",
+              "requestAtUtc": "2026-09-21T16:07:18.678Z",
+              "elapsedMs": 290,
+              "phase": "upstream_http",
+              "localCode": "UPSTREAM_UNAVAILABLE",
+              "upstreamHttpStatus": 400,
+              "upstreamCode": null,
+              "upstreamErrorType": "unknown",
+              "errorLocation": "none",
+              "errorShape": "missing",
+              "requestedModels": [
+                "google/gemma-4-31b-it:free",
+                "nvidia/nemotron-3.5-lightning:free",
+                "google/gemma-4-26b-a4b-it:free",
+                "openrouter/free"
+              ],
+              "textEmitted": false
+            }
+          ]
+        }
+      ]
+    },
+    "allowlistedFields": [
+      "observedAtUtc",
+      "rawSha256",
+      "rawSaved",
+      "requestEnvelopeCount",
+      "observations[].deploymentMatches",
+      "observations[].methodMatches",
+      "observations[].pathMatches",
+      "observations[].statusMatches",
+      "observations[].productionMatches",
+      "observations[].domainMatches",
+      "observations[].traceIdExactHeaderMatch",
+      "observations[].idExactHeaderMatch",
+      "observations[].canonicalEventCount",
+      "observations[].records[].event",
+      "observations[].records[].requestAtUtc",
+      "observations[].records[].elapsedMs",
+      "observations[].records[].phase",
+      "observations[].records[].localCode",
+      "observations[].records[].upstreamHttpStatus",
+      "observations[].records[].upstreamCode",
+      "observations[].records[].upstreamErrorType",
+      "observations[].records[].errorLocation",
+      "observations[].records[].errorShape",
+      "observations[].records[].requestedModels[]",
+      "observations[].records[].textEmitted"
+    ],
+    "missingFields": []
+  }
+}

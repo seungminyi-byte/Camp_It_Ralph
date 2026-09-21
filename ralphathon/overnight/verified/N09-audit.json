@@ -1,0 +1,93 @@
+{
+  "_provenance": {
+    "source_id": "S-6e16a9439782",
+    "source_bytes": 6459,
+    "source_sha256": "419a80f97cbaf63664c41a48d4bfc3355013dcca215b0cbc8fcc7f801074983a"
+  },
+  "selected": {
+    "at": "2026-09-21T15:57:27.895Z",
+    "cases": 12,
+    "passed": 12,
+    "failed": 0,
+    "forbiddenFetchCalls": 0,
+    "realExternalCalls": 0,
+    "realSecretReads": 0,
+    "simulatedCalls": 29,
+    "originalOutputs": [
+      {
+        "path": "prototype/public/data/precomputed_memos.json",
+        "exists": false
+      },
+      {
+        "path": "data-pack/out/precomputed_memos.json",
+        "exists": false
+      }
+    ],
+    "results": [
+      {
+        "id": "I01",
+        "status": "pass"
+      },
+      {
+        "id": "I02",
+        "status": "pass"
+      },
+      {
+        "id": "I03",
+        "status": "pass"
+      },
+      {
+        "id": "I04",
+        "status": "pass"
+      },
+      {
+        "id": "I05",
+        "status": "pass"
+      },
+      {
+        "id": "I06",
+        "status": "pass"
+      },
+      {
+        "id": "I07",
+        "status": "pass"
+      },
+      {
+        "id": "I08",
+        "status": "pass"
+      },
+      {
+        "id": "I09",
+        "status": "pass"
+      },
+      {
+        "id": "I10",
+        "status": "pass"
+      },
+      {
+        "id": "I11",
+        "status": "pass"
+      },
+      {
+        "id": "I12",
+        "status": "pass"
+      }
+    ]
+  },
+  "allowlistedFields": [
+    "at",
+    "cases",
+    "passed",
+    "failed",
+    "forbiddenFetchCalls",
+    "realExternalCalls",
+    "realSecretReads",
+    "simulatedCalls",
+    "originalOutputs[].path",
+    "originalOutputs[].exists",
+    "results[].id",
+    "results[].status"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}

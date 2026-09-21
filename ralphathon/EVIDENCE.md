@@ -251,3 +251,20 @@ implementation/11-final-audit.md와evidence/11-final/에실행11의선별근거�
 ## 최종 원격 확인·완료 판정 — 2026-09-21T23:17:45.338414+09:00
 
 [완료검수](deliverables/final-audit/완료검수.md),[최종60행](deliverables/final-audit/requirements-final.json),[PR10원격검증](evidence/11-final/root-final-remote-verification.json). G021에따라59행확인/1행마감조건미발동. 제품bb18284와문서merge23e834b를구분하고Ready/alias/index일치를다시확인했다. 마지막기록반영후Goal종료반환은앱최종답변으로확인한다.
+
+
+## 야간 후속 시작 — 2026-09-22T00:01:52.556127+09:00
+
+사용자새요청/현재get_goal=null/HEAD3c578a1/기존outputs73파일SHA불변/Goal원문SHA일치확인. heartbeatdc-9 ACTIVE를도구생성/실제automation.toml로확인했고현재taskid일치. 공식scheduled task문서의같은대화분단위재개/종료조건/로컬앱요건확인. work/overnight/caffeinate.json PID25489,10시시한프로세스만시작했고전역설정변경없음. N01새실행자Astra/xhigh지정,실제turn_context대조는수집후추가기록한다.
+
+### 2026-09-22T00:43:00.099263+09:00 — N04 운영 검수
+
+PR12/e7a33e7 배포를 검증했다. API6·익명16·정적34통과, AI1회실패의 typed504/timeout을 관측했다. 상세와 검증 경계는 `overnight/N04-deployment-observation.md`, 외부조건 변동 전 스냅샷이다.
+
+- 2026-09-22T01:18:37.703324+09:00 N02-B/PR13 네모델 실험실패와N02-C/PR14복원배포/잔존504를 [복원관측](overnight/N02-C-rollback.md)에기록했다. 문서의한정된해석을유지한다.
+
+- 2026-09-22T01:51:59.968108+09:00 G038: [N16 감사](overnight/N16-log-fix-audit.md), 총괄 `work/overnight/N16-root-review.json`. 45파일 manifest `7ebb37d8840cf2d094618919129cdd0a062a0b29d40539e546386e4fd781435c`. N15 실제 export 보류.
+
+- 2026-09-22T02:01:41.151809+09:00 G039/G040: [N17 수정](overnight/N17-log-context-fix.md), [N18 독립 감사](overnight/N18-log-context-audit.md). 120/40파일 hash검수 및 새26검사 수락.09시부터N17만사용; 실제export아직없음.
+
+- 2026-09-22T02:35:30.377759+09:00 G041~G045: [N19 감사](overnight/N19-morning-gate-audit.md), [N20 보완](overnight/N20-morning-gate-fix.md), [N21 독립 감사](overnight/N21-morning-fix-audit.md), [N22 최소 수정](overnight/N22-morning-json-fix.md), [N23 문서 검수](overnight/N23-reader-audit.md). 오전 검수 경로 N22, 실제 로그 내보내기 N17로 확정. 실제 오전 운영 요청·새 로그 export는 아직 없습니다.
