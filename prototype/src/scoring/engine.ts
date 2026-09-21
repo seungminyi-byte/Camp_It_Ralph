@@ -1,3 +1,4 @@
+import { isEvidenceFresh } from '../lib/lookupContract';
 import type {
   AppData,
   CapReason,
@@ -153,7 +154,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         override: null,
       }
     : classifySite(terrainSample, reclaimed, terrainCfg, {
-        zoningFound: input.zoning ? input.zoning.found : null,
+        zoningFound: input.zoning?.found ? true : input.zoning && isEvidenceFresh(input.zoning) ? false : null,
       });
 
   let emdPower = emdInfo
@@ -352,7 +353,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
 
   const disasterLookup = coverage.outside ? null : input.disaster;
   const disaster: ScoreResult['disaster'] = {
-    status: !disasterLookup ? 'unknown' : disasterLookup.found ? 'hit' : 'none',
+    status: !disasterLookup ? 'unknown' : disasterLookup.found ? 'hit' : isEvidenceFresh(disasterLookup) ? 'none' : 'unknown',
+    complete: !!disasterLookup && isEvidenceFresh(disasterLookup),
     hits: disasterLookup?.hits ?? [],
     deduction: disasterLookup?.found ? scoring.disaster.deduction : 0,
   };
@@ -496,17 +498,21 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     !!emdPower &&
     subCount > 0 &&
     !!nearestSub;
+  // Legacy offline scenarios omit provenance; live reviews always distinguish manual assumptions.
+  const zoningKnown = input.landUse !== 'unknown' &&
+    (input.zoning ? isEvidenceFresh(input.zoning) : input.landUseSource === undefined) &&
+    (input.landUseSource !== 'auto' || input.zoning?.complete === true);
   const permitKnown =
     site.eligible &&
     !emdUncertain &&
-    input.landUse !== 'unknown' &&
+    zoningKnown &&
     popCells.length > 0 &&
     !!nearestSchool &&
     !!terrainSample &&
     restriction.checked.bundled &&
     restriction.checked.vworld === 'ok' &&
     !restriction.requiresLegalReview &&
-    disaster.status !== 'unknown';
+    disaster.status !== 'unknown' && disaster.complete !== false;
   const evidence = Object.entries(scoring.evidence).map(([key, meta]) => {
     const availability: Record<string, boolean> = {
       power: powerKnown,
@@ -514,10 +520,10 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       population: popCells.length > 0,
       households: householdsNearby !== null,
       schools: !!nearestSchool,
-      zoning: input.landUse !== 'unknown',
+      zoning: zoningKnown,
       restrictions:
         restriction.checked.bundled && restriction.checked.vworld === 'ok' && !restriction.requiresLegalReview,
-      disaster: disaster.status !== 'unknown',
+      disaster: disaster.status !== 'unknown' && disaster.complete !== false,
       terrain: !!terrainSample,
       news: !!newsSignal,
       permits: !!delayStat?.enough,
@@ -539,6 +545,8 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       (key === 'households' &&
         householdMissingCells > 0 &&
         householdsNearby !== null) ||
+      (key === 'zoning' && !zoningKnown && !!input.zoning?.found) ||
+      (key === 'disaster' && disaster.complete === false && disaster.hits.length > 0) ||
       (key === 'restrictions' &&
         !availability[key] &&
         (restriction.checked.bundled || restriction.hits.length > 0)) ||

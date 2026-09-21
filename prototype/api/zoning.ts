@@ -20,18 +20,7 @@ const LAYER_FALLBACK_NAME: Record<string, string> = {
   LT_C_UQ114: '자연환경보전지역',
 };
 
-type LandUse = 'industrial' | 'semiIndustrial' | 'commercial' | 'green' | 'residential' | 'unknown';
-
-/** 준공업 must be tested before 공업; everything outside 도시지역 scores as green. */
-function landUseFromName(layer: string, name: string): LandUse {
-  if (layer !== 'LT_C_UQ111') return 'green';
-  if (name.includes('준공업')) return 'semiIndustrial';
-  if (name.includes('공업')) return 'industrial';
-  if (name.includes('상업')) return 'commercial';
-  if (name.includes('주거')) return 'residential';
-  if (name.includes('녹지')) return 'green';
-  return 'unknown';
-}
+import { landUseFromName } from '../shared/zoning.js';
 
 interface Found {
   layer: string;

@@ -1,3 +1,4 @@
+import { isEvidenceFresh } from '../lib/lookupContract';
 import type {
   Constants,
   ProtectedZone,
@@ -136,7 +137,7 @@ export function lookupRestrictions(
   const priority = { prohibited: 0, conditional: 1, review: 2, reference: 3 };
   unique.sort((a, b) => priority[a.level] - priority[b.level]);
 
-  const vworld = !lookup ? 'none' : !lookup.complete || lookup.failed.length > 0 ? 'partial' : 'ok';
+  const vworld = !lookup ? 'none' : !lookup.complete || !isEvidenceFresh(lookup) || lookup.failed.length > 0 ? 'partial' : 'ok';
   const hasSuccessfulQuery = lookup?.queried.some(q => !lookup.failed.includes(q)) ?? false;
   const level = unique[0]?.level ?? (!zones && !hasSuccessfulQuery ? 'unknown' : 'none');
   return {

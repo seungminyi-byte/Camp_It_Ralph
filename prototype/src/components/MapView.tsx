@@ -476,7 +476,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
             <RadiusRing lat={site.lat} lng={site.lng} km={0.2} color="#ef4444" />
           </>
         )}
-        {nearbySites.status === 'done' &&
+        {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result &&
           nearbySites.result.candidates.flatMap((candidate) =>
             candidate.rings.map((ring, ringIndex) => (
               <Polygon
@@ -674,20 +674,20 @@ function NearbySiteControl({
         </summary>
         <div className="nearby-site-body">
           {!site && <p className="nearby-site-empty">예상 부지를 지도에서 선택하면 주변 15km를 탐색합니다.</p>}
+          {site && nearbySites.status === 'idle' && <p className="nearby-site-empty">온라인 자료 범위 밖 지점입니다.</p>}
           {site && nearbySites.status === 'loading' && (
             <p className="nearby-site-empty"><span className="candidate-spinner" />1,000평 이상 필지를 찾는 중…</p>
           )}
           {site && nearbySites.status === 'error' && (
             <p className="nearby-site-empty">
-              {nearbySites.code === 'not-deployed'
-                ? '로컬 프리뷰 서버에 추천 API가 아직 연결되지 않았습니다.'
-                : '추천 후보를 불러오지 못했습니다. 잠시 후 지점을 다시 선택해 주세요.'}
+              {nearbySites.message}
             </p>
           )}
-          {nearbySites.status === 'done' && nearbySites.result.candidates.length === 0 && (
-            <p className="nearby-site-empty">반경 {nearbySites.result.searchRadiusKm}km 안에서 면적 기준을 충족한 후보를 찾지 못했습니다.</p>
+          {site && <button type="button" disabled={nearbySites.status === 'idle'} onClick={nearbySites.retry}>주변 필지 다시 조회</button>}
+          {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result && nearbySites.result.candidates.length === 0 && (
+            <p className="nearby-site-empty">탐색한 구역에서 면적 기준을 충족한 후보를 찾지 못했습니다.{nearbySites.status === 'partial' ? ' 일부 조회가 미완료되어 후보 없음으로 확정할 수 없습니다.' : ''}</p>
           )}
-          {nearbySites.status === 'done' && nearbySites.result.candidates.length > 0 && (
+          {(nearbySites.status === 'done' || nearbySites.status === 'partial') && nearbySites.result && nearbySites.result.candidates.length > 0 && (
             <>
               <ol className="nearby-site-list">
                 {nearbySites.result.candidates.map((candidate, index) => (

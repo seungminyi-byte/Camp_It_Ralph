@@ -40,6 +40,7 @@ import {
 
 export default function App() {
   const { data, error } = useAppData();
+  const [selectionRevision, setSelectionRevision] = useState(0);
   const [site, setSite] = useState<SiteSelection | null>(null);
   const [manualLandUse, setManualLandUse] = useState<LandUse | null>(null);
   const [projectOverride, setProject] = useState<ProjectAssumptions | null>(
@@ -53,17 +54,18 @@ export default function App() {
   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
   const panelScroll = useRef<HTMLDivElement>(null);
 
-  const zoning = useZoning(site);
-  const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
+  const zoning = useZoning(site, selectionRevision);
+  const zoningLookup = zoning.lookup;
   // Separate request from zoning so a VWorld hiccup on one never blanks the other.
   const restrictions = useRestrictions(
     site,
     data?.constants.scoring.restriction.heritageBufferM ?? 500,
+    selectionRevision,
   );
   const restrictionLookup =
-    restrictions.status === 'done' ? restrictions.lookup : null;
-  const disaster = useDisaster(site);
-  const disasterLookup = disaster.status === 'done' ? disaster.lookup : null;
+    restrictions.lookup;
+  const disaster = useDisaster(site, selectionRevision);
+  const disasterLookup = disaster.lookup;
 
   // The dropdown wins once the user touches it; otherwise VWorld fills it in.
   const auto = zoningLookup?.found ? zoningLookup : null;
@@ -82,6 +84,7 @@ export default function App() {
       lat: site.lat,
       lng: site.lng,
       landUse,
+      landUseSource,
       project,
       conditions,
       zoning: zoningLookup,
@@ -92,6 +95,7 @@ export default function App() {
     data,
     site,
     landUse,
+    landUseSource,
     project,
     conditions,
     zoningLookup,
@@ -108,25 +112,17 @@ export default function App() {
   const resolvedPins = useMemo(() => {
     if (!site || !result || !openedPinId) return pins;
     const id = openedPinId;
-    const loading =
-      zoning.status === 'loading' ||
-      restrictions.status === 'loading' ||
-      disaster.status === 'loading';
     return pins.map((pin) =>
-      pin.id !== id
+      pin.id !== id || pin.selection.lat !== site.lat || pin.selection.lng !== site.lng
         ? pin
         : {
             ...pin,
             conditions,
             landUse,
             manualLandUse,
-            ...(loading
-              ? {}
-              : {
-                  zoning: zoningLookup,
-                  restrictions: restrictionLookup,
-                  disaster: disasterLookup,
-                }),
+            zoning: zoningLookup,
+            restrictions: restrictionLookup,
+            disaster: disasterLookup,
           },
     );
   }, [
@@ -137,9 +133,6 @@ export default function App() {
     conditions,
     landUse,
     manualLandUse,
-    zoning.status,
-    restrictions.status,
-    disaster.status,
     zoningLookup,
     restrictionLookup,
     disasterLookup,
@@ -173,6 +166,7 @@ export default function App() {
   const selectSite = (selection: SiteSelection, zoom?: number) => {
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
+    setSelectionRevision((revision) => revision + 1);
     setSite(selection);
     const matching = resolvedPins.filter(
       (pin) =>
@@ -191,6 +185,7 @@ export default function App() {
   const openPin = (pin: PinnedSite) => {
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
+    setSelectionRevision((revision) => revision + 1);
     setSite(pin.selection);
     setConditions(pin.conditions);
     setOpenedPinId(pin.id);
@@ -249,7 +244,7 @@ export default function App() {
       ? '용도지역 조회 완료'
       : zoning.status === 'error'
         ? '용도지역 조회 오류 재확인'
-        : null,
+        : zoning.status === 'partial' ? '용도지역 일부 조회 미완료' : null,
     restrictions.status === 'loading'
       ? '규제구역 조회 완료'
       : restrictions.status === 'error'
@@ -261,7 +256,7 @@ export default function App() {
       ? '재해위험지구 조회 완료'
       : disaster.status === 'error'
         ? '재해위험지구 조회 오류 재확인'
-        : null,
+        : disaster.status === 'partial' ? '재해위험지구 일부 조회 미완료' : null,
   ].filter((item): item is string => item !== null);
   const incomplete = missingEvidence.length > 0;
   const tone = result ? siteVerdict(result, incomplete).tone : 'neutral';
@@ -313,6 +308,7 @@ export default function App() {
             </span>
             <SiteSearch
               selection={site}
+              selectionRevision={selectionRevision}
               centroids={data.emdCentroids}
               onPick={selectSite}
             />
@@ -393,6 +389,20 @@ export default function App() {
                 </div>
               </section>
             )}
+            {site && (
+              <section className="border-b border-gray-200 p-4 text-sm" aria-label="온라인 근거 조회 상태">
+                {[['용도지역', zoning], ['규제구역', restrictions], ['재해위험지구', disaster]].map(([label, rawState]) => {
+                  const state = rawState as typeof zoning | typeof restrictions | typeof disaster;
+                  return <div key={String(label)} className="mb-2">
+                    <span>{String(label)}: {state.status === 'done' ? '조회 완료' : state.status === 'loading' ? '조회 중' : state.status === 'partial' ? '일부 조회 미완료' : state.status === 'idle' ? '조회 범위 밖 · 미확인' : '조회 실패 · 미확인'}</span>
+                    {state.lookup?.stale && <p>이전 조회의 관찰을 보존하고 있습니다 · 재확인 필요{state.lookup.previousFetchedAt ? ` · 이전 조회 ${state.lookup.previousFetchedAt}` : ''}</p>}
+                    {state.lookup?.fetchedAt && <p className="text-xs">조회시각 {state.lookup.fetchedAt} · 원자료 기준일과 다름</p>}
+                    <button type="button" disabled={state.status === 'idle'} className="ml-2 underline" onClick={state.retry}>{String(label)} 다시 조회</button>
+                  </div>;
+                })}
+                <p className="text-xs">실패·부분 조회는 미해당을 뜻하지 않습니다. 지도 타일 표시 상태와 근거 조회 상태는 별개입니다.</p>
+              </section>
+            )}
             {result && (
               <AnalysisDetails
                 result={result}
@@ -414,8 +424,8 @@ export default function App() {
                 landUse={landUse}
                 landUseSource={landUseSource}
                 zoning={zoning}
-                onLandUse={setManualLandUse}
-                onResetAuto={() => setManualLandUse(null)}
+                onLandUse={(value) => { setManualLandUse(value); setSelectionRevision((revision) => revision + 1); }}
+                onResetAuto={() => { setManualLandUse(null); setSelectionRevision((revision) => revision + 1); }}
               />
             </details>
             {result?.site.eligible && input && site && (

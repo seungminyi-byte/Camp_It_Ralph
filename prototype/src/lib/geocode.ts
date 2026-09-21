@@ -1,17 +1,15 @@
+import { boundedJson, HttpLookupError } from './boundedJson';
+import { cleanText, coordinate, metadata, record } from './lookupContract';
 export const GEOCODE_NOT_FOUND = 'NOT_FOUND';
-
-export interface GeocodeHit {
-  lat: number;
-  lng: number;
-  label: string;
+export interface GeocodeHit { lat: number; lng: number; label: string; fetchedAt: string; version: string }
+export function parseGeocodeHit(raw: unknown): GeocodeHit {
+  if (!record(raw) || typeof raw.lat !== 'number' || typeof raw.lng !== 'number' || !cleanText(raw.label, 500) || !raw.label.trim()) throw new Error('invalid geocode response');
+  coordinate(raw.lat, raw.lng, 5);
+  return { lat: raw.lat, lng: raw.lng, label: raw.label, ...metadata(raw) };
 }
-
-/** VWorld geocoding through the Edge proxy; throws GEOCODE_NOT_FOUND when the address is unknown. */
 export async function geocodeAddress(q: string, signal?: AbortSignal): Promise<GeocodeHit> {
-  const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`, { signal });
-  if (res.status === 404) throw new Error(GEOCODE_NOT_FOUND);
-  if (!res.ok) throw new Error(`geocode ${res.status}`);
-  const hit = (await res.json()) as GeocodeHit;
-  if (!Number.isFinite(hit.lat) || !Number.isFinite(hit.lng)) throw new Error('geocode bad payload');
-  return hit;
+  const query = q.trim();
+  if (!cleanText(query, 200) || !query) throw new Error('invalid address');
+  try { return parseGeocodeHit(await boundedJson(`/api/geocode?q=${encodeURIComponent(query)}`, { signal })); }
+  catch (error) { if (error instanceof HttpLookupError && error.status === 404 && error.code === 'NOT_FOUND') throw new Error(GEOCODE_NOT_FOUND); throw error; }
 }

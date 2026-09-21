@@ -33,7 +33,7 @@ function ZoningNote({
 }: Pick<Props, 'zoning' | 'onResetAuto'> & { source: LandUseSource }) {
   if (source === 'manual') {
     const auto =
-      zoning.status === 'done' && zoning.lookup.found
+      zoning.status === 'done' && zoning.lookup?.found
         ? zoning.lookup.name
         : null;
     return (
@@ -58,7 +58,8 @@ function ZoningNote({
     return (
       <span className="text-gray-400">국토교통부 용도지역 API 조회 중…</span>
     );
-  if (zoning.status === 'done' && zoning.lookup.found) {
+  if (zoning.status === 'partial') return <span>일부 조회 미완료 · {zoning.lookup?.name ?? '확인한 도형 없음'} · 미해당 확정 불가</span>;
+  if (zoning.status === 'done' && zoning.lookup?.found) {
     return (
       <span className="text-green-700">
         자동 판정: {zoning.lookup.name} (국토교통부 공간정보 API)

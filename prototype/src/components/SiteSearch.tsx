@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { EmdCentroid, SiteSelection } from '../types';
 import {
   buildEmdIndex,
@@ -14,16 +14,14 @@ const ZOOM = { emd: 13, coords: 15, address: 16 };
 interface Props {
   centroids: EmdCentroid[];
   selection: SiteSelection | null;
+  selectionRevision?: number;
   onPick: (selection: SiteSelection, zoom: number) => void;
 }
 
-export function SiteSearch({ centroids, selection, onPick }: Props) {
+export function SiteSearch({ centroids, selection, selectionRevision = 0, onPick }: Props) {
   const [queryOverride, setQuery] = useState<string | null>(null);
   const [querySite, setQuerySite] = useState(selection);
-  if (querySite !== selection) {
-    setQuerySite(selection);
-    setQuery(null);
-  }
+  const [queryRevision, setQueryRevision] = useState(selectionRevision);
   const query =
     queryOverride ??
     selection?.label ??
@@ -34,14 +32,32 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
   const [highlight, setHighlight] = useState(-1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  if (querySite !== selection || queryRevision !== selectionRevision) {
+    setQuerySite(selection);
+    setQueryRevision(selectionRevision);
+    setQuery(null);
+    setBusy(false);
+    setMessage(null);
+    setOpen(false);
+    setHighlight(-1);
+  }
   const ctrl = useRef<AbortController | null>(null);
 
-  useEffect(() => () => ctrl.current?.abort(), []);
+  const epoch = useRef(0);
+  const invalidate = () => { epoch.current++; ctrl.current?.abort(); ctrl.current = null; };
+  useLayoutEffect(() => {
+    epoch.current++;
+    ctrl.current?.abort();
+    ctrl.current = null;
+  }, [selection, selectionRevision]);
+  useEffect(() => () => { epoch.current++; ctrl.current?.abort(); }, []);
 
   const index = useMemo(() => buildEmdIndex(centroids), [centroids]);
   const results = useMemo(() => searchEmd(index, query), [index, query]);
 
   const pickEmd = (hit: EmdHit) => {
+    invalidate();
+    setBusy(false);
     const r = hit.entry.row;
     setQuery(hit.entry.display);
     setOpen(false);
@@ -59,6 +75,9 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
   };
 
   const submit = async () => {
+    invalidate();
+    const revision = epoch.current;
+    setBusy(false);
     setMessage(null);
     const q = query.trim();
     if (!q) return;
@@ -102,20 +121,21 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
     setBusy(true);
     try {
       const hit = await geocodeAddress(q, c.signal);
+      if (c.signal.aborted || epoch.current !== revision) return;
       setOpen(false);
       onPick(
         { lat: hit.lat, lng: hit.lng, label: hit.label, source: 'geocode' },
         ZOOM.address,
       );
     } catch (e) {
-      if (c.signal.aborted) return;
+      if (c.signal.aborted || epoch.current !== revision) return;
       setMessage(
         e instanceof Error && e.message === GEOCODE_NOT_FOUND
           ? '주소를 찾지 못했습니다. 읍면동명이나 위경도로 검색해 보세요.'
           : '온라인 주소 검색을 사용할 수 없습니다 (오프라인 또는 서버 미배포) — 읍면동명·위경도로 검색하세요.',
       );
     } finally {
-      if (!c.signal.aborted) setBusy(false);
+      if (!c.signal.aborted && epoch.current === revision) setBusy(false);
     }
   };
 
@@ -152,6 +172,8 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
           type="search"
           value={query}
           onChange={(e) => {
+            invalidate();
+            setBusy(false);
             setQuery(e.target.value);
             setOpen(true);
             setHighlight(-1);
@@ -164,14 +186,14 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
           role="combobox"
           aria-expanded={open && results.length > 0}
           aria-controls="site-search-results"
+          aria-activedescendant={open && highlight >= 0 ? `site-search-option-${highlight}` : undefined}
           className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
         />
         <button
           type="submit"
-          disabled={busy}
           className="rounded border border-gray-300 px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
         >
-          {busy ? '검색 중' : '검색'}
+          {busy ? '다시 검색' : '검색'}
         </button>
       </form>
 
@@ -184,6 +206,7 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
           {results.map((hit, i) => (
             <li
               key={`${hit.entry.display}-${hit.entry.row.lat}`}
+              id={`site-search-option-${i}`}
               role="option"
               aria-selected={i === highlight}
             >
@@ -202,7 +225,8 @@ export function SiteSearch({ centroids, selection, onPick }: Props) {
         </ul>
       )}
 
-      {message && <p className="mt-1 text-xs text-red-600">{message}</p>}
+      {busy && <p role="status" className="mt-1 text-xs">주소 조회 중… 입력을 바꾸거나 다시 검색할 수 있습니다.</p>}
+      {message && <p role="status" className="mt-1 text-xs text-red-600">{message}</p>}
       <p className="mt-1 text-xs text-gray-400">
         읍면동명 · 도로명/지번 주소(온라인) · 위경도 "37.68, 126.74" · 또는
         지도를 클릭하세요.

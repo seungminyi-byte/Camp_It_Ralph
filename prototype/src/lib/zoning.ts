@@ -1,47 +1,27 @@
+import { landUseFromName } from '../../shared/zoning';
 import type { LandUse, ZoningLookup } from '../types';
-
-const LAND_USES: LandUse[] = [
-  'industrial',
-  'semiIndustrial',
-  'commercial',
-  'green',
-  'residential',
-  'unknown',
-];
-
-// Only successful lookups are cached: a failure must stay retryable, and it is not evidence of
-// open water the way a genuine "no polygon here" answer is.
-const cache = new Map<string, ZoningLookup>();
-const CACHE_LIMIT = 500;
-
-/** ~11m — matches the rounding the Edge route applies, so the CDN sees the same URL. */
-export function zoningCacheKey(lat: number, lng: number): string {
-  return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+import { boundedJson } from './boundedJson';
+import { EvidenceCache } from './evidenceCache';
+import { refreshQuery, cleanText, completeness, coordinate, envelope, lookupKey, record, ZONING_LAYERS } from './lookupContract';
+const LAND_USES: LandUse[] = ['industrial', 'semiIndustrial', 'commercial', 'green', 'residential', 'unknown'];
+const cache = new EvidenceCache<ZoningLookup>((v) => v.found, (previous, next) => {
+  const all = [...new Map([...previous.all, ...next.all].map((h) => [`${h.layer}|${h.name}`, h])).values()];
+  return { ...next, found: true, all, layer: next.layer ?? previous.layer, name: next.name ?? previous.name, landUse: next.found ? next.landUse : previous.landUse };
+});
+export const zoningCacheKey = (lat: number, lng: number) => lookupKey('zoning', lat, lng, 4, ZONING_LAYERS.join(','));
+export const peekZoning = (lat: number, lng: number) => cache.peek(zoningCacheKey(lat, lng));
+export function parseZoningLookup(raw: unknown, lat: number, lng: number): ZoningLookup {
+  const meta = envelope(raw, lat, lng, 4);
+  if (!record(raw) || typeof raw.found !== 'boolean' || !LAND_USES.includes(raw.landUse as LandUse) ||
+      !Array.isArray(raw.all) || raw.all.length > 20 || raw.all.some((h) => !record(h) || !ZONING_LAYERS.includes(h.layer as string) || !cleanText(h.name) || !h.name.trim()) ||
+      raw.found !== (raw.all.length > 0) ||
+      (raw.found ? raw.layer !== raw.all[0].layer || raw.name !== raw.all[0].name || raw.landUse !== landUseFromName(raw.all[0].layer, raw.all[0].name) : raw.layer !== null || raw.name !== null || raw.landUse !== 'unknown') ||
+      raw.sido !== undefined && !cleanText(raw.sido) || raw.sigungu !== undefined && !cleanText(raw.sigungu)) throw new Error('invalid zoning response');
+  return { ...meta, ...completeness(raw, ZONING_LAYERS, raw.all.length), found: raw.found, layer: raw.layer as string | null,
+    name: raw.name as string | null, landUse: raw.landUse as LandUse, all: raw.all as ZoningLookup['all'],
+    ...(raw.sido === undefined ? {} : { sido: raw.sido as string }), ...(raw.sigungu === undefined ? {} : { sigungu: raw.sigungu as string }) };
 }
-
-export function peekZoning(lat: number, lng: number): ZoningLookup | undefined {
-  return cache.get(zoningCacheKey(lat, lng));
-}
-
-export async function lookupZoning(
-  lat: number,
-  lng: number,
-  signal?: AbortSignal,
-): Promise<ZoningLookup> {
-  const key = zoningCacheKey(lat, lng);
-  const hit = cache.get(key);
-  if (hit) return hit;
-
-  const res = await fetch(`/api/zoning?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`, { signal });
-  if (!res.ok) throw new Error(`zoning ${res.status}`);
-  const raw = (await res.json()) as ZoningLookup;
-  const result: ZoningLookup = {
-    ...raw,
-    landUse: LAND_USES.includes(raw.landUse) ? raw.landUse : 'unknown',
-    all: raw.all ?? [],
-  };
-
-  if (cache.size >= CACHE_LIMIT) cache.clear();
-  cache.set(key, result);
-  return result;
+export async function lookupZoning(lat: number, lng: number, signal?: AbortSignal, force = false): Promise<ZoningLookup> {
+  const c = coordinate(lat, lng, 4);
+  return cache.load(zoningCacheKey(lat, lng), async () => parseZoningLookup(await boundedJson(`/api/zoning?lat=${c.lat}&lng=${c.lng}${refreshQuery(force)}`, { signal }), lat, lng), signal, force);
 }

@@ -124,7 +124,21 @@ export interface NearbySiteCandidate {
   rings: [number, number][][];
 }
 
-export interface NearbySiteCandidates {
+export interface OnlineEvidence {
+  complete?: boolean;
+  queried?: string[];
+  failed?: string[];
+  coordinate?: { lat: number; lng: number };
+  version?: string;
+  /** Transport observation time, never a source publication or legal effective date. */
+  fetchedAt?: string;
+  /** Remembered observations cannot establish current absence or completeness. */
+  stale?: boolean;
+  /** Earliest retained observation when an incomplete response merges prior hits. */
+  previousFetchedAt?: string;
+}
+
+export interface NearbySiteCandidates extends OnlineEvidence {
   basis: 'vworld-continuous-cadastral-map';
   minimumAreaM2: number;
   minimumAreaPyeong: number;
@@ -358,7 +372,7 @@ export interface ReclaimedOverride {
 }
 
 /** Wire shape of api/restrictions.ts: raw VWorld hits, judged by the engine through constants. */
-export interface RestrictionLookup {
+export interface RestrictionLookup extends OnlineEvidence {
   hits: { layer: string; name: string | null; buffered: boolean }[];
   queried: string[];
   failed: string[];
@@ -432,7 +446,7 @@ export interface ProtectedZones {
 }
 
 /** VWorld 용도지역 point lookup (api/zoning.ts). */
-export interface ZoningLookup {
+export interface ZoningLookup extends OnlineEvidence {
   found: boolean;
   layer: string | null;
   name: string | null;
@@ -583,6 +597,8 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
+  /** Explicit for live reviews; omitted only by legacy offline scenario inputs. */
+  landUseSource?: LandUseSource;
   /** Legacy input accepted by saved scenario scripts; never interpreted as a debt balance. */
   projectType?: ProjectType;
   capexKrw?: number;
@@ -602,7 +618,7 @@ export interface DisasterRiskHit {
   attributes: Record<string, string | number | boolean | null>;
 }
 
-export interface DisasterLookup {
+export interface DisasterLookup extends OnlineEvidence {
   found: boolean;
   layer: 'LT_C_UP201';
   coordinate: { lat: number; lng: number };
@@ -612,6 +628,7 @@ export interface DisasterLookup {
 export interface ScoreResult {
   disaster: {
     status: 'hit' | 'none' | 'unknown';
+    complete?: boolean;
     hits: DisasterRiskHit[];
     deduction: number;
   };

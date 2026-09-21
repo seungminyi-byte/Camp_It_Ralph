@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AppData, ProjectAssumptions, RestrictionLookup, ScoreInput } from '../types';
 import { loadAppData } from '../test/loadData';
 import { buildChecklist } from '../report/checklist';
@@ -32,7 +32,9 @@ describe('heritage provenance and consumer boundaries', () => {
   });
   it('holds legal review apart from transport completeness and distinct dates', () => {
     const at = input({ ...lookup([heritage()]), fetchedAt: '2026-09-21T09:10:00Z' });
+    const now = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-21T09:11:00Z'));
     const r = scoreSite(at, emptyZones);
+    now.mockRestore();
     expect(r.restriction.checked.vworld).toBe('ok');
     expect(r.evidence.find(e => e.key === 'restrictions')?.status).toBe('partial');
     const evidence = row(r).evidence;
