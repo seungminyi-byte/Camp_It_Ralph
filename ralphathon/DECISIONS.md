@@ -165,3 +165,14 @@ G013의청크실패복구·비교Tab순환·입력대비와긴인쇄제목2건,�
 검토대안:08 제품만 먼저 배포하는 방식은 실행근거·문서 링크가 깨진 채 전달되므로 선택하지 않았다.65개09파일과13개root 원문/제어/조사/설계/독립기대값 문서를 함께 커밋한다. 실제세션원본과.env·자격증명·개인 작업전체는 포함하지 않는다. root-09-stage-a-review.json에 독립검수 범위를 보존했다.
 
 09A 커밋 직전 원본 명령 로그의 끝 빈줄을 git diff 검사에서 확인했다. 선별한 로그의 바이트·해시를 보존하기 위해 ralphathon/evidence/.gitattributes의 **/*.log -whitespace만 추가했다. 일반 제품 파일의 공백 검사는 유지하며 git check-attr와 staged diff --check 종료0을 확인했다. 기존 *.log 제외 규칙은 바꾸지 않고 검수한 로그만 정확히 강제 추가했다. root03L 문서 끝의 빈줄만 정리했다. 최종 파일 수는65 실행자+13 root문서+1 보존로그속성=79다.
+
+
+## G016 — 운영 Edge 요청 옵션 호환성 보완 — 2026-09-21 22:10 KST
+
+첫 운영반영 ecf140148bc19f2a71f6778d5473309a858f0195의 Actions35603227228은성공했고Vercel Ready/정적34파일동일을확인했으나정상7API가모두즉시502 UPSTREAM_UNAVAILABLE이었다. 잘못된입력은400으로처리됐다. root실제IAB도3종조회실패·미확인과참고점수미산정을확인했다. Ready와HTTP자원성공을서비스완료로승격하지않는다. 최초실패본문/시각은work/evidence/09-live-api,root-09-live-iab-initial.json에보존한다.
+
+독립코드검토에서기존과공통차이인 VWorld/AI fetch의redirect:error가호환성후보였다. Operation생성은catch밖이고잘못된입력응답이정상이므로constructor부재설명은맞지않는다. env읽기방식도기존과같다. Cloudflare의공식workerd코드 Request생성자/tryParseRedirect는follow/manual만허용한다(https://github.com/cloudflare/workerd/blob/main/src/workerd/api/http.c++). 공식Workers Request문서는error도열거해문서·구현차이가있다. 이것만으로Vercel원인이확정됐다고쓰지않고실제오류정보/수정전후운영응답으로판별한다.
+
+09실행자와대안을검토해2곳의옵션을manual로바꾸되기존!res.ok에서3xx를즉시취소·안전오류로반환하도록유지한다. 자동redirect허용,인증헤더전달확대,URLallowlist/바이트/12·55초경계완화,새권한·키값조회는하지않는다. 지원되지않는error옵션반례와3xx단일호출/취소/비반사회귀를먼저확인하고관련·전체gate후root검토커밋/후속PR/재배포한다. UI자원해시가동일하면로컬53쪽PDF/전체E2E를반복하지않으나새운영API·실제화면·운영PDF검수는필수다.
+
+G016 로컬검수 수락:47파일563 Vitest·타입/린트/자료/빌드/보안/diff7gate 종료0. root가 별도의 실제Node HTTP서버로 정상200과301/302/303/307/308을각2경로검사해12건모두단일전송·redirect목적지미도달·본문/Location비노출을확인했다. 이는loopback전송검사이며Vercel원인확정으로쓰지않는다. UI/인쇄dist34해시불변. 최종소유6파일+이결정문서1개를수락하며이후새운영검증으로판단한다.

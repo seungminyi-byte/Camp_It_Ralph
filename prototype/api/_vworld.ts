@@ -28,7 +28,7 @@ export async function fetchVworld(url: URL, key: string, domain: string, operati
   url.searchParams.set('key', key);
   url.searchParams.set('domain', domain);
   operation.check();
-  const pending = fetch(url, { headers: { Referer: domain }, signal: operation.signal, redirect: 'error' });
+  const pending = fetch(url, { headers: { Referer: domain }, signal: operation.signal, redirect: 'manual' });
   // Also discard late headers from non-cooperative transports after cancellation.
   void pending.then((res) => { if (operation.signal.aborted) cancelBody(res.body); }, () => {});
   const res = await operation.wait(pending);

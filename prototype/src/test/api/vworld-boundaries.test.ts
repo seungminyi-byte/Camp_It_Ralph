@@ -130,7 +130,7 @@ describe('VWorld valid shapes and bounded fan-out', () => {
       await expect(fetchVworld(new URL('https://other.test/path'), 'test', 'https://example.test', operation)).rejects.toThrow('UPSTREAM_INVALID');
       expect(fetch).not.toHaveBeenCalled();
       await fetchVworld(new URL('https://api.vworld.kr/req/data'), 'test', 'https://example.test', operation);
-      expect(fetch.mock.calls[0][1]).toMatchObject({ redirect: 'error' });
+      expect(fetch.mock.calls[0][1]).toMatchObject({ redirect: 'manual' });
     } finally { operation.dispose(); }
   });
   it('accepts valid geocoded labels and coordinate strings', async () => {

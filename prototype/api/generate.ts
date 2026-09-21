@@ -124,7 +124,7 @@ export default async function handler(req: Request): Promise<Response> {
     operation.check();
     release = generationGate.reserve(Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(''));
     const pending = fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST', signal: operation.signal, redirect: 'error',
+      method: 'POST', signal: operation.signal, redirect: 'manual',
       headers: {
         'Content-Type': 'application/json', Authorization: `Bearer ${key}`,
         'HTTP-Referer': new URL(req.url).origin, 'X-Title': 'The Grand Site DC',
