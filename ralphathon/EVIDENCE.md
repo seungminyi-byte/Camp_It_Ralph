@@ -217,3 +217,16 @@ root-report-static-initial-06.json: 실제ChecklistReport SSR21조건통과. 면
 08 최초 성능은 1후보 조건이었다. 설계02의 4후보 부하를 같은 8ebad19 제품에서 UI 입력만으로 추가 측정했다. work/evidence/root-08-four-pin-performance.json SHA256 a18a5acae994a60a8c5b608966ca9fb1e15e1d5bcb736bf1550a37974d74c4ab. cold1/warm5 모두 비교70억원 셀4개와 보고서 후보상세4개를 확인한 뒤 프레임까지 측정했다. warm 비교 중앙98.9ms/최대105.5ms, 보고서36.4/38.6ms로 로컬250/500ms 목표를 충족했다. cold 판정3종12요청/warm각0이며 나머지3후보 입력 시간은 첫결과 시간에 포함하지 않는다.
 
 같은 호스트의09 작업이 있어 CPU격리·동시작업부재를 주장하지 않는다. 처음 보조 스크립트의 없는 report table 선택자0카운트 기록은 보존하고 실제 .report-pin-detail로 수정해 전체6회 재측정했다. 기존1후보값은 덮어쓰지 않았다. 제품/dist34해시 불변. root전용5210/pid20393 실제명령을 확인해 종료했다. 기록 추가 명령의 UTF-8 파싱 실패와 잘못된 patch context는 제품·측정 실패가 아니며 성공 기록은 재실행으로 구별한다.
+
+
+## 09 최종 수락 — 2026-09-21T22:35:24.653746+09:00
+
+09 재현·배포·운영검수를 G018로 수락했다. 최종 제품 bb1828450564813d9d91d23142409fa480529106의 Actions35605415209 성공·Vercel Ready/별칭·34파일 일치, 새 익명UI16항목과 운영PDF11쪽 전페이지를 확인했다. 실제 기본API6종 정상·선택형AI 실패/오류안내/기본보고서 유지라는 경계를 보존한다. root는43소유파일/4출력/39근거사본/79링크/34dist/API10파일/원로그/PDF 등212항목을 독립 대조했다. 다음은 새10 발표→새11 감사이며 잔여보수추정120분, 실행자1개 정책을 유지한다.
+
+- 최종제품/배포bb18284,Actions35605415209,Vercel dpl_6CJbHBeRLfFJmD6YuuCG5mZG3VXo/공개별칭. PR7/8/9현재task첨부. 저장소evidence/09-operation/manifest.json에선별39사본.
+- 새운영PDF11쪽 SHA a629910fcb85896769ec3466bf8dd765f4d7b8260542564ae8a7e7dc98c49801,root독립14항목/17렌더hash와전페이지시각검수. 첫장5요소/15000·5000·60/18숫자+9미입력/2후보/AI없음확인.
+- root-09-final-review.json:43소유/4출력/39원본사본치환/79링크/34dist/API10·CI원로그/PDF 등212모두true. root-09-label-built-diff.json:JS문구1치환과참조3파일만,31파일byte동일.
+- root-09-live-iab-after-edge-fix.json:최초3오류→재시도조회완료,입력/핀1보존/비교/보고서/소개왕복/reload. root-09-live-iab-final-label.json:최종새asset/새출처문구/15000·5000·60재확인.
+- API7직접본문은da8f9시점,최종bb1828과handler/helper10개동일. 최종익명UI/PDF는22:27실제조회. 주변필지3개는부분탐색. AI오류2회/기본보고서유지를성공생성으로쓰지않는다.
+- root스캔초기오류기록 root-09-final-review-regex-error.json 보존,정규식fake-value selfcheck후정상검수재실행. 선택패턴0이며모든비밀형식부재보장아님.
+- 완료12실행자실제로그와10/11잔여. 발표/제출로그/최종감사전Goalactive유지.

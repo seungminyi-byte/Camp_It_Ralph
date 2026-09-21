@@ -1,0 +1,185 @@
+{
+  "base": "https://grand-site-dc.vercel.app",
+  "deploymentSha": "ecf140148bc19f2a71f6778d5473309a858f0195",
+  "requestsAreLive": true,
+  "noCredentialsRead": true,
+  "results": [
+    {
+      "name": "geocode",
+      "method": "GET",
+      "path": "/api/geocode?q=%EC%84%B8%EC%A2%85%ED%8A%B9%EB%B3%84%EC%9E%90%EC%B9%98%EC%8B%9C+%EC%8B%9C%EC%B2%AD%EB%8C%80%EB%A1%9C+180",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:00.645729+00:00",
+      "seconds": 0.495,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::cfxbh-1789996020701-c267e5e54866"
+      },
+      "bodyFile": "geocode.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "zoning",
+      "method": "GET",
+      "path": "/api/zoning?lat=36.4967&lng=127.3007",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:01.141453+00:00",
+      "seconds": 0.097,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::2x4jh-1789996021171-e42c5ff14560"
+      },
+      "bodyFile": "zoning.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "restrictions",
+      "method": "GET",
+      "path": "/api/restrictions?lat=36.4967&lng=127.3007",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:01.238733+00:00",
+      "seconds": 0.083,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::l6s9f-1789996021271-fdb3fc3590ec"
+      },
+      "bodyFile": "restrictions.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "disaster",
+      "method": "GET",
+      "path": "/api/disaster?lat=36.4967&lng=127.3007",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:01.322386+00:00",
+      "seconds": 0.296,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::bvjff-1789996021358-1e36f23897ad"
+      },
+      "bodyFile": "disaster.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "nearby-sites",
+      "method": "GET",
+      "path": "/api/nearby-sites?lat=36.4967&lng=127.3007",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:01.619331+00:00",
+      "seconds": 0.083,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::lchcx-1789996021652-d7d1f5afbb2a"
+      },
+      "bodyFile": "nearby-sites.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "wms",
+      "method": "GET",
+      "path": "/api/wms?service=WMS&request=GetMap&version=1.1.1&layers=lt_c_uq111&styles=lt_c_uq111&srs=EPSG%3A4326&bbox=127.29%2C36.49%2C127.31%2C36.51&width=256&height=256&format=image%2Fpng",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:01.702755+00:00",
+      "seconds": 0.101,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::2nrjl-1789996021735-001e1f2e9a13"
+      },
+      "bodyFile": "wms.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE"
+    },
+    {
+      "name": "generate",
+      "method": "POST",
+      "path": "/api/generate",
+      "requestBody": {
+        "prompt": "공개 서비스 연결 점검입니다. 실제 사업 판단이 아닌 합성 예시입니다. 평균 차입잔액 1000억원, 연 6%, 12개월의 단리 금융비용은 60억원입니다. 이 한 가지 계산을 한국어 한 문장으로 설명하고 실제 공급·인허가는 미확인이라고 덧붙이세요."
+      },
+      "at": "2026-09-21T13:07:01.803875+00:00",
+      "seconds": 0.295,
+      "status": 502,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::sin1::hrkxc-1789996021835-40ff39396421"
+      },
+      "bodyFile": "generate.txt",
+      "bytes": 20,
+      "sha256": "38c8a9c30dd2d99bf127f1e1650abff9517047b08b5fccefdaa86c8fc6f73ecb",
+      "bodyText": "UPSTREAM_UNAVAILABLE",
+      "streamOutcome": "nonempty-finished",
+      "expectedFinanceMention": false
+    },
+    {
+      "name": "invalid-coordinate",
+      "method": "GET",
+      "path": "/api/zoning?lat=not-a-number&lng=127.3007",
+      "requestBody": null,
+      "at": "2026-09-21T13:07:02.099911+00:00",
+      "seconds": 0.064,
+      "status": 400,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::icn1::5x575-1789996022128-2585ef401795"
+      },
+      "bodyFile": "invalid-coordinate.txt",
+      "bytes": 11,
+      "sha256": "1bb80880a6e9556d1c2b8f33f3bbdcd0faa322d9da8b091c5f0c57d4488a18fd",
+      "bodyText": "BAD_REQUEST"
+    },
+    {
+      "name": "invalid-ai-input",
+      "method": "POST",
+      "path": "/api/generate",
+      "requestBody": {
+        "prompt": ""
+      },
+      "at": "2026-09-21T13:07:02.166712+00:00",
+      "seconds": 0.427,
+      "status": 400,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "x-vercel-id": "icn1::sin1::xzzcw-1789996022488-445c7658e87b"
+      },
+      "bodyFile": "invalid-ai-input.txt",
+      "bytes": 11,
+      "sha256": "1bb80880a6e9556d1c2b8f33f3bbdcd0faa322d9da8b091c5f0c57d4488a18fd",
+      "bodyText": "BAD_REQUEST"
+    }
+  ]
+}

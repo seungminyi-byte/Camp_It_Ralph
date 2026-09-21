@@ -1,0 +1,1 @@
+{"found":false,"layer":"LT_C_UP201","coordinate":{"lat":36.4967,"lng":127.3007},"hits":[],"queried":["LT_C_UP201"],"failed":[],"complete":true,"fetchedAt":"2026-09-21T13:18:30.077Z","version":"vworld-v2-20260921"}

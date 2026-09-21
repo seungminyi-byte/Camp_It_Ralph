@@ -1,0 +1,41 @@
+{
+  "at": "2026-09-21T13:21:49.356346+00:00",
+  "steps": [
+    {
+      "name": "typecheck",
+      "exitCode": 0,
+      "seconds": 3.445,
+      "sha256": "86ed5ba986530b8c8e6ba6afe0c2b3fbdb443ba68f6c57081abaefc085ccc21c",
+      "log": "09-label-typecheck.log"
+    },
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "seconds": 0.143,
+      "sha256": "cfea5769801fd711e8e1e29d34e4d642a8314b0c9da79ca3406f8a97f0d96203",
+      "log": "09-label-lint.log"
+    },
+    {
+      "name": "vitest",
+      "exitCode": 0,
+      "seconds": 3.074,
+      "sha256": "a4a1c2d7e606f6851b84e470d8175228835389c250b91498ffad9359a7a5575f",
+      "log": "09-label-vitest.log"
+    },
+    {
+      "name": "build",
+      "exitCode": 0,
+      "seconds": 1.746,
+      "sha256": "f927a6ebb980953089f59ba0756c015f6a2a2e6faa99084a9016e287e7560838",
+      "log": "09-label-build.log"
+    },
+    {
+      "name": "diff",
+      "exitCode": 0,
+      "seconds": 0.024,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log": "09-label-diff.log"
+    }
+  ],
+  "expectedUnitTests": 563
+}

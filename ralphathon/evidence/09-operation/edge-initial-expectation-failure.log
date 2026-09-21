@@ -1,0 +1,38 @@
+npm notice run prototype@0.0.0 test
+npm notice run vitest run
+
+ RUN  v4.1.11 [WORKSPACE]/work/Camp_It_Ralph/prototype
+
+ ❯ src/test/api/vworld-boundaries.test.ts (31 tests | 1 failed) 58ms
+     × allows only fixed VWorld upstream paths and disallows redirect following 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/api/vworld-boundaries.test.ts > VWorld valid shapes and bounded fan-out > allows only fixed VWorld upstream paths and disallows redirect following
+AssertionError: expected { …(3) } to match object { redirect: 'error' }
+(10 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "redirect": "error",
++   "redirect": "manual",
+  }
+
+ ❯ src/test/api/vworld-boundaries.test.ts:133:38
+    131|       expect(fetch).not.toHaveBeenCalled();
+    132|       await fetchVworld(new URL('https://api.vworld.kr/req/data'), 'te…
+    133|       expect(fetch.mock.calls[0][1]).toMatchObject({ redirect: 'error'…
+       |                                      ^
+    134|     } finally { operation.dispose(); }
+    135|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 46 passed (47)
+      Tests  1 failed | 562 passed (563)
+   Start at  22:10:47
+   Duration  2.91s (transform 1.51s, setup 0ms, import 3.98s, tests 11.50s, environment 4.97s)
+

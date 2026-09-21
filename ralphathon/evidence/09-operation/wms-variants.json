@@ -1,0 +1,65 @@
+[
+  {
+    "at": "2026-09-21T13:19:26.450153+00:00",
+    "name": "mercator111",
+    "params": {
+      "service": "WMS",
+      "request": "GetMap",
+      "layers": "lt_c_uq111",
+      "styles": "lt_c_uq111",
+      "width": 256,
+      "height": 256,
+      "format": "image/png",
+      "version": "1.1.1",
+      "srs": "EPSG:3857",
+      "bbox": "14169857.983075796,4368255.782732339,14172084.372891657,4371025.4174131155"
+    },
+    "status": 502,
+    "contentType": "text/plain; charset=utf-8",
+    "bytes": 16,
+    "text": "UPSTREAM_INVALID",
+    "seconds": 0.29588800000000004
+  },
+  {
+    "at": "2026-09-21T13:19:26.825084+00:00",
+    "name": "mercator130",
+    "params": {
+      "service": "WMS",
+      "request": "GetMap",
+      "layers": "lt_c_uq111",
+      "styles": "lt_c_uq111",
+      "width": 256,
+      "height": 256,
+      "format": "image/png",
+      "version": "1.3.0",
+      "crs": "EPSG:3857",
+      "bbox": "14169857.983075796,4368255.782732339,14172084.372891657,4371025.4174131155"
+    },
+    "status": 200,
+    "contentType": "image/png",
+    "bytes": 20591,
+    "text": null,
+    "seconds": 0.374736709
+  },
+  {
+    "at": "2026-09-21T13:19:26.995667+00:00",
+    "name": "latlon130",
+    "params": {
+      "service": "WMS",
+      "request": "GetMap",
+      "layers": "lt_c_uq111",
+      "styles": "lt_c_uq111",
+      "width": 256,
+      "height": 256,
+      "format": "image/png",
+      "version": "1.3.0",
+      "crs": "EPSG:4326",
+      "bbox": "36.49,127.29,36.51,127.31"
+    },
+    "status": 200,
+    "contentType": "image/png",
+    "bytes": 20381,
+    "text": null,
+    "seconds": 0.170433375
+  }
+]
