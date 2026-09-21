@@ -97,7 +97,7 @@ npm --prefix prototype run build
 
 1. 새 키가 필요하면 [OpenRouter Keys](https://openrouter.ai/keys)에서 본인 계정으로 발급합니다.
 2. Vercel에서 `OPENROUTER_API_KEY`를 추가하거나 편집하고 값을 직접 붙여넣습니다. 환경은 **Production**, 종류는 **Secret**으로 지정해 저장합니다. 키를 대화·코드·브라우저 앱 입력란에 넣지 않습니다.
-3. `LLM_MODEL`은 **Config**, Production 환경에 `google/gemma-4-31b-it:free`로 설정합니다. [무료 모델 제공 상태](https://openrouter.ai/google/gemma-4-31b-it:free)를 확인할 수 있습니다. 서버는 기본 모델 → `nvidia/nemotron-3.5-lightning:free` → `google/gemma-4-26b-a4b-it:free` → `openrouter/free` 순서를 한 요청의 대체 모델 목록으로 전달합니다. 마지막 [무료 라우터](https://openrouter.ai/docs/guides/routing/routers/free-router)는 사용 가능한 무료 모델에서 선택합니다. 자동 유료 전환은 없으며, 무료 모델의 가용성·선택 결과·속도는 달라질 수 있습니다. 목록 전달만으로 각 대안의 실제 시도나 응답 성공을 보장하지 않습니다.
+3. `LLM_MODEL`은 **Config**, Production 환경에 `google/gemma-4-31b-it:free`로 설정합니다. [무료 모델 제공 상태](https://openrouter.ai/google/gemma-4-31b-it:free)를 확인할 수 있습니다. 서버는 기본 모델 → `nvidia/nemotron-3.5-lightning:free` → `google/gemma-4-26b-a4b-it:free` 순서를 한 요청의 대체 모델 목록으로 전달합니다. 자동 유료 전환은 없으며, 무료 모델의 가용성·선택 결과·속도는 달라질 수 있습니다. 목록 전달만으로 각 대안의 실제 시도나 응답 성공을 보장하지 않습니다. `openrouter/free`는 명시적인 단일 모델 설정으로만 허용하며 기본 대체 목록에는 포함하지 않습니다.
 4. 환경변수 변경 후 새로 배포해야 실행 중인 서버에 반영됩니다. 기존 배포는 Vercel의 Redeploy, 코드 변경은 저장소의 배포 흐름으로 반영합니다.
 
 터미널을 선호하면 프로젝트의 `prototype` 폴더에서 `vercel env update OPENROUTER_API_KEY production --sensitive`를 직접 실행하고 숨겨진 입력창에 붙여넣습니다. 처음 등록하는 환경이면 `update` 대신 `add`를 사용합니다. 키를 명령어 인수에 적지 않습니다.
