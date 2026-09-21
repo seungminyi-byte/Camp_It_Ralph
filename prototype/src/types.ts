@@ -741,6 +741,8 @@ export interface ScoreResult {
   };
   composite: {
     score: number | null;
+    /** Required scoring evidence only; optional enrichments do not block the score. */
+    unavailableReasons: string[];
     grade: string | null;
     gradeCapped: boolean;
     capReason: CapReason | null;

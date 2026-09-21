@@ -31,6 +31,7 @@ import {
   slopeDeduction,
 } from './terrain';
 import { classifyCoverage } from './coverage';
+import { findEmdPower } from './powerMatch';
 import {
   RESTRICTION_DEDUCTION_LABEL,
   describeRestrictionHits,
@@ -157,20 +158,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         zoningFound: input.zoning?.found ? true : input.zoning && isEvidenceFresh(input.zoning) ? false : null,
       });
 
-  let emdPower = emdInfo
-    ? data.emdPower.find(
-        (p) =>
-          p.sido === emdInfo.sido &&
-          p.sigungu === emdInfo.sigungu &&
-          p.emd === emdInfo.emd,
-      )
-    : undefined;
-  if (!emdPower && emdInfo) {
-    const bySidoEmd = data.emdPower.filter(
-      (p) => p.sido === emdInfo.sido && p.emd === emdInfo.emd,
-    );
-    if (bySidoEmd.length === 1) emdPower = bySidoEmd[0];
-  }
+  const emdPower = findEmdPower(emdMatch?.item ?? null, data.emdPower);
   const subCount = emdPower?.count ?? 0;
   const gatePass = subCount > 0;
 
@@ -492,27 +480,31 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     ? knownHouseholds.reduce((sum, g) => sum + g[2]!, 0)
     : null;
   const householdMissingCells = householdCells.length - knownHouseholds.length;
-  const powerKnown =
-    site.eligible &&
-    !emdUncertain &&
-    !!emdPower &&
-    subCount > 0 &&
-    !!nearestSub;
+  const locationMissing = [
+    ...(!site.eligible ? [site.label] : []),
+    ...(emdUncertain ? ['읍면동 위치를 신뢰할 수 있는 자료 범위 밖'] : []),
+  ];
+  const powerMissing = [
+    ...locationMissing,
+    ...(!emdPower || !(subCount > 0) ? ['해당 읍면동의 한전 공급 변전소 공개 목록 미확인'] : []),
+    ...(!nearestSub ? ['변전소 참고 위치 미확인'] : []),
+  ];
+  const powerKnown = powerMissing.length === 0;
   // Legacy offline scenarios omit provenance; live reviews always distinguish manual assumptions.
   const zoningKnown = input.landUse !== 'unknown' &&
     (input.zoning ? isEvidenceFresh(input.zoning) : input.landUseSource === undefined) &&
     (input.landUseSource !== 'auto' || input.zoning?.complete === true);
-  const permitKnown =
-    site.eligible &&
-    !emdUncertain &&
-    zoningKnown &&
-    popCells.length > 0 &&
-    !!nearestSchool &&
-    !!terrainSample &&
-    restriction.checked.bundled &&
-    restriction.checked.vworld === 'ok' &&
-    !restriction.requiresLegalReview &&
-    disaster.status !== 'unknown' && disaster.complete !== false;
+  const permitMissing = [
+    ...locationMissing,
+    ...(!zoningKnown ? ['용도지역 분류 또는 최신 전체 조회 미확인'] : []),
+    ...(!popCells.length ? ['반경 내 인구 격자 미확인'] : []),
+    ...(!nearestSchool ? ['학교 위치 자료 미확인'] : []),
+    ...(!terrainSample ? ['지형 자료 미확인'] : []),
+    ...(!restriction.checked.bundled || restriction.checked.vworld !== 'ok' ? ['보호·규제구역 전체 조회 미확인'] : []),
+    ...(restriction.requiresLegalReview ? ['국가유산 관련 법적 적용 확인 필요'] : []),
+    ...(disaster.status === 'unknown' || disaster.complete === false ? ['재해위험지구 최신 전체 조회 미확인'] : []),
+  ];
+  const permitKnown = permitMissing.length === 0;
   const evidence = Object.entries(scoring.evidence).map(([key, meta]) => {
     const availability: Record<string, boolean> = {
       power: powerKnown,
@@ -566,6 +558,10 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         : undefined;
     return {
       ...meta,
+      detail: key === 'power' && emdPower && emdInfo &&
+        `${emdPower.sido}|${emdPower.sigungu}|${emdPower.emd}` !== emdInfo.key
+        ? `${meta.detail} 행정명칭을 대조한 원문 항목: ${[emdPower.sido, emdPower.sigungu, emdPower.emd].filter(Boolean).join(' ')}.`
+        : meta.detail,
       period,
       dataVersion,
       key,
@@ -737,6 +733,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     restriction,
     composite: {
       score: powerKnown && permitKnown ? compositeScore : null,
+      unavailableReasons: [...new Set([...powerMissing, ...permitMissing])],
       grade:
         restriction.level === 'prohibited'
           ? comp.restrictionGradeCap

@@ -85,7 +85,7 @@ export default async function handler(req: Request): Promise<Response> {
       found: hits.length > 0, layer: LAYER, coordinate, hits,
       queried: [LAYER], failed: complete ? [] : [LAYER], complete,
       fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION,
-    }, complete ? 'public, max-age=600, s-maxage=3600' : 'no-store');
+    }, complete ? 'public, max-age=0, s-maxage=300' : 'no-store');
   } catch (error) { return errorResponse(error); }
   finally { operation.dispose(); }
 }

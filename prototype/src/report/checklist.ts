@@ -2,7 +2,7 @@ import type { AppData, LandUseSource, ScoreInput, ScoreResult } from '../types';
 import { LAND_USE_LABEL } from '../scoring/engine';
 import { summarizeRestriction } from '../scoring/restriction';
 import { summarizeDisaster } from '../lib/disasterSummary';
-import { fmtArea, fmtCount, fmtKrw } from '../lib/format';
+import { fmtArea, fmtCount, fmtKrw, fmtPopulation } from '../lib/format';
 import { CONSULTATION_LABELS, CONSULTATION_STATUS } from '../lib/reviewInputs';
 export type Verdict = 'good' | 'caution' | 'risk' | 'na';
 export const VERDICT_GLYPH: Record<Verdict, string> = {
@@ -125,7 +125,7 @@ export function buildChecklist(
       r.permit.householdMissingCells > 0
       ? 'na'
       : 'good',
-    `반경 ${data.constants.scoring.permit.popRadiusKm}km 내 1km 격자 중심점 합계: 인구 ${fmtCount(r.permit.popNearby, '명')}, 가구 ${fmtCount(r.permit.householdsNearby, '가구')}. 가구 결측 격자 ${r.permit.householdMissingCells}개. 비밀보호 조정이 있는 참고값이며 주민등록 세대수·수용성 평가와 다름.`,
+    `반경 ${data.constants.scoring.permit.popRadiusKm}km 내 1km 격자 중심점 합계: 인구 ${fmtPopulation(r.permit.popNearby)}, 가구 ${fmtCount(r.permit.householdsNearby, '가구')}. 가구 결측 격자 ${r.permit.householdMissingCells}개. 비밀보호 조정이 있는 참고값이며 주민등록 세대수·수용성 평가와 다름.`,
     [...source('population'), ...source('households')],
   );
   add(

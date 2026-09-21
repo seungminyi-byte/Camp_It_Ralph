@@ -19,6 +19,14 @@ beforeEach(() => { vi.stubEnv('VWORLD_API_KEY', 'test-secret-key'); vi.stubEnv('
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe('verified baseline failures', () => {
+  it('keeps complete response CDN lifetime below the ten-minute evidence lifetime', async () => {
+    mockFetch();
+    for (const handler of [zoning, restrictions, disaster]) {
+      const res = await handler(route('lookup'));
+      expect(res.status).toBe(200);
+      expect(res.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=300');
+    }
+  });
   it.each([{}, { response: { status: 'OK' } }, { response: { status: 'OK', result: { featureCollection: { features: null } } } }])('never promotes malformed VWorld JSON to no constraint', async (body) => {
     mockFetch(() => Response.json(body));
     for (const handler of [zoning, restrictions, disaster]) {

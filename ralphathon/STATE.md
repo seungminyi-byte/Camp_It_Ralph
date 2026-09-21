@@ -1,3 +1,22 @@
+# 점수 가용성 후속 개선 상태
+
+- status: `score_availability_validated_release_pending`
+- updated_at: 2026-09-22T08:46:53.345428+09:00
+- latest_user_instruction: 공개자료 참고점수 미산정을 최소화하고 메인에 점수가 나오는 예시를 표시
+- hard_deadline: `2026-09-22T10:00:00+09:00`
+- heartbeat: dc-9 삭제 완료, 새 예약 없음
+- built_in_goal: 이전 null, 새 Goal 없음
+- implementation: [12-score-availability](implementation/12-score-availability.md)
+- local_validation: 50파일812검사, E2E21, Python4, 타입·린트·빌드·번들 검증 통과
+- data: 한전 대표점 연결537행 복구, SGIS 원문 명시0 격자2054개 복구
+- presentation: 현재 제품 DOM의 합성77점/B 예시, 점수 우선 결과 배치
+- executor: 단일 실행자 네 독립 산출물 편집 종료 및 총괄 수락, 추가 실행 없음
+- deployment: 아직 이 체크포인트에서 미수행. 정확한 병합SHA·운영배포·공개UI는 outputs/score-availability-20260922의 후속 검증으로 확정
+- real_ai_requests_this_change: 0
+- previous_delivery: outputs/overnight-20260922 최종 인계 보존, 이번 제품 변경 이후의 상태를 소급 반영하지 않음
+
+## 이전 체크포인트 이력
+
 # 야간 후속 작업 상태
 
 - status: `runtime_review_complete_delivery_finalizing`

@@ -1,6 +1,6 @@
 import { SafeExternalLink } from './SafeExternalLink';
 import type { AppData, ScoreResult } from '../types';
-import { fmtCount } from '../lib/format';
+import { fmtCount, fmtPopulation } from '../lib/format';
 import { summarizeRestriction } from '../scoring/restriction';
 import { summarizeDisaster } from '../lib/disasterSummary';
 import {
@@ -77,7 +77,7 @@ export function AnalysisDetails({
           <div className="surrounding-stats">
             <div>
               <span>인구</span>
-              <strong>{fmtCount(r.permit.popNearby, '명')}</strong>
+              <strong>{fmtPopulation(r.permit.popNearby)}</strong>
             </div>
             <div>
               <span>가구 수</span>

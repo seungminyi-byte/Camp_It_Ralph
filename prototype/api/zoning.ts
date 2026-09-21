@@ -98,7 +98,7 @@ export default async function handler(req: Request): Promise<Response> {
       all: hits.map((h) => ({ layer: h.layer, name: h.name })),
       queried: [...LAYERS], failed, complete,
       coordinate, fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION,
-    }, complete ? 'public, max-age=600, s-maxage=3600' : 'no-store');
+    }, complete ? 'public, max-age=0, s-maxage=300' : 'no-store');
   } catch (error) { return errorResponse(error); }
   finally { operation.dispose(); }
 }

@@ -60,7 +60,7 @@ describe('disaster route', () => {
     const response = await handler(request());
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ found: false, layer: 'LT_C_UP201', hits: [], coordinate: { lat: 36.49, lng: 127.3 } });
-    expect(response.headers.get('cache-control')).toContain('s-maxage=3600');
+    expect(response.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=300');
     const url = fetch.mock.calls[0][0] as URL;
     expect(url.searchParams.get('geomFilter')).toBe('POINT(127.3 36.49)');
     expect(url.searchParams.get('domain')).toBe('https://example.test');
