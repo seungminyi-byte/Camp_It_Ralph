@@ -1,0 +1,27 @@
+{
+  "_provenance": {
+    "source_id": "S-2937a27a50b0",
+    "source_bytes": 3059,
+    "source_sha256": "8091599c05ceb8e63dbcb966841a1f92cd22d908163f8988058b637b2ca0fd7a"
+  },
+  "selected": {
+    "at": "2026-09-21T15:55:45.737090+00:00",
+    "selectedSourceAndDocsFiles": 8,
+    "builtTextFiles": 21,
+    "rawMatchedValuesSaved": false,
+    "frontendCompared": 34,
+    "frontendUnchanged": true,
+    "limit": "Four known token patterns only; not proof of absence of every secret."
+  },
+  "allowlistedFields": [
+    "at",
+    "selectedSourceAndDocsFiles",
+    "builtTextFiles",
+    "rawMatchedValuesSaved",
+    "frontendCompared",
+    "frontendUnchanged",
+    "limit"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}

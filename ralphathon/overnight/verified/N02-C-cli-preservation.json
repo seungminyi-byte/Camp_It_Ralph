@@ -1,0 +1,21 @@
+{
+  "_provenance": {
+    "source_id": "S-216586f30a3c",
+    "source_bytes": 232,
+    "source_sha256": "cea65b488e751c07ea285da344091d1e67626e44f8154ef47578e6841209baea"
+  },
+  "selected": {
+    "at": "2026-09-21T16:16:58.984899+00:00",
+    "mergedHead": "944ef3457a7c00f71890aad1499d2351ea7db681",
+    "N08Preserved": 27,
+    "pr": 14
+  },
+  "allowlistedFields": [
+    "at",
+    "mergedHead",
+    "N08Preserved",
+    "pr"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}

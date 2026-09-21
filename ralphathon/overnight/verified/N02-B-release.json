@@ -1,0 +1,35 @@
+{
+  "_provenance": {
+    "source_id": "S-0b7dc603101b",
+    "source_bytes": 2704,
+    "source_sha256": "c32bce36342d8db4fe47d194ccfde331d461a7033d946a504ff705fb1f180a45"
+  },
+  "selected": {
+    "atUtc": "2026-09-21T16:06:29.744235+00:00",
+    "actionsRun": "https://github.com/seungminyi-byte/Camp_It_Ralph/actions/runs/35623096712",
+    "headSha": "5b843f8b328f9d64b363e57855e694e0f1be086f",
+    "conclusion": "success",
+    "deploymentId": "dpl_5CEPTrLkPgEAmLsaN33k57VJWPwx",
+    "deploymentUrl": "https://grand-site-cpbqli6cv-camp-it-ralph.vercel.app",
+    "readyState": "READY",
+    "aliasInspected": "grand-site-dc.vercel.app",
+    "deploymentUrlFoundInCompletedWorkflow": true,
+    "workflowLogSha256": "01d0816bfb2de78c3b16efe1af0dec2db8ad56bfd2175da69873e262c03d60d0",
+    "rawWorkflowLogSaved": false
+  },
+  "allowlistedFields": [
+    "atUtc",
+    "actionsRun",
+    "headSha",
+    "conclusion",
+    "deploymentId",
+    "deploymentUrl",
+    "readyState",
+    "aliasInspected",
+    "deploymentUrlFoundInCompletedWorkflow",
+    "workflowLogSha256",
+    "rawWorkflowLogSaved"
+  ],
+  "missingFields": [],
+  "note": "완료 workflow와 해당 시각의 Ready·별칭 확인입니다. 빠진 필드는 null이며 오전 새 확인으로 바꾸지 않습니다."
+}

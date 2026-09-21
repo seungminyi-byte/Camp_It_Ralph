@@ -1,0 +1,35 @@
+{
+  "_provenance": {
+    "source_id": "S-13b2cdfc7667",
+    "source_bytes": 479,
+    "source_sha256": "706b70c987e583c75a305e13b7b6de2f48aac4429ef29b20122cc415f0ea9ae3"
+  },
+  "selected": {
+    "at": "2026-09-22T00:43:00.099263+09:00",
+    "decision": "G027",
+    "api6": "semantic checks passed; nearby search partial, restriction/disaster no matching feature is not clearance",
+    "browserChecksPassed": 16,
+    "staticExact": 34,
+    "aiRecovered": false,
+    "safeDiagnostic": "single canonical event in same deployment/path/time; exact trace not matched",
+    "upstreamCode": 504,
+    "upstreamErrorType": "timeout",
+    "textEmitted": false,
+    "headersCommittedHttpStatus": 200
+  },
+  "allowlistedFields": [
+    "at",
+    "decision",
+    "api6",
+    "browserChecksPassed",
+    "staticExact",
+    "aiRecovered",
+    "safeDiagnostic",
+    "upstreamCode",
+    "upstreamErrorType",
+    "textEmitted",
+    "headersCommittedHttpStatus"
+  ],
+  "missingFields": [],
+  "note": "해당 시각·범위의 기존 결과에서 선별했습니다. 실제 요청과 합성 검사를 구분하세요."
+}
