@@ -1,21 +1,21 @@
 # 현재 실행 인계
 
-갱신 2026-09-21T22:35:24.653746+09:00. Goal active, 사용자 마감2026-09-22 10:00KST. ACTIVE_OBJECTIVE 전체와 ACCEPTANCE60행을 읽는다.
+갱신 2026-09-21T22:50:50.313488+09:00. Goal active, 사용자 마감 2026-09-22 10:00 KST. ACTIVE_OBJECTIVE 전체와 ACCEPTANCE 60행을 기준으로 한다.
 
-09 재현·배포·운영검수를 G018로 수락했다. 최종 제품 bb1828450564813d9d91d23142409fa480529106의 Actions35605415209 성공·Vercel Ready/별칭·34파일 일치, 새 익명UI16항목과 운영PDF11쪽 전페이지를 확인했다. 실제 기본API6종 정상·선택형AI 실패/오류안내/기본보고서 유지라는 경계를 보존한다. root는43소유파일/4출력/39근거사본/79링크/34dist/API10파일/원로그/PDF 등212항목을 독립 대조했다. 다음은 새10 발표→새11 감사이며 잔여보수추정120분, 실행자1개 정책을 유지한다.
+10 발표자료를 G019로 수락했다. 편집 PPTX 5슬라이드·동일 네이티브 PDF 5쪽·300초 구성 대본을 완료했다. root는 독립 47항목, 최종 PDF 전5쪽과 PowerPoint 실제 캡처6개를 확인했다. 제품 배포 bb18284와 실제 운영 11쪽 PDF 근거를 유지했고 제품 코드 변경은 없다. 다음은 새11 최종 감사·로그 사본·원격 문서 반영이며 잔여 보수 추정40분, 총괄 외 실행자1개 정책을 유지한다.
 
-## 작업 위치·검증 경계
+## 확정 산출물과 검증 경계
 
-- ROOT=/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal,REPO=ROOT/work/Camp_It_Ralph,branch=codex/ralph-goal-20260921. 원격prototype과로컬제품HEAD를bb18284로fast-forward했다. working문서43개와root제어6개는현재수락후정확목록으로커밋한다.
-- 최종생성PR7/8/9는모두병합/현재task첨부. 기존별도PR6과private저장소설정은보존. 원본사진/저장소쓰기없음.
-- 최종47파일563검사,root nativeHTTP12개,08 E2E17/axe26/합성53쪽은해당이전빌드검수. 09라벨1곳으로JS/자원참조3파일변경,나머지31정적파일동일. 최종운영PDF11쪽은별도실제조회/합성조건·root/실행자전페이지검수.
-- 최종배포bb18284/Actions35605415209/Vercel dpl_6CJbHBeRLfFJmD6YuuCG5mZG3VXo Ready. API7직접검사는da8f9시점이며최종과10소스동일. 최종익명UI의실제조회·운영PDF는22:27KST. 기본6종성공/AI오류와기본보고서유지. 모든7API성공이라쓰지않는다.
-- root09 독립212항목: work/evidence/root-09-final-review.json. 최종PDF root-09-operating-pdf-final.json,수정JS diff root-09-label-built-diff.json. regex초기이스케이프감사오류는root-09-final-review-regex-error.json에보존후selfcheck/전체재검수. 제품결함아님.
-- root Vite5199/session83558/IABtab2,운영rootLiveTab tab6은유지.09실행자의5208/5209/탭종료. caffeinate5854는최종정리전실제명령대조.
-- 실제세션원본/전체인증로그Git금지.11제출사본은비밀값·무관한개인문맥·숨은지침/추론·대형미디어를종류별기록으로제외하고실제실행순서/오류/모델/시각을보존한다. 원본은work에보존한다.
+- 제품 배포 bb1828450564813d9d91d23142409fa480529106, Actions35605415209 success, Vercel dpl_6CJbHBeRLfFJmD6YuuCG5mZG3VXo Ready, 공개 https://grand-site-dc.vercel.app. PR7/8/9 병합·첨부, 기존 별도PR6과 private 저장소 설정 보존.
+- 기본API6종 정상, 선택형AI 실제API/UI 오류 및 기본보고서 유지. 최종 익명UI16항목과 root 별도브라우저 검수. 주변필지는 부분탐색이며 공급/허가 확정이 아니다.
+- 운영PDF11쪽 SHA a629910fcb85896769ec3466bf8dd765f4d7b8260542564ae8a7e7dc98c49801, root/실행자 전페이지 검수. 이전08 합성5PDF53쪽·E2E17·axe26은 해당 빌드 근거로 구분. 최종47파일563단위검사.
+- 발표PPTX SHA e072cbcd2a7bb49795e61d9f0e2b3034dd2f273a9b8ba2ded20aeb3109d83c59, PDF SHA 363ced907705384d62beea8aad280fe35fd5007b488a3eaf3662826197bfca56, 대본 SHA 8eb5930ee378ca0cc5324fe49821948290ae5ee2b02e604f331ad60196550e79. outputs/presentation/ 최종3파일.
+- 발표대본1883자/공백제외1436자, 47/49/72/78/54초=300초. 분당320자 가정의 발화269.25초+여유30.75초. 실제 인간 낭독/TTS 미측정. PPTX발표자노트와본문 일치, private 접근·AI제한·효과미측정 명시.
+- root-10-review.json:47자동검사, PDF5쪽/실제PowerPoint스크린샷6개 직접검수. root는PowerPoint를직접조작하지않았고실행자가조작한실제캡처를독립확인했다. pypdf offset0/NUL 경고는보존하고NFKC/공백/NUL 정규화 대조와Poppler pdfinfo·렌더로 교차검수.
+- root09검수212항목과 43소유/4출력/39근거사본/79링크,09문서커밋729c830. 원본사진/저장소 보존. 문서·발표만반영하는최종PR은제품재배포와구분한다.
 
-## 남은 순서
+## 다음 작업
 
-10(80분):새Astra/xhigh실행자1개에work/presentation-prep/ASSIGNMENT.md,HANDOFF.md,FINAL_09.md와최신HEAD를인계한다. 최대5쪽편집PPTX/PDF/5분대본,실제운영화면·사진,전쪽렌더/PowerPoint실제UI검수. 제품수정없음.
-11(40분):새Astra/xhigh감사실행자1개에work/logs/ASSIGNMENT.md,HANDOFF.md와10최종결과인계. 실제로그원본/시점별제출사본/안전스캔/60행감사/사용자인계와최종문서반영.
-필수모두검수후Goalcomplete. 마감미완료이면안전정리후요청대로pause/미달성보고. 새Goal/자동화/task없음.
+새 Astra/xhigh 최종감사 실행자1개에 work/logs/ASSIGNMENT.md와HANDOFF.md,10 implementation/검수manifest,현재HEAD를전달한다. 실제로그원본·제출사본·비밀/범위밖문맥/숨은지침·추론 처리·ZIP검수·60행 감사·이동가능한outputs인계목차를 작성한다. root제어문서수정·제품변경·push/PR/merge는root검수전하지않는다. 원본/제출JSONL은Git에넣지않는다.
+
+root Vite5199/session83558/IABtab2와운영tab6을유지하고본인소유만최종정리한다. caffeinate5854도실제명령대조후정리한다. 모든필수산출물과최종원격반영을검수한후Goalcomplete. 마감미완료이면안전정리후사용자요청대로pause/미달성보고. 새Goal/자동화/task는없다.
