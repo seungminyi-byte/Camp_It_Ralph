@@ -1,6 +1,6 @@
 # 새 폴더 실행·검증 안내
 
-2026-09-21 제품 기준. 저장소 접근 권한이 있는 개발자와 검수 담당자를 위한 안내입니다. 저장소는 private이며 공개 서비스는 [여기 DC 돼요?](https://grand-site-dc.vercel.app)입니다. [최신 배포 검증](../ralphathon/implementation/09-reproduction-deployment.md)에서 실제 배포 SHA와 성공·실패 범위를 확인하세요. 원본 `AGENTS.md`의 2026-09-12 배포·세션 설명은 당시 이력이고, 현재 사용·실행 경계는 이 문서를 따릅니다.
+2026-09-22 실행 안내. 저장소 접근 권한이 있는 개발자와 검수 담당자를 위한 안내입니다. 저장소는 private이며 공개 서비스는 [여기 DC 돼요?](https://grand-site-dc.vercel.app)입니다. [2026-09-21 배포 검증](../ralphathon/implementation/09-reproduction-deployment.md)은 당시 SHA와 성공·실패 범위의 기록입니다. 최신 배포는 아래 6절의 절차로 별도 대조합니다. 원본 `AGENTS.md`의 2026-09-12 배포·세션 설명은 당시 이력이고, 현재 사용·실행 경계는 이 문서를 따릅니다.
 
 ## 1. 준비와 설치
 
@@ -29,6 +29,8 @@ npm --prefix prototype run build
 ```
 
 `typecheck`는 앱·API·사전 생성·E2E 코드를 검사합니다. Vitest의 외부 API 응답은 고정한 합성 응답입니다. 데이터 검사는 커밋된 번들의 구조·범위를 확인하며 최신 기관자료를 다시 수집하거나 개별 부지 공급 가능성을 검증하지 않습니다.
+
+수동 AI 의견 생성은 [사전 생성 안내](PRECOMPUTED_MEMOS.md)를 따릅니다. `--help`는 외부 호출 없이 실행할 수 있고, 실제 생성은 키가 설정된 환경에서 OpenRouter에 직접 요청합니다. `--output`은 새 검수 후보를 만들며 빌드·배포나 기존 생성본 갱신을 수행하지 않습니다. 합성 시험 통과와 실제 생성 성공을 구분합니다.
 
 ## 3. 화면 실행
 

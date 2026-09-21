@@ -81,13 +81,15 @@ npm --prefix prototype run build
 
 | 키 | 발급 URL | 사용처 | 필요 시점 |
 |---|---|---|---|
-| **OpenRouter** (`:free` 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=google/gemma-4-31b-it:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
+| **OpenRouter** (무료 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=google/gemma-4-31b-it:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
 | VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/disaster.ts`(재해위험지구 점 조회) · `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | GitHub Actions Secret `DATA_GO_KR_API_KEY`(Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json` | 허가→착공 통계 |
 | 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | GitHub Actions Secrets `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json` | 뉴스 참고 목록 |
 | 고속도로 출입시설 위치정보 (후속) | https://www.data.go.kr/data/15076687/openapi.do → 연결된 한국도로공사 서비스에서 활용신청·인증키 확인 | 향후 빌드 시 수집 전용. 신청·키 발급은 사용자 직접 진행, 브라우저 입력·번들 포함 금지 | IC 자료 원본 검증 단계 |
 
-런타임 키는 Vercel에, 데이터 수집 키는 GitHub Actions Secrets에만 둡니다. Codex Cloud 환경에는 API 비밀값을 복제하지 않습니다. 임시 로컬 수집이 꼭 필요할 때만 Git에서 제외된 환경 파일을 만들고 작업 후 제거합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서는 AI 없이 사용할 수 있습니다. 선택형 AI는 제공 상태에 따라 실패할 수 있으며 [서버 오류 진단과 운영 확인](docs/AI_DIAGNOSTICS.md)을 별도로 수행합니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
+런타임 키는 Vercel에, 데이터 수집 키는 GitHub Actions Secrets에만 둡니다. Codex Cloud 환경에는 API 비밀값을 복제하지 않습니다. 임시 로컬 수집이 꼭 필요할 때만 Git에서 제외된 환경 파일을 만들고 작업 후 제거합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서는 AI 없이 사용할 수 있습니다. 선택형 AI는 제공 상태에 따라 실패할 수 있으며 [서버 오류 진단과 운영 확인](docs/AI_DIAGNOSTICS.md)을 별도로 수행합니다.
+
+`prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 사용하며 서버 변수 `LLM_MODEL`을 읽지 않습니다. 필수 `--output`으로 **새 검수 후보 파일 하나**만 생성하고 두 배포 파일은 갱신하지 않습니다. [사전 생성 안내](docs/PRECOMPUTED_MEMOS.md)의 단일 무료 모델·실행 제한·내용 및 전체 평가 서명 검수·별도 게시 절차를 따릅니다.
 
 ## OpenRouter 서버 키 등록·교체
 
@@ -95,7 +97,7 @@ npm --prefix prototype run build
 
 1. 새 키가 필요하면 [OpenRouter Keys](https://openrouter.ai/keys)에서 본인 계정으로 발급합니다.
 2. Vercel에서 `OPENROUTER_API_KEY`를 추가하거나 편집하고 값을 직접 붙여넣습니다. 환경은 **Production**, 종류는 **Secret**으로 지정해 저장합니다. 키를 대화·코드·브라우저 앱 입력란에 넣지 않습니다.
-3. `LLM_MODEL`은 **Config**, Production 환경에 `google/gemma-4-31b-it:free`로 설정합니다. [무료 모델 제공 상태](https://openrouter.ai/google/gemma-4-31b-it:free)를 확인할 수 있습니다. 기본 모델 호출이 제한되면 `nvidia/nemotron-3.5-lightning:free`, `google/gemma-4-26b-a4b-it:free` 순으로 이어서 요청합니다. 모두 무료 모델이며 자동 유료 전환은 없습니다. 무료 제공 상태와 응답 속도는 달라질 수 있습니다.
+3. `LLM_MODEL`은 **Config**, Production 환경에 `google/gemma-4-31b-it:free`로 설정합니다. [무료 모델 제공 상태](https://openrouter.ai/google/gemma-4-31b-it:free)를 확인할 수 있습니다. 서버는 기본 모델 → `nvidia/nemotron-3.5-lightning:free` → `google/gemma-4-26b-a4b-it:free` → `openrouter/free` 순서를 한 요청의 대체 모델 목록으로 전달합니다. 마지막 [무료 라우터](https://openrouter.ai/docs/guides/routing/routers/free-router)는 사용 가능한 무료 모델에서 선택합니다. 자동 유료 전환은 없으며, 무료 모델의 가용성·선택 결과·속도는 달라질 수 있습니다. 목록 전달만으로 각 대안의 실제 시도나 응답 성공을 보장하지 않습니다.
 4. 환경변수 변경 후 새로 배포해야 실행 중인 서버에 반영됩니다. 기존 배포는 Vercel의 Redeploy, 코드 변경은 저장소의 배포 흐름으로 반영합니다.
 
 터미널을 선호하면 프로젝트의 `prototype` 폴더에서 `vercel env update OPENROUTER_API_KEY production --sensitive`를 직접 실행하고 숨겨진 입력창에 붙여넣습니다. 처음 등록하는 환경이면 `update` 대신 `add`를 사용합니다. 키를 명령어 인수에 적지 않습니다.

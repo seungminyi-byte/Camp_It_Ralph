@@ -8,7 +8,7 @@ const OFFICIAL_TYPES = [
   'content_policy_violation', 'refusal', 'invalid_image', 'image_too_large', 'image_too_small',
   'unsupported_image_format', 'image_not_found', 'image_download_failed', 'server', 'timeout', 'unmapped',
 ];
-const DEFAULT_MODELS = ['google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'];
+const DEFAULT_MODELS = ['google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free', 'openrouter/free'];
 const FIELDS = ['event', 'requestAtUtc', 'elapsedMs', 'phase', 'localCode', 'upstreamHttpStatus', 'upstreamCode', 'upstreamErrorType', 'errorLocation', 'errorShape', 'requestedModels', 'textEmitted'].sort();
 const PRIVATE = 'SYNTHETIC_PRIVATE_SENTINEL';
 const enc = new TextEncoder();
