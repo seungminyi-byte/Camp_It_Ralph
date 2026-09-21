@@ -134,7 +134,7 @@ export default async function handler(req: Request): Promise<Response> {
     const key = process.env.OPENROUTER_API_KEY;
     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
     if (!key || !cleanString(key, 512) || /\s/.test(key) || !FREE_MODELS.has(model)) throw new ApiError('SERVER_UNAVAILABLE', 503);
-    const models = model === DEFAULT_MODEL ? [model, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free', 'openrouter/free'] : [model];
+    const models = model === DEFAULT_MODEL ? [model, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'] : [model];
     diagnostic.selectModels(models);
     diagnostic.enter('gate');
     const digest = await operation.wait(crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify({ model, prompt }))));

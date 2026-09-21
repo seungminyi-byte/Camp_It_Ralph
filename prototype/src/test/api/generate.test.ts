@@ -57,7 +57,7 @@ describe('report model routing', () => {
     const payload = JSON.parse(fetch.mock.calls[0][1].body);
     expect(payload.models).toEqual([
       'google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free',
-      'google/gemma-4-26b-a4b-it:free', 'openrouter/free',
+      'google/gemma-4-26b-a4b-it:free',
     ]);
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(await response.text()).toBe('검토 결과');
