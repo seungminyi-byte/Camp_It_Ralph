@@ -4,9 +4,11 @@ import { createPortal } from 'react-dom';
 /**
  * The report is rendered into a body-level node, not inside #root: the app shell uses
  * height:100% with scrolling panes, which clips printed output to a single page.
- * It stays mounted (hidden on screen) so window.print() never races a state update.
+ * It stays mounted while the workspace is active so print never races a state update.
+ * Hidden workspaces must remove this body-level portal entirely.
  */
-export function PrintPortal({ children }: { children: ReactNode }) {
+export function PrintPortal({ active, children }: { active: boolean; children: ReactNode }) {
+  if (!active) return null;
   return createPortal(
     <div id="print-root" className="hidden print:block">
       {children}

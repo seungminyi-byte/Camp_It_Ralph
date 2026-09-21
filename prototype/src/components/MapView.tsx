@@ -111,14 +111,22 @@ function ZoomWatcher({ onZoom }: { onZoom: (zoom: number) => void }) {
 }
 
 /** Leaflet only watches window resizes; the resizable side panel changes the map's width without one. */
-function SizeWatcher() {
+function SizeWatcher({ active }: { active: boolean }) {
   const map = useMap();
   useEffect(() => {
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => map.invalidateSize({ animate: false }));
-    ro.observe(map.getContainer());
-    return () => ro.disconnect();
-  }, [map]);
+    if (!active) {
+      map.stop();
+      return;
+    }
+    const refresh = () => map.invalidateSize({ animate: false, pan: false });
+    const frame = requestAnimationFrame(refresh);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(refresh);
+    ro?.observe(map.getContainer());
+    return () => {
+      cancelAnimationFrame(frame);
+      ro?.disconnect();
+    };
+  }, [map, active]);
   return null;
 }
 
@@ -271,6 +279,7 @@ export interface FlyToTarget {
 }
 
 interface Props {
+  active: boolean;
   data: AppData;
   site: SiteSelection | null;
   flyTo: FlyToTarget | null;
@@ -279,7 +288,7 @@ interface Props {
   onSelect: (lat: number, lng: number) => void;
 }
 
-export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props) {
+export function MapView({ active, data, site, flyTo, highlightZoneIds, onSelect }: Props) {
   const [showSubs, setShowSubs] = useState(true);
   const [showDataCenters, setShowDataCenters] = useState(true);
   const [dataCenterCategories, setDataCenterCategories] = useState<
@@ -366,7 +375,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
         )}
         <ClickHandler onSelect={onSelect} />
         <ZoomWatcher onZoom={setZoom} />
-        <SizeWatcher />
+        <SizeWatcher active={active} />
         <FlyTo target={flyTo} />
         {showSubs &&
           named154.map((s, i) => (

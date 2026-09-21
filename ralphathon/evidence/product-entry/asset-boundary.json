@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-09-21T07:57:06.237585+00:00",
+  "kind": "built-asset-static-inspection-not-browser-network",
+  "checks": {
+    "html_only_entry_assets": true,
+    "entry_js_no_population_data_path": true,
+    "entry_js_no_household_data_path": true,
+    "entry_js_no_leaflet_implementation": true,
+    "entry_css_no_leaflet_rules": true,
+    "lazy_workspace_js_exists": true,
+    "lazy_workspace_css_exists": true
+  },
+  "assets": {
+    "index-B2bw9h1p.css": 28170,
+    "index-D1C1tzwT.js": 202607,
+    "ReviewWorkspace-9e9FOwze.js": 278171,
+    "ReviewWorkspace-DJ6zgFve.css": 54530
+  }
+}

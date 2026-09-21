@@ -34,13 +34,14 @@ interface Run {
   parsed: ParsedMemo;
   mode: LlmMode | null;
   meta: GenerateMeta;
-  status: 'streaming' | 'done' | 'error';
+  status: 'streaming' | 'done' | 'error' | 'stopped';
   error?: string;
   invalidated?: boolean;
   at: Date;
 }
 
 interface Props {
+  active: boolean;
   data: AppData;
   input: ScoreInput;
   result: ScoreResult;
@@ -49,8 +50,9 @@ interface Props {
   zoningName: string | null;
 }
 
-/** The panel is keyed on the site in App, so a new point remounts it with a clean slate. */
+/** Keyed by the workspace site; route changes preserve valid completed opinions. */
 export function MemoPanel({
+  active,
   data,
   input,
   result,
@@ -79,22 +81,28 @@ export function MemoPanel({
       ) !== currentContext);
   if (stale && run && !run.invalidated) {
     setRun({ ...run, invalidated: true, status: 'done' });
+  } else if (!active && run?.status === 'streaming') {
+    // Record cancellation in state before a late stream callback can mark it complete.
+    setRun({ ...run, status: 'stopped' });
   }
-  const busy = run?.status === 'streaming' && !stale;
+  const busy = active && run?.status === 'streaming' && !stale;
+  const completed = !stale && run?.status === 'done' && run.parsed.complete && !run.parsed.error;
+  const reportMemo = completed ? run.parsed : null;
   const shown = { input, result, rows, landUseSource, zoningName, site };
   useEffect(() => {
-    if (stale) {
+    if (stale || !active) {
       ctrl.current?.abort();
     }
-  }, [stale, currentContext]);
+  }, [active, stale, currentContext]);
   const generatedBy =
-    run && !stale && run.mode
+    completed && run.mode
       ? run.mode === 'proxy'
         ? `AI 생성${run.meta.model ? ` · ${run.meta.model}` : ''}`
         : `사전 생성 의견 (오프라인${run.meta.distanceKm !== undefined ? ` · 등록 지점에서 ${Math.round(run.meta.distanceKm * 1000)}m` : ''})`
       : null;
 
   const start = async () => {
+    if (!active) return;
     ctrl.current?.abort();
     const c = new AbortController();
     ctrl.current = c;
@@ -132,31 +140,31 @@ export function MemoPanel({
         },
         onText: (t) =>
           setRun((prev) => {
-            if (!prev || c.signal.aborted) return prev;
+            if (!prev || c.signal.aborted || prev.invalidated || prev.status !== 'streaming' || ctrl.current !== c) return prev;
             const raw = prev.raw + t;
             return { ...prev, raw, parsed: parseMemo(raw) };
           }),
         onMode: (mode, meta) =>
           setRun((prev) =>
-            prev && !c.signal.aborted
+            prev && !c.signal.aborted && !prev.invalidated && prev.status === 'streaming' && ctrl.current === c
               ? { ...prev, mode, meta: { ...prev.meta, ...meta } }
               : prev,
           ),
       });
       if (!c.signal.aborted)
-        setRun((prev) => (prev ? { ...prev, status: 'done' } : prev));
+        setRun((prev) => (prev && !prev.invalidated && prev.status === 'streaming' && ctrl.current === c ? { ...prev, status: 'done' } : prev));
     } catch (e) {
       if (c.signal.aborted) return;
       const message = e instanceof Error ? e.message : String(e);
       setRun((prev) =>
-        prev ? { ...prev, status: 'error', error: message } : prev,
+        prev && !prev.invalidated && prev.status === 'streaming' && ctrl.current === c ? { ...prev, status: 'error', error: message } : prev,
       );
     }
   };
 
   const stop = () => {
     ctrl.current?.abort();
-    setRun((prev) => (prev ? { ...prev, status: 'done' } : prev));
+    setRun((prev) => (prev ? { ...prev, status: 'stopped' } : prev));
   };
 
   const areaLabel = result.emd
@@ -188,12 +196,16 @@ export function MemoPanel({
               : 'AI 검토 의견 생성'}
         </button>
         <button
-          onClick={() => printWithTitle(reportFileTitle(areaLabel, new Date()))}
+          onClick={() => { if (active) printWithTitle(reportFileTitle(areaLabel, new Date())); }}
           className="report-pdf-button"
         >
           PDF 저장 <span aria-hidden="true">↗</span>
         </button>
       </div>
+
+      {busy && <p className="memo-state" role="status">AI 의견을 생성하고 있습니다. 기본 보고서는 계속 사용할 수 있으며, 완료된 의견만 PDF에 포함합니다.</p>}
+      {!stale && run?.status === 'stopped' && <p className="memo-state" role="status">AI 생성을 중단했습니다. 부분 의견은 보고서에 포함하지 않습니다.</p>}
+      {!stale && run?.status === 'done' && !run.parsed.complete && !run.parsed.error && <p className="memo-state" role="status">AI 의견이 완성되지 않아 보고서에 포함하지 않았습니다. 기본 보고서는 계속 사용할 수 있습니다.</p>}
 
       {stale && (
         <p className="mt-2 rounded bg-amber-50 p-1.5 text-xs text-amber-900">
@@ -217,14 +229,14 @@ export function MemoPanel({
           site={shown.site}
           landUseSource={shown.landUseSource}
           zoningName={shown.zoningName}
-          memo={!stale ? (run?.parsed ?? null) : null}
+          memo={reportMemo}
           generatedBy={generatedBy}
-          generatedAt={!stale ? (run?.at ?? null) : null}
+          generatedAt={completed ? run.at : null}
           variant="screen"
         />
       </div>
 
-      {run && !stale && run.raw.length > 0 && (
+      {run && !stale && run.status !== 'stopped' && run.raw.length > 0 && (
         <details
           className="mt-2"
           open={showRaw}
@@ -247,7 +259,7 @@ export function MemoPanel({
         </details>
       )}
 
-      <PrintPortal>
+      <PrintPortal active={active}>
         <ChecklistReport
           data={data}
           input={shown.input}
@@ -256,9 +268,9 @@ export function MemoPanel({
           site={shown.site}
           landUseSource={shown.landUseSource}
           zoningName={shown.zoningName}
-          memo={!stale ? (run?.parsed ?? null) : null}
+          memo={reportMemo}
           generatedBy={generatedBy}
-          generatedAt={!stale ? (run?.at ?? null) : null}
+          generatedAt={completed ? run.at : null}
           variant="print"
         />
       </PrintPortal>
