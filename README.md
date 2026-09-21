@@ -7,6 +7,7 @@
 - 서비스명은 가칭입니다. 배포 설정과 `X-Title`의 내부 코드명은 유지합니다.
 - 저장소: https://github.com/seungminyi-byte/Camp_It_Ralph · 기준 브랜치 `prototype`
 - 운영 서비스: https://grand-site-dc.vercel.app · [현재 재현·배포 검증](ralphathon/implementation/09-reproduction-deployment.md)
+- [최종 전달 자료](ralphathon/deliverables/START_HERE.md): 편집 가능한 5장 발표자료·5분 구성 대본·실제 운영 PDF·실행 안내·검증 결과. 선택형 AI의 운영 생성 실패와 자료의 확인 범위를 함께 표시합니다.
 - [새 폴더 실행 안내](docs/RUNNING.md) · [예제 입력](docs/EXAMPLE_INPUT.md) · [구조·재사용 범위](docs/ARCHITECTURE_REUSE.md)
 - [구현 사양](docs/PLAN.md) · [데이터 출처·한계](docs/DATA.md) · [데모·검증 절차](docs/DEMO.md)
 
