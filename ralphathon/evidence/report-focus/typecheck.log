@@ -1,0 +1,5 @@
+
+> prototype@0.0.0 typecheck
+> tsc -b && tsc -p tsconfig.api.json && tsc -p tsconfig.scripts.json
+
+EXIT_CODE=0

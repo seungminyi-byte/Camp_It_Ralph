@@ -1,0 +1,257 @@
+
+ RUN  v4.1.11 C:/Users/nanac/Documents/Codex/2026-09-21/goal-gs-dc-vercel-1-gs/work/Camp_It_Ralph/prototype
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx (18 tests | 11 failed) 4779ms
+     × cancels a current report focus on home and keeps it closed after immediate re-entry 63ms
+     × does not let a delayed home reset close a newly opened comparison on re-entry 109ms
+     × does not focus the new site using a stale current report request 147ms
+     × leaves no second report frame that can steal focus after a home transition 270ms
+     × leaves no second report frame that can steal focus after a site transition 278ms
+     × leaves no second report frame that can steal focus after a conditions transition 467ms
+     × cancels candidate-report work when conditions are opened for candidate 1 290ms
+     × closes an already opened report when the same candidate is opened for editing 445ms
+     × does not revive an old report request after editing another candidate and returning 318ms
+     × respects a manual report close before its focus frame 61ms
+     × cancels pending report work on unmount 59ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > cancels a current report focus on home and keeps it closed after immediate re-entry
+AssertionError: expected <h2 id="report-title" tabindex="-1"></h2> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button>
+-   제품 소개
+- </button>
++ <h2
++   id="report-title"
++   tabindex="-1"
++ >
++   부지 검토 보고서
++ </h2>
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:171:36
+    169|     home.focus();
+    170|     await drainFrames();
+    171|     expect(document.activeElement).toBe(home);
+       |                                    ^
+    172|     expect(report().open).toBe(false);
+    173|     expect(scrollIntoView).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > does not let a delayed home reset close a newly opened comparison on re-entry
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:188:48
+    186|     await click(host.querySelector<HTMLButtonElement>('.header-saved')…
+    187|     await drainFrames();
+    188|     expect(host.querySelector('dialog')?.open).toBe(true);
+       |                                                ^
+    189|     expect(report().open).toBe(false);
+    190|     expect(scrollIntoView).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > does not focus the new site using a stale current report request
+AssertionError: expected <h2 id="report-title" tabindex="-1"></h2> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button>
+-   위치 
+-   2
+- </button>
++ <h2
++   id="report-title"
++   tabindex="-1"
++ >
++   부지 검토 보고서
++ </h2>
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:205:36
+    203|     expect(report().open).toBe(false);
+    204|     expect(report().textContent).toContain('후보 2');
+    205|     expect(document.activeElement).toBe(button('위치 2'));
+       |                                    ^
+    206|     expect(scrollIntoView).not.toHaveBeenCalled();
+    207|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > leaves no second report frame that can steal focus after a home transition
+AssertionError: expected <h2 id="report-title" tabindex="-1"></h2> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button>
+-   제품 소개
+- </button>
++ <h2
++   id="report-title"
++   tabindex="-1"
++ >
++   부지 검토 보고서
++ </h2>
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:225:36
+    223|     await drainFrames();
+    224|     expect(report().open).toBe(false);
+    225|     expect(document.activeElement).toBe(nextFocus);
+       |                                    ^
+    226|     expect(scrollIntoView).not.toHaveBeenCalled();
+    227|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > leaves no second report frame that can steal focus after a site transition
+AssertionError: expected <h2 id="report-title" tabindex="-1"></h2> to be <button></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button>
+-   위치 
+-   2
+- </button>
++ <h2
++   id="report-title"
++   tabindex="-1"
++ >
++   부지 검토 보고서
++ </h2>
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:225:36
+    223|     await drainFrames();
+    224|     expect(report().open).toBe(false);
+    225|     expect(document.activeElement).toBe(nextFocus);
+       |                                    ^
+    226|     expect(scrollIntoView).not.toHaveBeenCalled();
+    227|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > leaves no second report frame that can steal focus after a conditions transition
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:224:27
+    222|     const nextFocus = document.activeElement;
+    223|     await drainFrames();
+    224|     expect(report().open).toBe(false);
+       |                           ^
+    225|     expect(document.activeElement).toBe(nextFocus);
+    226|     expect(scrollIntoView).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > cancels candidate-report work when conditions are opened for candidate 1
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:234:27
+    232|     await compareAction(index, '조건 수정');
+    233|     await drainFrames();
+    234|     expect(report().open).toBe(false);
+       |                           ^
+    235|     expect(report().textContent).toContain(`후보 ${index}`);
+    236|     expect(document.activeElement).not.toBe(reportTitle());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > closes an already opened report when the same candidate is opened for editing
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:247:27
+    245|     await compareAction(1, '조건 수정');
+    246|     await drainFrames();
+    247|     expect(report().open).toBe(false);
+       |                           ^
+    248|   });
+    249|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > does not revive an old report request after editing another candidate and returning
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:256:27
+    254|     await compareAction(1, '조건 수정');
+    255|     await drainFrames();
+    256|     expect(report().open).toBe(false);
+       |                           ^
+    257|     expect(report().textContent).toContain('후보 1');
+    258|     expect(document.activeElement).not.toBe(reportTitle());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > respects a manual report close before its focus frame
+AssertionError: expected <h2 id="report-title" tabindex="-1"></h2> not to be <h2 id="report-title" tabindex="-1"></h2> // Object.is equality
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:290:40
+    288|     await drainFrames();
+    289|     expect(report().open).toBe(false);
+    290|     expect(document.activeElement).not.toBe(reportTitle());
+       |                                        ^
+    291|     expect(scrollIntoView).not.toHaveBeenCalled();
+    292|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  src/pages/ReviewWorkspace.baseline.dom.test.tsx > workspace report transitions > cancels pending report work on unmount
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/pages/ReviewWorkspace.baseline.dom.test.tsx:300:25
+    298|     mounted = false;
+    299|     home.focus();
+    300|     expect(frames.size).toBe(0);
+       |                         ^
+    301|     await drainFrames();
+    302|     expect(document.activeElement).toBe(home);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed | 7 passed (18)
+   Start at  20:42:11
+   Duration  6.41s (transform 384ms, setup 0ms, import 1.00s, tests 4.78s, environment 480ms)
+
+EXIT_CODE=1
