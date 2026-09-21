@@ -435,6 +435,8 @@ export default function App() {
                 </summary>
                 <MemoPanel
                   key={siteKey}
+                  selectionRevision={selectionRevision}
+                  requestRevision={JSON.stringify([zoning, restrictions, disaster].map(({ queryKey, selectionRevision: selected, requestRevision, status }) => [queryKey, selected, requestRevision, status]))}
                   data={data}
                   input={input}
                   result={result}

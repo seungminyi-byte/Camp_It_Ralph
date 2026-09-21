@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import type { ScoreResult } from '../types';
 import { fmtArea, fmtKrw } from '../lib/format';
 import {
@@ -161,9 +162,9 @@ export function EvidenceList({ result: r }: { result: ScoreResult }) {
             </small>
           </strong>
           <p>
-            <a href={e.sourceUrl} target="_blank" rel="noreferrer">
+            <SafeExternalLink href={e.sourceUrl}>
               {e.source}
-            </a>{' '}
+            </SafeExternalLink>{' '}
             · {e.period} · {e.spatialUnit}
           </p>
           <p>{e.detail}</p>

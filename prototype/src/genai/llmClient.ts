@@ -1,129 +1,151 @@
 import { haversineKm } from '../scoring/geo';
 import type { LandUse } from '../types';
+import { promptSizeIssue } from './prompts';
 
 export type LlmMode = 'proxy' | 'fallback';
-
-/** A precomputed memo only stands in for the point it was generated for. */
 export const FALLBACK_RADIUS_KM = 0.3;
-
+export const MEMO_DEADLINE_MS = 65_000;
+export const MEMO_MAX_BYTES = 128 * 1024;
+const PRECOMPUTED_MAX_BYTES = 2 * 1024 * 1024;
 export interface PrecomputedFile {
   version: 4;
   model: string;
   generatedAt: string;
-  memos: Record<
-    string,
-    {
-      lat: number;
-      lng: number;
-      landUse: LandUse;
-      contextKey: string;
-      text: string;
-    }
-  >;
+  memos: Record<string, { lat: number; lng: number; landUse: LandUse; contextKey: string; text: string }>;
 }
-
-export interface GenerateMeta {
-  model?: string;
-  precomputedId?: string;
-  distanceKm?: number;
-}
-
+export interface GenerateMeta { model?: string; precomputedId?: string; distanceKm?: number }
 export interface GenerateOptions {
   signal: AbortSignal;
-  onText: (t: string) => void;
+  onText: (text: string) => void;
+  /** Replace failed proxy content atomically before publishing the fallback. */
+  onReplace: (text: string) => void;
   onMode: (mode: LlmMode, meta?: GenerateMeta) => void;
-  /** Where to look for an offline memo when the proxy is unreachable. */
   fallbackAt: { lat: number; lng: number; contextKey: string } | null;
 }
+export class MemoTransportError extends Error {
+  readonly code: 'timeout' | 'empty' | 'too-large' | 'upstream' | 'invalid' | 'input';
+  constructor(code: MemoTransportError['code']) {
+    const messages = { timeout: 'AI 응답 제한시간 65초를 초과했습니다.', empty: 'AI 응답 본문 없음',
+      'too-large': 'AI 응답 크기가 허용 범위를 초과했습니다.', upstream: 'AI 서비스가 응답을 완료하지 못했습니다.',
+      invalid: 'AI 응답 형식을 확인할 수 없습니다.', input: 'AI 요청 자료가 허용 크기를 초과했습니다. 입력은 보존되며 기본 보고서를 사용할 수 있습니다.' };
+    super(messages[code]);
+    this.code = code;
+  }
+}
+const abortError = () => new DOMException('의견 생성을 중단했습니다.', 'AbortError');
+const cancelBody = (body: ReadableStream<Uint8Array> | null) => { void body?.cancel().catch(() => {}); };
 
-async function streamViaProxy(
-  prompt: string,
-  onText: (t: string) => void,
-  signal: AbortSignal,
-): Promise<{ model?: string }> {
-  const res = await fetch('/api/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt }),
-    signal,
-  });
-  if (!res.ok || !res.body) throw new Error(`proxy ${res.status}`);
-  const model = res.headers.get('X-LLM-Model') ?? undefined;
+/** One deadline covers headers, every body read, and the optional exact-context fallback. */
+class MemoOperation {
+  readonly controller = new AbortController();
+  readonly signal = this.controller.signal;
+  private timer: ReturnType<typeof setTimeout>;
+  private parentAbort = () => this.controller.abort(abortError());
+  private parent: AbortSignal;
+  constructor(parent: AbortSignal) {
+    this.parent = parent;
+    this.timer = setTimeout(() => this.controller.abort(new MemoTransportError('timeout')), MEMO_DEADLINE_MS);
+    parent.addEventListener('abort', this.parentAbort, { once: true });
+    if (parent.aborted) this.parentAbort();
+  }
+  check() { if (this.signal.aborted) throw this.signal.reason; }
+  async wait<T>(pending: Promise<T>): Promise<T> {
+    this.check();
+    let abort: () => void = () => {};
+    const stopped = new Promise<never>((_, reject) => {
+      abort = () => reject(this.signal.reason);
+      this.signal.addEventListener('abort', abort, { once: true });
+    });
+    try { const value = await Promise.race([pending, stopped]); this.check(); return value; }
+    finally { this.signal.removeEventListener('abort', abort); }
+  }
+  async fetch(url: string, init?: RequestInit) {
+    this.check();
+    const pending = fetch(url, { ...init, signal: this.signal });
+    let observed: Response | undefined;
+    void pending.then((response) => { observed = response; if (this.signal.aborted) cancelBody(response.body); }, () => {});
+    try { return await this.wait(pending); }
+    catch (error) { if (observed) cancelBody(observed.body); throw error; }
+  }
+  dispose() { clearTimeout(this.timer); this.parent.removeEventListener('abort', this.parentAbort); this.controller.abort(abortError()); }
+}
+
+async function readText(res: Response, operation: MemoOperation, maxBytes: number, onText?: (text: string) => void): Promise<string> {
+  if (!res.body) throw new MemoTransportError('empty');
+  const length = res.headers.get('content-length');
+  if (length && (!/^\d+$/.test(length) || Number(length) > maxBytes)) { cancelBody(res.body); throw new MemoTransportError('too-large'); }
   const reader = res.body.getReader();
-  const dec = new TextDecoder();
-  let hasText = false;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const text = dec.decode(value, { stream: true });
-    if (text.trim()) hasText = true;
-    onText(text);
-  }
-  if (!hasText) throw new Error('AI 응답 본문 없음');
-  return { model };
-}
-
-async function loadPrecomputed(
-  at: { lat: number; lng: number; contextKey: string },
-  signal: AbortSignal,
-): Promise<{ id: string; text: string; distanceKm: number } | null> {
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let bytes = 0, text = '';
   try {
-    const res = await fetch('data/precomputed_memos.json', { signal });
-    if (!res.ok) return null;
-    const file = (await res.json()) as PrecomputedFile;
-    if (file.version !== 4) return null;
-    let best: { id: string; text: string; distanceKm: number } | null = null;
-    for (const [id, memo] of Object.entries(file.memos ?? {})) {
-      if (memo.contextKey !== at.contextKey) continue;
-      const distanceKm = haversineKm(at.lat, at.lng, memo.lat, memo.lng);
-      if (
-        distanceKm <= FALLBACK_RADIUS_KM &&
-        (!best || distanceKm < best.distanceKm)
-      ) {
-        best = { id, text: memo.text, distanceKm };
-      }
+    for (;;) {
+      const { done, value } = await operation.wait(reader.read());
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maxBytes) throw new MemoTransportError('too-large');
+      const chunk = decoder.decode(value, { stream: true });
+      text += chunk;
+      operation.check();
+      onText?.(chunk);
+      if (onText && /^[ \t]*#{1,3}[ \t]*ERROR[ \t]*(?:\r?\n|$)/im.test(text)) throw new MemoTransportError('upstream');
     }
-    return best;
-  } catch {
-    return null;
+    const tail = decoder.decode();
+    text += tail;
+    if (tail) onText?.(tail);
+    if (!text.trim()) throw new MemoTransportError('empty');
+    return text;
+  } finally {
+    void reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
 }
-
-/**
- * Server proxy first (Vercel Edge -> OpenRouter), then the precomputed memo bundled for the demo
- * points. There is no browser-key path: the key lives only in the server environment.
- */
-export async function generateMemo(
-  prompt: string,
-  opts: GenerateOptions,
-): Promise<void> {
-  const { signal, onText, onMode, fallbackAt } = opts;
-  let proxyError = '';
-  try {
-    onMode('proxy');
-    const { model } = await streamViaProxy(prompt, onText, signal);
-    onMode('proxy', { model });
-    return;
-  } catch (e) {
-    if (signal.aborted) throw e;
-    proxyError = e instanceof Error ? e.message : String(e);
+const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+async function loadPrecomputed(at: NonNullable<GenerateOptions['fallbackAt']>, operation: MemoOperation) {
+  const res = await operation.fetch('/data/precomputed_memos.json');
+  if (!res.ok) { cancelBody(res.body); return null; }
+  let file: unknown;
+  try { file = JSON.parse(await readText(res, operation, PRECOMPUTED_MAX_BYTES)); }
+  catch { operation.check(); return null; }
+  if (!record(file) || file.version !== 4 || !record(file.memos)) return null;
+  let best: { id: string; text: string; distanceKm: number } | null = null;
+  for (const [id, memo] of Object.entries(file.memos)) {
+    if (!record(memo) || memo.contextKey !== at.contextKey || typeof memo.lat !== 'number' || !Number.isFinite(memo.lat) ||
+      typeof memo.lng !== 'number' || !Number.isFinite(memo.lng) || Math.abs(memo.lat) > 90 || Math.abs(memo.lng) > 180 ||
+      typeof memo.text !== 'string' || !memo.text.trim() || new TextEncoder().encode(memo.text).length > MEMO_MAX_BYTES ||
+      /^[ \t]*#{1,3}[ \t]*ERROR[ \t]*(?:\r?\n|$)/im.test(memo.text)) continue;
+    const distanceKm = haversineKm(at.lat, at.lng, memo.lat, memo.lng);
+    if (distanceKm <= FALLBACK_RADIUS_KM && (!best || distanceKm < best.distanceKm)) best = { id, text: memo.text, distanceKm };
   }
-
-  if (fallbackAt) {
-    const pre = await loadPrecomputed(fallbackAt, signal);
-    if (pre) {
-      onMode('fallback', { precomputedId: pre.id, distanceKm: pre.distanceKm });
-      for (const chunk of pre.text.match(/[\s\S]{1,40}/g) ?? []) {
-        if (signal.aborted) return;
-        onText(chunk);
-        await new Promise((r) => setTimeout(r, 25));
-      }
+  return best;
+}
+export async function generateMemo(prompt: string, opts: GenerateOptions): Promise<void> {
+  if (promptSizeIssue(prompt)) throw new MemoTransportError('input');
+  const operation = new MemoOperation(opts.signal);
+  let failure: unknown;
+  try {
+    operation.check();
+    opts.onMode('proxy');
+    try {
+      const res = await operation.fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      if (!res.ok) { cancelBody(res.body); throw new MemoTransportError('upstream'); }
+      if (res.headers.get('content-type')?.split(';')[0].trim() !== 'text/plain') { cancelBody(res.body); throw new MemoTransportError('invalid'); }
+      await readText(res, operation, MEMO_MAX_BYTES, opts.onText);
+      operation.check();
+      opts.onMode('proxy', { model: res.headers.get('X-LLM-Model') ?? undefined });
       return;
+    } catch (error) { operation.check(); failure = error; }
+    if (opts.fallbackAt) {
+      try {
+        const pre = await loadPrecomputed(opts.fallbackAt, operation);
+        operation.check();
+        if (pre) {
+          opts.onReplace(pre.text);
+          opts.onMode('fallback', { precomputedId: pre.id, distanceKm: pre.distanceKm });
+          return;
+        }
+      } catch { operation.check(); }
     }
-  }
-
-  throw new Error(
-    `검토 의견 생성 실패 (${proxyError}). 기본 보고서는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요. ` +
-      `사전 생성 메모는 등록된 지점 반경 ${FALLBACK_RADIUS_KM * 1000}m 이내이며 평가조건이 같은 경우에만 제공됩니다.`,
-  );
+    const detail = failure instanceof MemoTransportError ? failure.message : 'AI 연결이 종료되었습니다.';
+    throw new Error(`검토 의견 생성 실패: ${detail} 기본 보고서는 계속 사용할 수 있습니다. 다시 시도하세요.`);
+  } finally { operation.dispose(); }
 }

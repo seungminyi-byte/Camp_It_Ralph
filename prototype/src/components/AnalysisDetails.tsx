@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import type { AppData, ScoreResult } from '../types';
 import { fmtCount } from '../lib/format';
 import { summarizeRestriction } from '../scoring/restriction';
@@ -186,17 +187,17 @@ export function AnalysisDetails({
           </p>
           {r.permit.newsSignal?.row.top.map((a, i) => (
             <p key={i}>
-              <a href={a.link} target="_blank" rel="noreferrer">
+              <SafeExternalLink href={a.link}>
                 {a.title}
-              </a>{' '}
+              </SafeExternalLink>{' '}
               ({a.date})
             </p>
           ))}
           {r.permit.matchedCases.map((c) => (
             <article className="case-reference" key={c.id}>
-              <a href={c.source_url} target="_blank" rel="noreferrer">
+              <SafeExternalLink href={c.source_url}>
                 {c.name}
-              </a>
+              </SafeExternalLink>
               <p>{c.summary}</p>
               <button
                 type="button"

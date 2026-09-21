@@ -7,8 +7,10 @@ export interface ParsedMemo {
   caveats: string[];
   /** upstream failure surfaced by api/generate.ts as a "## ERROR" section */
   error: string | null;
-  /** every checklist row has an opinion — the model finished */
+  /** All required sections are present; this does not establish factual validity or transport completion. */
   complete: boolean;
+  unmapped: { key: string; text: string }[];
+  duplicates: string[];
   /** section still being written, for the streaming cursor */
   openSection: string | null;
   /** the model output with reasoning and code fences stripped, for "원문 보기" */
@@ -22,6 +24,8 @@ const EMPTY: ParsedMemo = {
   caveats: [],
   error: null,
   complete: false,
+  unmapped: [],
+  duplicates: [],
   openSection: null,
   visible: '',
 };
@@ -65,17 +69,20 @@ function parseJsonShape(text: string): Partial<ParsedMemo> | null {
   try {
     const j = JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
     const items: Partial<Record<ChecklistKey, string>> = {};
-    const rawItems = (j.items ?? {}) as Record<string, unknown>;
+    const unmapped: ParsedMemo['unmapped'] = [];
+    const rawItems = j.items && typeof j.items === 'object' && !Array.isArray(j.items) ? j.items as Record<string, unknown> : {};
     for (const [k, v] of Object.entries(rawItems)) {
       const key = normalizeKey(k);
       if (key && typeof v === 'string') items[key] = v.trim();
+      else unmapped.push({ key: k, text: typeof v === 'string' ? v : '' });
     }
     const list = (v: unknown): string[] =>
       Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
     const overall = j.overallOpinion ?? j.overall;
     return {
       overall: typeof overall === 'string' ? overall.trim() : '',
-      items,
+      items, unmapped,
+      error: typeof j.error === 'string' ? j.error || '생성 오류' : null,
       actions: list(j.actions),
       caveats: list(j.caveats),
     };
@@ -100,16 +107,17 @@ export function parseMemo(raw: string): ParsedMemo {
 
   if (marks.length === 0) {
     const json = parseJsonShape(visible);
-    if (json) return { ...EMPTY, ...json, visible, complete: itemsComplete(json.items) };
+    if (json) return { ...EMPTY, ...json, visible, complete: structureComplete(json) };
     return { ...EMPTY, overall: visible, visible };
   }
 
-  const out: ParsedMemo = { ...EMPTY, items: {}, actions: [], caveats: [], visible };
+  const out: ParsedMemo = { ...EMPTY, items: {}, actions: [], caveats: [], unmapped: [], duplicates: [], visible };
   let openSection: string | null = null;
 
   marks.forEach((mark, i) => {
     const body = visible.slice(mark.end, i + 1 < marks.length ? marks[i + 1].start : undefined).trim();
     const name = mark.name.toUpperCase();
+    if (marks.slice(0, i).some(previous => previous.name.toUpperCase() === name)) out.duplicates.push(mark.name);
     if (i === marks.length - 1) openSection = mark.name;
 
     if (name === 'OVERALL' || name === 'OVERVIEW') {
@@ -122,18 +130,24 @@ export function parseMemo(raw: string): ParsedMemo {
       out.error = body || '생성 중 오류가 발생했습니다.';
     } else if (name.startsWith('ITEM')) {
       const key = normalizeKey(mark.name.slice(4));
-      // A misspelled key still carries an opinion: drop it into the next unfilled row in order.
-      const target = key ?? CHECKLIST_KEYS.find((k) => out.items[k] === undefined) ?? null;
-      if (target && body) out.items[target] = body;
+      if (!key) out.unmapped.push({ key: mark.name.slice(4).trim(), text: body });
+      else if (body) {
+        if (out.items[key] !== undefined && !out.duplicates.includes(mark.name)) out.duplicates.push(mark.name);
+        out.items[key] = body;
+      }
     }
   });
 
   out.openSection = openSection;
-  out.complete = itemsComplete(out.items);
+  out.complete = structureComplete(out);
   return out;
 }
 
 function itemsComplete(items: Partial<Record<ChecklistKey, string>> | undefined): boolean {
   if (!items) return false;
   return CHECKLIST_KEYS.every((k) => (items[k] ?? '').length > 0);
+}
+
+function structureComplete(memo: Partial<ParsedMemo>): boolean {
+  return !!memo.overall?.trim() && itemsComplete(memo.items) && !!memo.actions?.length && !!memo.caveats?.length && !memo.unmapped?.length && !memo.duplicates?.length;
 }

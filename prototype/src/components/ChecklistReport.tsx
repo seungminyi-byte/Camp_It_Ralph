@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import type {
   AppData,
   LandUseSource,
@@ -28,6 +29,8 @@ export interface ReportProps {
   landUseSource: LandUseSource;
   zoningName: string | null;
   memo: ParsedMemo | null;
+  memoEligible?: boolean;
+  includeAiAppendix?: boolean;
   generatedBy: string | null;
   generatedAt: Date | null;
   variant: 'screen' | 'print';
@@ -40,12 +43,15 @@ export function ChecklistReport({
   site,
   landUseSource,
   zoningName,
-  memo,
+  memo: candidateMemo,
+  memoEligible = false,
+  includeAiAppendix = false,
   generatedBy,
   generatedAt,
   variant,
 }: ReportProps) {
   const p = r.project.assumptions;
+  const memo = memoEligible && includeAiAppendix && candidateMemo?.complete && !candidateMemo.error && !candidateMemo.unmapped.length && !candidateMemo.duplicates.length ? candidateMemo : null;
   return (
     <article className={`business-report report-${variant}`}>
       <section className="report-first-page">
@@ -170,13 +176,10 @@ export function ChecklistReport({
                   <b>{VERDICT_LABEL[row.verdict]}</b>
                   <p>{row.evidence}</p>
                   {row.sources.map((s, i) => (
-                    <a key={i} href={s} target="_blank" rel="noreferrer">
+                    <SafeExternalLink key={i} href={s}>
                       출처 {i + 1}{' '}
-                    </a>
+                    </SafeExternalLink>
                   ))}
-                  {memo?.items[row.key] && (
-                    <p className="ai-opinion">AI 의견: {memo.items[row.key]}</p>
-                  )}
                 </td>
               </tr>
             ))}
@@ -186,12 +189,14 @@ export function ChecklistReport({
         <EvidenceList result={r} />
         {memo && (
           <section className="report-ai">
-            <h2>추가 AI 검토 의견</h2>
+            <h2>선택 부록 · AI 검토 의견</h2>
+            <p>수치·단위와 대표 확정 표현을 대조했으나 모든 자연어 의미나 원자료를 검증한 것은 아닙니다. 담당자 확인이 필요합니다.</p>
             <p>
               {generatedBy} · {generatedAt?.toLocaleString('ko-KR')}
               {!memo.complete && ' · 일부만 생성됨'}
             </p>
             <p>{memo.overall}</p>
+            {rows.map(row => <p key={row.key}><b>{row.title}</b>: {memo.items[row.key]}</p>)}
             <ul>
               {memo.actions.map((a, i) => (
                 <li key={i}>{a}</li>

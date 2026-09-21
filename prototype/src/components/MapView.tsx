@@ -1,3 +1,4 @@
+import { SafeExternalLink } from './SafeExternalLink';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Circle,
@@ -423,9 +424,9 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                     <dt>분류 근거</dt><dd>{dc.categoryReason}</dd>
                   </dl>
                   <small>{dc.coordinateBasis}</small>
-                  <a href={dc.sourceUrl} target="_blank" rel="noreferrer">
+                  <SafeExternalLink href={dc.sourceUrl}>
                     {dc.sourceName} ↗
-                  </a>
+                  </SafeExternalLink>
                 </Popup>
               </Marker>
             );
@@ -450,9 +451,9 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
                 <br />
                 {c.summary}
                 <br />
-                <a href={c.source_url} target="_blank" rel="noreferrer">
+                <SafeExternalLink href={c.source_url}>
                   출처 기사
-                </a>
+                </SafeExternalLink>
               </Popup>
             </CircleMarker>
           ))}
