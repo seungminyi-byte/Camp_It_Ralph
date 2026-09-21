@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-09-21T23:41:02.826Z",
+  "scope": "Actual product DOM excerpt with explicitly synthetic online assumptions; not a live site assessment",
+  "coordinates": [
+    36.4967,
+    127.3007
+  ],
+  "assumptions": {
+    "zoning": "industrial",
+    "restrictions": "synthetic complete response with no hits",
+    "disaster": "synthetic complete response with no hits",
+    "conditions": {
+      "landAreaM2": 20000,
+      "plannedAreaM2": 30000,
+      "existingAreaM2": null,
+      "farPct": 200,
+      "coveragePct": 50,
+      "floors": 4,
+      "costMode": "total",
+      "totalCostKrw": 200000000000,
+      "averageDebtKrw": 100000000000,
+      "costs": {
+        "land": null,
+        "building": null,
+        "civil": null,
+        "power": null,
+        "telecom": null,
+        "other": null
+      },
+      "consultations": {
+        "power": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        },
+        "water": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        },
+        "telecom": {
+          "status": "unknown",
+          "note": "",
+          "date": ""
+        }
+      }
+    },
+    "project": {
+      "type": "standard",
+      "businessType": "generalCloud",
+      "targetMw": 40,
+      "development": "new",
+      "areaMethod": "manual",
+      "itMw": null,
+      "rackKw": null,
+      "rackAreaM2": null,
+      "whiteSpacePct": null,
+      "rates": [
+        0.04,
+        0.06,
+        0.08
+      ],
+      "delays": [
+        6,
+        12,
+        24
+      ]
+    }
+  },
+  "expected": {
+    "score": 77,
+    "grade": "B",
+    "requiredLand": 15000,
+    "suppliedLand": 20000
+  },
+  "realAiRequests": 0,
+  "results": [
+    {
+      "name": "review-score-example.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1600,
+        "scale": 2
+      },
+      "clip": {
+        "x": 855,
+        "y": 337.5,
+        "width": 565,
+        "height": 409.53125
+      },
+      "imageWidth": 1130,
+      "imageHeight": 818,
+      "bytes": 72146,
+      "sha256": "fcb884ecd56b72d5f92e7a9c7907a221599f73e2a039f075b57cda5c06727c00",
+      "scoreText": "공개자료 기반 참고점수\n77 / 100\n\n필요한 공개자료가 확인된 경우 산정합니다. 실제 공급과 사업 가능 여부는 면적·비용·공급조건을 포함한 후속 검토가 필요합니다.",
+      "areaText": "상세 설계조건 반영\n단순 면적조건 충족\n면적 충족률\n133%",
+      "errors": []
+    },
+    {
+      "name": "review-score-example-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1600,
+        "scale": 2
+      },
+      "clip": {
+        "x": 16,
+        "y": 369.5,
+        "width": 358,
+        "height": 443.515625
+      },
+      "imageWidth": 716,
+      "imageHeight": 886,
+      "bytes": 70331,
+      "sha256": "7b344988daf06c789e522c78f6dd94bd94c24e79811cebf113a1ee74627869cc",
+      "scoreText": "공개자료 기반 참고점수\n77 / 100\n\n필요한 공개자료가 확인된 경우 산정합니다. 실제 공급과 사업 가능 여부는 면적·비용·공급조건을 포함한 후속 검토가 필요합니다.",
+      "areaText": "상세 설계조건 반영\n단순 면적조건 충족\n면적 충족률\n133%",
+      "errors": []
+    }
+  ]
+}

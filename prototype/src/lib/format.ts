@@ -46,3 +46,6 @@ export function fmtArea(n: number | null): string {
 export function fmtCount(n: number | null, unit: string): string {
   return n === null ? '미확인' : `${n.toLocaleString('ko-KR')} ${unit}`;
 }
+export function fmtPopulation(n: number | null): string {
+  return n === 0 ? '통계값 0명 · 비밀보호 조정, 무거주 여부 미확인' : fmtCount(n, '명');
+}

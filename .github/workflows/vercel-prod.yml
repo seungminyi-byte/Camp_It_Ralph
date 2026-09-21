@@ -66,6 +66,9 @@ jobs:
       - name: Validate bundled data
         run: python3 ../data-pack/scripts/validate_out.py
 
+      - name: Verify population missing and zero handling
+        run: python3 -m unittest discover -s ../data-pack/scripts -p test_p03_population.py
+
       - name: Install Vercel CLI
         run: npm install --global vercel@59.16.0
 

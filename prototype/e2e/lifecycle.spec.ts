@@ -13,11 +13,19 @@ test('R26-R28 strict wire errors, partial known hit, no-hit invalidation and ret
  mode='normal';await page.getByRole('button',{name:'규제구역 다시 조회',exact:true}).click();await expect(state(page,'규제구역')).toContainText('조회 완료');
  mode='error';await page.getByRole('button',{name:'규제구역 다시 조회',exact:true}).click();await expect(state(page,'규제구역')).toContainText('조회 실패 · 미확인');await report(page);await expect(page.locator('#print-root .report-online-status').first().locator('li').nth(1)).toContainText('조회 미확인');
 });
-test('R26 15-second boundary and retry in integrated UI',async({page},info)=>{
- await onlyLocal(page);let release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);let hang=true;
- await page.route('**/api/restrictions?*',async route=>{if(hang)await pending;await route.continue().catch(()=>{});});
- await page.goto('/review');const start=Date.now();await query(page);await expect(state(page,'규제구역')).toContainText('조회 중');await expect(state(page,'규제구역')).toContainText('조회 실패 · 미확인',{timeout:18000});const elapsed=Date.now()-start;expect(elapsed).toBeGreaterThanOrEqual(14900);expect(elapsed).toBeLessThan(18000);await info.attach('real-time-deadline',{body:JSON.stringify({elapsedMs:elapsed,kind:'request-to-error wall time'}),contentType:'application/json'});
+test('R26 two bounded 15-second attempts and manual retry in integrated UI',async({page},info)=>{
+ await onlyLocal(page);let release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);let hang=true;const attempts:{at:number,forced:boolean}[]=[];
+ await page.route('**/api/restrictions?*',async route=>{attempts.push({at:Date.now(),forced:new URL(route.request().url()).searchParams.has('refresh')});if(hang)await pending;await route.continue().catch(()=>{});});
+ await page.goto('/review');const start=Date.now();await query(page);await expect(state(page,'규제구역')).toContainText('조회 중');await expect(state(page,'규제구역')).toContainText('조회 실패 · 미확인',{timeout:34000});const elapsed=Date.now()-start;expect(elapsed).toBeGreaterThanOrEqual(30900);expect(elapsed).toBeLessThan(34000);expect(attempts.map(a=>a.forced)).toEqual([false,true]);expect(attempts[1].at-attempts[0].at).toBeGreaterThanOrEqual(15900);await info.attach('real-time-deadline',{body:JSON.stringify({elapsedMs:elapsed,attempts,kind:'15s initial + 1s delay + 15s bounded recovery'}),contentType:'application/json'});
  hang=false;release!();await page.getByRole('button',{name:'규제구역 다시 조회',exact:true}).click();await expect(state(page,'규제구역')).toContainText('조회 완료');
+});
+test('reference score recovers automatically from a stale CDN response and names required missing evidence',async({page})=>{
+ await onlyLocal(page);const requests:string[]=[];
+ await page.route('**/api/restrictions?*',async route=>{requests.push(route.request().url());const u=new URL(route.request().url());const b=restrictionFixture(Number(u.searchParams.get('lat')),Number(u.searchParams.get('lng')));await route.fulfill({json:requests.length===1?{...b,fetchedAt:new Date(Date.now()-3_600_000).toISOString()}:b});});
+ await page.goto('/review');await query(page);await expect(page.locator('.overview-score-value>strong')).toContainText('조회 중');
+ await expect(page.locator('.overview-score-value>strong')).toContainText(/\d+.*100/);expect(requests).toHaveLength(2);expect(new URL(requests[1]).searchParams.has('refresh')).toBe(true);
+ await page.route('**/api/restrictions?*',route=>route.fulfill({status:502,body:'persistent failure'}));await page.getByRole('button',{name:'규제구역 다시 조회',exact:true}).click();await expect(state(page,'규제구역')).toContainText('조회 실패');
+ await page.locator('.overview-reference-score>summary').click();await expect(page.locator('.score-waiting')).toContainText('보호·규제구역 전체 조회 미확인');await report(page);await expect(page.locator('#print-root')).toContainText('보호·규제구역 전체 조회 미확인');
 });
 test('R27 slow A cannot overwrite B; route unmount cancels pending',async({page})=>{
  await onlyLocal(page);let release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);let entered=0;

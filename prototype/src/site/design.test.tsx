@@ -28,7 +28,9 @@ describe('07 source-bound content and progressive result disclosure', () => {
     const html = renderToStaticMarkup(<IntroPage path="/" />);
     expect(html).toContain('공개자료·합성 검증 예시 · 실제 부지 판정 아님');
     expect(html).toContain('고정 조회 응답과 합성 사업조건');
-    expect(html).toContain('review-example-mobile.webp');
+    expect(html).toContain('review-score-example-mobile.png');
+    expect(html).toContain('참고점수 77점, B등급');
+    expect(html).not.toContain('면적 부족');
     expect(html).toContain('반곡동');
     expect(html).not.toContain('/data/');
     expect(html).not.toContain('종촌동');

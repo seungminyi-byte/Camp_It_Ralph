@@ -5,7 +5,7 @@ import {
   type PinnedSite,
 } from '../compare/pins';
 import { summarizeRestriction } from '../scoring/restriction';
-import { areaLabel, fmtArea, fmtCount, fmtKrw } from '../lib/format';
+import { areaLabel, fmtArea, fmtCount, fmtKrw, fmtPopulation } from '../lib/format';
 import { CostReview } from './ReviewFacts';
 import { currentComparisonMessage, reviewGroups } from '../report/presentation';
 import type { ScoreResult } from '../types';
@@ -156,7 +156,7 @@ export function CompareDialog({
               {row(
                 '주변 인구 / 가구',
                 (r) =>
-                  `${fmtCount(r.permit.popNearby, '명')} / ${fmtCount(r.permit.householdsNearby, '가구')}${r.permit.householdMissingCells ? ' (가구 일부 미확인)' : ''}`,
+                  `${fmtPopulation(r.permit.popNearby)} / ${fmtCount(r.permit.householdsNearby, '가구')}${r.permit.householdMissingCells ? ' (가구 일부 미확인)' : ''}`,
               )}
               {row('법정 보호·규제구역', (r) => (
                 <span
@@ -182,7 +182,7 @@ export function CompareDialog({
               {row('자료 상태·기준', r => <ul>{r.evidence.map(e => <li key={e.key}>{e.title}: {e.status === 'available' ? '자료 확인' : e.status === 'partial' ? '일부 미확인' : '미확인'} · {e.period}</li>)}</ul>)}
               {row('참고점수', (r) =>
                 r.composite.score === null
-                  ? `미산정${r.composite.grade === 'E' ? ' · 법적 입지 제한 E등급 상한' : ''}`
+                  ? `미산정${r.composite.grade === 'E' ? ' · 법적 입지 제한 E등급 상한' : ''} · ${r.composite.unavailableReasons.join(' · ')}`
                   : `${r.composite.score}점 · ${r.composite.grade}등급`,
               )}
               <tr>

@@ -14,8 +14,9 @@ vi.mock('../components/MemoPanel', () => ({ MemoPanel: () => <div>report fixture
 import ReviewApp from './ReviewApp';
 let root: Root, box: HTMLDivElement;
 beforeEach(() => { vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true); Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: vi.fn() }); box = document.createElement('div'); document.body.append(box); root = createRoot(box); });
-afterEach(async () => { await act(async () => root.unmount()); box.remove(); vi.unstubAllGlobals(); });
+afterEach(async () => { await act(async () => root.unmount()); box.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 it('current candidate completes first; other candidate queue starts after failure and reset aborts all leases', async () => {
+  vi.useFakeTimers();
   const store = new ReviewSessionStore(() => ({ getItem: () => null, setItem: () => {}, removeItem: () => {} }));
   const inputs = emptyReview(); inputs.site = { lat: 36.8, lng: 127.3, source: 'coords' }; inputs.openedPinId = 'first';
   inputs.pins = [36.8, 36.9, 37, 37.1].map((lat, i): PinnedSite => ({ id: i === 0 ? 'first' : `p${i}`, selection: { lat, lng: 127.3, source: 'coords' }, conditions: emptyReview().conditions, manualLandUse: null, landUse: 'unknown', zoning: null, restrictions: null, disaster: null })); store.update(() => inputs);
@@ -28,14 +29,19 @@ it('current candidate completes first; other candidate queue starts after failur
   expect(requests).toHaveLength(3); expect(requests.every(r => r.url.searchParams.get('lat') === '36.8')).toBe(true);
   await act(async () => requests[0].release()); expect(requests).toHaveLength(3);
   await act(async () => { requests[1].release(); requests[2].release(); });
-  expect(requests).toHaveLength(5); expect(requests.slice(3).map(r => r.url.searchParams.get('lat'))).toEqual(['36.9', '37']);
+  expect(requests).toHaveLength(3);
+  await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+  expect(requests).toHaveLength(6);
+  expect(requests.slice(3).every(r => r.url.searchParams.get('lat') === '36.8' && r.url.searchParams.has('refresh'))).toBe(true);
+  await act(async () => requests.slice(3).forEach(r => r.release()));
+  expect(requests).toHaveLength(8); expect(requests.slice(6).map(r => r.url.searchParams.get('lat'))).toEqual(['36.9', '37']);
   await act(async () => store.update(s => ({ ...s, pins: s.pins.map(p => p.id === 'p1' ? { ...p, conditions: { ...p.conditions, landAreaM2: 42 } } : p) })));
-  await act(async () => requests[3].release());
-  await act(async () => requests[5].release());
   await act(async () => requests[6].release());
+  await act(async () => requests[8].release());
+  await act(async () => requests[9].release());
   expect(store.snapshot().inputs.pins.find(p => p.id === 'p1')?.conditions.landAreaM2).toBe(42);
   expect(store.snapshot().inputs.pins.find(p => p.id === 'p1')?.zoning?.found).toBe(true);
   await act(async () => store.reset());
-  expect(requests.slice(3).every(r => r.signal.aborted)).toBe(true); await act(async () => requests.slice(3).forEach(r => r.release()));
+  expect(requests.slice(6).every(r => r.signal.aborted)).toBe(true); await act(async () => requests.slice(6).forEach(r => r.release()));
   expect(store.snapshot().inputs.pins).toEqual([]); expect(store.snapshot().inputs.site).toBeNull();
 });

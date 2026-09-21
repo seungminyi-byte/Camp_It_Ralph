@@ -24,6 +24,7 @@ export class LookupController<T extends OnlineEvidence> {
   private request: LookupRequest<T> | null = null;
   private revision = 0;
   private expiry: ReturnType<typeof setTimeout> | undefined;
+  private recovery: ReturnType<typeof setTimeout> | undefined;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   snapshot = () => this.state;
   private publish(state: LookupState<T>) { this.state = state; this.listeners.forEach((listener) => listener()); }
@@ -32,9 +33,13 @@ export class LookupController<T extends OnlineEvidence> {
     this.controller?.abort();
     this.controller = null;
     clearTimeout(this.expiry);
+    clearTimeout(this.recovery);
   };
   retry = () => { if (this.request) this.start(this.request, true); };
   start(request: LookupRequest<T>, force = false) {
+    this.run(request, force, !force);
+  }
+  private run(request: LookupRequest<T>, force: boolean, mayRecover: boolean) {
     this.cancel();
     this.request = request;
     const revision = this.revision;
@@ -46,18 +51,24 @@ export class LookupController<T extends OnlineEvidence> {
     const base = { queryKey: request.queryKey, selectionRevision: request.selectionRevision, requestRevision: revision };
     const stale = remembered && request.hasObservations(remembered) ? { ...remembered, complete: false, stale: true } : null;
     const current = () => !controller.signal.aborted && this.revision === revision && this.request === request;
+    const recover = (lookup: T | null) => {
+      this.publish({ ...base, status: 'loading', lookup, message: '공공자료 응답을 다시 확인하고 있습니다.' });
+      this.recovery = setTimeout(() => { if (current()) this.run(request, true, false); }, 1000);
+    };
     const done = (lookup: T) => {
       if (!current()) return;
       const fresh = isEvidenceFresh(lookup);
+      if (!fresh && mayRecover) { recover(lookup); return; }
       this.publish({ ...base, status: fresh ? 'done' : 'partial', lookup });
       if (fresh && current()) {
         const remaining = lookup.fetchedAt ? Date.parse(lookup.fetchedAt) + LOOKUP_TTL_MS - Date.now() : LOOKUP_TTL_MS;
-        this.expiry = setTimeout(() => { if (current()) this.start(request, true); }, Math.max(1, remaining));
+        this.expiry = setTimeout(() => { if (current()) this.run(request, true, true); }, Math.max(1, remaining));
       }
     };
     if (cached && isEvidenceFresh(cached)) { done(cached); return; }
     this.publish({ ...base, status: 'loading', lookup: stale });
     void request.fetch(controller.signal, force).then(done, () => {
+      if (current() && mayRecover) { recover(stale); return; }
       if (current()) this.publish({ ...base, status: 'error', lookup: stale, message: '조회하지 못했습니다. 미해당을 뜻하지 않습니다. 다시 시도하세요.' });
     });
   }
