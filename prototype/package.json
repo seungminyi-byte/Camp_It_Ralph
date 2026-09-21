@@ -6,9 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "typecheck": "tsc -b && tsc -p tsconfig.api.json && tsc -p tsconfig.scripts.json",
+    "typecheck": "tsc -b && tsc -p tsconfig.api.json && tsc -p tsconfig.scripts.json && tsc -p tsconfig.e2e.json",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:e2e": "tsx e2e/fixtures.ts && playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e:serve": "tsx e2e/fixtures.ts && node e2e/server.mjs",
+    "test:pdf": "tsx e2e/fixtures.ts && node e2e/print-cases.mjs",
+    "test:performance": "node e2e/performance.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -17,6 +23,8 @@
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.13.3",

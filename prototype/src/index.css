@@ -427,7 +427,7 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 .design-assessment { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px; padding:11px 12px; border-left:3px solid #d39a35; border-radius:6px; background:#fbf6e9; }
 .design-assessment.is-fits { border-left-color:var(--good); background:#edf7f3; }
 .design-assessment.is-shortfall { border-left-color:var(--risk); background:#fbefed; }
-.design-assessment span { display:block; color:#7d837d; font-size:9px; }
+.design-assessment span { display:block; color:#596459; font-size:9px; }
 .design-assessment strong { display:block; margin-top:2px; color:#35413a; font-size:11px; }
 .design-assessment small { color:#757d75; font-size:9px; text-align:right; }
 .design-fit { flex:none; text-align:right; }
@@ -604,4 +604,10 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
   .business-report .report-pin-detail { margin-top:18px; }
   .business-report li,.business-report p { orphans:2; widows:2; }
   .business-report a { color:#164d61; overflow-wrap:anywhere; }
+}
+
+/* Keep long candidate titles and consultation labels with their following content. */
+@media print {
+  .business-report h2,.business-report h3,.business-report h4 { break-inside:avoid; break-after:avoid; }
+  .business-report .review-facts article>strong { display:block; break-inside:avoid; break-after:avoid; }
 }

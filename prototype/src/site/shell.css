@@ -122,3 +122,8 @@
 }
 .team-making>.site-eyebrow { color:#93410a; }
 .intro-page h2[tabindex="-1"]:focus { outline:none; }
+ .review-load-error { margin:24px; padding:24px; border:1px solid #d5ded8; border-radius:12px; background:#fff; color:#213f32; }
+ .review-load-error h2 { font-size:20px; }
+ .review-load-error p { margin:12px 0; }
+ .review-load-error button { background:#b94708; color:#fff; padding:10px 14px; border-radius:6px; font:inherit; cursor:pointer; }
+ .review-load-error a { display:inline-block; margin:12px; text-decoration:underline; }

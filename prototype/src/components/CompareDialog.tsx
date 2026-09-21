@@ -49,6 +49,13 @@ export function CompareDialog({
       ref={dialog}
       onCancel={onClose}
       onClose={onClose}
+      onKeyDown={event => {
+        if (event.key !== 'Tab') return;
+        const stops = [...event.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(element => element.getClientRects().length > 0);
+        const first = stops[0], last = stops.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }}
       aria-labelledby="compare-title"
     >
       <header>
