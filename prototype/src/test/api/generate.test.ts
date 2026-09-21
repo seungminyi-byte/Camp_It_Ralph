@@ -37,7 +37,7 @@ describe('report model routing', () => {
         headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: '검토 의견' }),
     });
-  const setup = (model: string) => {
+  const setup = (model: string | undefined) => {
     vi.stubEnv('OPENROUTER_API_KEY', 'test-key');
     vi.stubEnv('LLM_MODEL', model);
     const fetch = vi
@@ -51,24 +51,33 @@ describe('report model routing', () => {
     vi.stubGlobal('fetch', fetch);
     return fetch;
   };
-  it('keeps automatic alternatives free and does not mislabel the chosen model', async () => {
-    const fetch = setup('google/gemma-4-31b-it:free');
+  it.each([undefined, '', 'google/gemma-4-31b-it:free'])('keeps ordered free alternatives for default configuration %s', async (model) => {
+    const fetch = setup(model);
     const response = await handler(request());
     const payload = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(payload.models).toHaveLength(3);
-    expect(
-      payload.models.every((model: string) => model.endsWith(':free')),
-    ).toBe(true);
+    expect(payload.models).toEqual([
+      'google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free',
+      'google/gemma-4-26b-a4b-it:free', 'openrouter/free',
+    ]);
+    expect(fetch).toHaveBeenCalledTimes(1);
     expect(await response.text()).toBe('검토 결과');
     expect(response.headers.get('X-LLM-Model')).toBe('OpenRouter');
   });
-  it('honors an explicitly configured free router without adding alternatives', async () => {
-    const fetch = setup('openrouter/free');
+  it.each(['openrouter/free', 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'])('honors explicit %s without adding alternatives', async (model) => {
+    const fetch = setup(model);
     const response = await handler(request());
     expect(JSON.parse(fetch.mock.calls[0][1].body).models).toEqual([
-      'openrouter/free',
+      model,
     ]);
     expect(await response.text()).toBe('검토 결과');
-    expect(response.headers.get('X-LLM-Model')).toBe('openrouter/free');
+    expect(response.headers.get('X-LLM-Model')).toBe(model);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it.each(['paid/model', 'openrouter/free\n', 'unknown:free'])('rejects unapproved configuration before fetch: %s', async (model) => {
+    const fetch = setup(model);
+    const response = await handler(request());
+    expect(response.status).toBe(503);
+    expect(await response.text()).toBe('SERVER_UNAVAILABLE');
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
