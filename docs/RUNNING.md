@@ -79,6 +79,8 @@ PDF 추출에는 `pypdf`, `pdfplumber`, 이미지 렌더에는 Poppler의 `pdfto
 
 ## 6. 배포·근거 경계
 
-기존 `.github/workflows/vercel-prod.yml`은 `prototype/**` 또는 workflow 변경의 `prototype` push와 수동 실행에 반응합니다. Node24/Python3.12, 타입·린트·Vitest·데이터 검사, Vercel build/deploy/Ready를 실행하며 **Playwright E2E는 Actions에 포함하지 않습니다**. 문서만 바뀐 push는 자동 배포를 일으키지 않습니다. 토큰 값 확인 없이 기존 secret 이름·Actions 결과·배포 상태·운영 본문을 대조합니다.
+기존 `.github/workflows/vercel-prod.yml`은 `prototype/**` 또는 workflow 변경의 `prototype` push와 수동 실행에 반응합니다. Node24/Python3.12, 타입·린트·Vitest·데이터 검사, Vercel build/deploy/Ready를 실행하며 **Playwright E2E는 Actions에 포함하지 않습니다**. 문서만 바뀐 push는 이 Actions를 실행하지 않지만, 별도 Vercel Git 연동이 Production 배포를 만들 수 있습니다. 토큰 값 확인 없이 Actions 결과, 실제 운영 배포의 커밋·Ready·별칭, 공개 응답 본문을 각각 대조합니다.
+
+선택형 AI는 HTTP 200 본문 안에서도 실패할 수 있습니다. 서버의 허용 필드만 기록하는 진단과 자체 합성 요청의 시간 구간별 확인 절차는 [AI 오류 운영 안내](AI_DIAGNOSTICS.md)를 따릅니다. 기본 보고서 정상, 연결 성공, AI 의견의 내용 검수는 서로 다른 결과입니다.
 
 `ralphathon/STATE.md` 등 제어문서의 절대 로컬 경로는 날짜별 감사 이력입니다. 이 실행 안내의 필수 파일은 모두 저장소 안에 있습니다. [이관 근거](../ralphathon/evidence/README.md)는 선별한 공개 가능 사본이며 원본 전체 세션 JSONL은 코드 저장소에 포함하지 않습니다.

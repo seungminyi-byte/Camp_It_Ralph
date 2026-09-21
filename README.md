@@ -87,7 +87,7 @@ npm --prefix prototype run build
 | 네이버 검색 API (NAVER API HUB) | https://console.ncloud.com/naver-api-hub/application → Application 등록 → [인증 정보]에서 Client ID·Secret 확인. **developers.naver.com이 아니다** — 검색 API는 네이버 클라우드의 API HUB로 이관됐고 호출 주소·헤더가 다르다 | GitHub Actions Secrets `NAVER_CLIENT_ID`·`NAVER_CLIENT_SECRET` → `data-pack/scripts/p06_news_api.py`(구현됨) 지역별 갈등 기사 카운트 → `news_signal.json` | 뉴스 참고 목록 |
 | 고속도로 출입시설 위치정보 (후속) | https://www.data.go.kr/data/15076687/openapi.do → 연결된 한국도로공사 서비스에서 활용신청·인증키 확인 | 향후 빌드 시 수집 전용. 신청·키 발급은 사용자 직접 진행, 브라우저 입력·번들 포함 금지 | IC 자료 원본 검증 단계 |
 
-런타임 키는 Vercel에, 데이터 수집 키는 GitHub Actions Secrets에만 둡니다. Codex Cloud 환경에는 API 비밀값을 복제하지 않습니다. 임시 로컬 수집이 꼭 필요할 때만 Git에서 제외된 환경 파일을 만들고 작업 후 제거합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서와 온라인 AI 의견은 사용할 수 있습니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
+런타임 키는 Vercel에, 데이터 수집 키는 GitHub Actions Secrets에만 둡니다. Codex Cloud 환경에는 API 비밀값을 복제하지 않습니다. 임시 로컬 수집이 꼭 필요할 때만 Git에서 제외된 환경 파일을 만들고 작업 후 제거합니다. 사전 생성 의견은 **v4 서명**과 전체 평가조건·근거가 일치할 때만 사용합니다. 이전 형식은 무효이며 현재 `precomputed_memos.json`은 없습니다. 기본 보고서는 AI 없이 사용할 수 있습니다. 선택형 AI는 제공 상태에 따라 실패할 수 있으며 [서버 오류 진단과 운영 확인](docs/AI_DIAGNOSTICS.md)을 별도로 수행합니다. `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 환경변수로 받습니다. 서버의 모델 변수 `LLM_MODEL`과 이름이 다르므로 사전 생성 시 같은 모델인지 확인하세요.
 
 ## OpenRouter 서버 키 등록·교체
 
