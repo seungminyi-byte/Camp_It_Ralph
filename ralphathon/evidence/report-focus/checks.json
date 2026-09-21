@@ -1,0 +1,7 @@
+{
+  "node": "v24.21.0",
+  "typecheck": 0,
+  "lint": 0,
+  "tests": 0,
+  "build": 0
+}

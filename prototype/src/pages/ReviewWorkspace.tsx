@@ -1,5 +1,5 @@
 import '../styles/workspace.css';
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react';
 import { useAppData } from '../hooks/useAppData';
 import { useZoning } from '../hooks/useZoning';
 import { useDisaster } from '../hooks/useDisaster';
@@ -56,11 +56,22 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
   const [pins, setPins] = useState<PinnedSite[]>([]);
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportFocusRequest, setReportFocusRequest] = useState<{
+    site: SiteSelection;
+    pinId: string | null;
+  } | null>(null);
   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
   const panelScroll = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const reportRef = useRef<HTMLDetailsElement>(null);
 
-  if (!active && compareOpen) setCompareOpen(false);
+  // Reset on the route render; a fast return must not revive a deferred close.
+  if (!active && (compareOpen || reportOpen || reportFocusRequest)) {
+    setCompareOpen(false);
+    setReportOpen(false);
+    setReportFocusRequest(null);
+  }
 
   useEffect(() => {
     if (!active || !data) return;
@@ -172,6 +183,25 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
     [data, resolvedPins, project],
   );
 
+  // Focus only after the requested site and its conditions have committed together.
+  // Layout cleanup cancels the frame before a new screen or candidate can paint.
+  useLayoutEffect(() => {
+    if (!active || !reportOpen || !reportFocusRequest || site !== reportFocusRequest.site) return;
+    if (reportFocusRequest.pinId !== null && (
+      openedPinId !== reportFocusRequest.pinId ||
+      !resolvedPins.some((pin) => pin.id === reportFocusRequest.pinId)
+    )) return;
+    const frame = requestAnimationFrame(() => {
+      const report = reportRef.current;
+      if (report?.isConnected && report.open) {
+        report.scrollIntoView({ block: 'start' });
+        report.querySelector<HTMLElement>('#report-title')?.focus();
+      }
+      setReportFocusRequest(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, reportOpen, reportFocusRequest, openedPinId, resolvedPins, site]);
+
   if (error) {
     return (
       <main className="entry-status" role="alert">
@@ -195,6 +225,8 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
   }
 
   const selectSite = (selection: SiteSelection, zoom?: number) => {
+    setReportFocusRequest(null);
+    setReportOpen(false);
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
     setSite(selection);
@@ -213,6 +245,8 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
 
   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
   const openPin = (pin: PinnedSite) => {
+    setReportFocusRequest(null);
+    setReportOpen(false);
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
     setSite(pin.selection);
@@ -220,6 +254,19 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
     setOpenedPinId(pin.id);
     setManualLandUse(pin.manualLandUse);
     setFlyTo({ lat: pin.selection.lat, lng: pin.selection.lng, zoom: 13 });
+  };
+
+  const openCurrentReport = () => {
+    if (!active || !site) return;
+    setReportOpen(true);
+    setReportFocusRequest({ site, pinId: null });
+  };
+  const openPinReport = (pin: PinnedSite) => {
+    if (!active || !resolvedPins.some((candidate) => candidate.id === pin.id)) return;
+    openPin(pin);
+    setReportOpen(true);
+    setReportFocusRequest({ site: pin.selection, pinId: pin.id });
+    setCompareOpen(false);
   };
 
   const currentPin: PinnedSite | null =
@@ -353,7 +400,7 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
           <div className="map-caption">
             <span className="map-live-dot" />
             {site
-              ? '선택 지점의 분석 결과를 오른쪽 패널에서 확인하세요'
+              ? '선택 지점의 분석 결과를 검토 영역에서 확인하세요'
               : '지도 위 원하는 지점을 눌러 분석을 시작하세요'}
             <span>공개자료 기반</span>
           </div>
@@ -420,6 +467,11 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
                 onFlyTo={(lat, lng) => setFlyTo({ lat, lng, zoom: 13 })}
               />
             )}
+            {result?.site.eligible && input && site && (
+              <button className="open-report-cta" onClick={openCurrentReport}>
+                보고서 보기 <span>현재 근거 18항목과 전체 확인사항</span>
+              </button>
+            )}
             <details className="settings-section">
               <summary>
                 용도지역 및 부지 정보{' '}
@@ -443,9 +495,18 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
               />
             </details>
             {result?.site.eligible && input && site && (
-              <details className="report-section">
+              <details
+                id="report-section"
+                ref={reportRef}
+                className="report-section"
+                open={reportOpen}
+                onToggle={(event) => {
+                  setReportOpen(event.currentTarget.open);
+                  if (!event.currentTarget.open) setReportFocusRequest(null);
+                }}
+              >
                 <summary>
-                  부지 검토 보고서 · 선택형 AI 의견 <span>PDF 저장 ↗</span>
+                  기본 보고서 <span>근거 18항목 · 브라우저 인쇄</span>
                 </summary>
                 <MemoPanel
                   active={active}
@@ -504,7 +565,12 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
         entries={pinEntries}
         onClose={() => setCompareOpen(false)}
         onOpen={openPin}
-        onRemove={(id) => setPins(removePin(resolvedPins, id))}
+        onOpenReport={openPinReport}
+        onRemove={(id) => {
+          if (reportFocusRequest?.pinId === id || openedPinId === id) setReportFocusRequest(null);
+          if (openedPinId === id) setReportOpen(false);
+          setPins(removePin(resolvedPins, id));
+        }}
       />
     </div>
   );

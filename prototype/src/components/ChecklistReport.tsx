@@ -1,13 +1,5 @@
-import type {
-  AppData,
-  LandUseSource,
-  ScoreInput,
-  ScoreResult,
-  SiteSelection,
-} from '../types';
-import { LAND_USE_LABEL } from '../scoring/engine';
-import { VERDICT_LABEL, type ChecklistRow } from '../report/checklist';
-import type { ParsedMemo } from '../genai/memoFormat';
+import { VERDICT_LABEL } from '../report/checklist';
+import type { ReportViewModel } from '../report/viewModel';
 import { fmtArea, fmtKrw } from '../lib/format';
 import {
   BUSINESS_TYPE_LABELS,
@@ -20,38 +12,23 @@ import {
   EvidenceList,
 } from './ReviewFacts';
 export interface ReportProps {
-  data: AppData;
-  input: ScoreInput;
-  result: ScoreResult;
-  rows: ChecklistRow[];
-  site: SiteSelection;
-  landUseSource: LandUseSource;
-  zoningName: string | null;
-  memo: ParsedMemo | null;
-  generatedBy: string | null;
-  generatedAt: Date | null;
+  model: ReportViewModel;
   variant: 'screen' | 'print';
 }
 export function ChecklistReport({
-  data,
-  input,
-  result: r,
-  rows,
-  site,
-  landUseSource,
-  zoningName,
-  memo,
-  generatedBy,
-  generatedAt,
+  model,
   variant,
 }: ReportProps) {
+  const { data, result: r, rows, site, overview, zoning, memo, generatedBy, generatedAt } = model;
   const p = r.project.assumptions;
+  const ReportTitle = variant === 'print' ? 'h1' : 'h2';
+  const SectionTitle = variant === 'print' ? 'h2' : 'h3';
   return (
     <article className={`business-report report-${variant}`}>
       <section className="report-first-page">
         <header className="business-report-title">
           <span>데이터센터팀 · 후보 부지 1차 사업검토</span>
-          <h1>후보 부지 검토 보고서</h1>
+          <ReportTitle>후보 부지 검토 보고서</ReportTitle>
           <p>
             {site.label ??
               `${r.emd?.sigungu ?? ''} ${r.emd?.emd ?? '선택 지점'}`}{' '}
@@ -70,7 +47,7 @@ export function ChecklistReport({
             </p>
           )}
         </div>
-        <h2>사업조건</h2>
+        <SectionTitle>사업조건</SectionTitle>
         <p>
           {PROJECT_SCALE_LABELS[p.type]} · {BUSINESS_TYPE_LABELS[p.businessType]} · 목표
           수전용량 {p.targetMw ?? '미입력'}MW ·{' '}
@@ -87,20 +64,22 @@ export function ChecklistReport({
             ? ` · 용적률 ${r.conditions.farPct ?? '미입력'}% · 건폐율 ${r.conditions.coveragePct ?? '미입력'}% · 지상 ${r.conditions.floors ?? '미입력'}층`
             : ` · 확보 건물 ${fmtArea(r.conditions.existingAreaM2)}`}
         </p>
-        <h2>주요 제약·부족한 조건</h2>
+        <SectionTitle>주요 제약·부족한 조건</SectionTitle>
         <ul className="report-priorities">
-          {r.review.issues.slice(0, 3).map((i, n) => (
-            <li key={n}>
+          {overview.issues.map((i) => (
+            <li key={i.id}>
               <b>{i.title}</b> — {i.detail}
             </li>
           ))}
         </ul>
-        <h2>면적 검토</h2>
+        <SectionTitle>면적 검토</SectionTitle>
         <AreaReview result={r} />
-        <h2>비용 시나리오</h2>
+        <SectionTitle>비용 시나리오</SectionTitle>
         <CostReview result={r} compact />
-        <h2>우선 확인사항</h2>
-        <p>{r.review.actions.slice(-2).join(' / ')}</p>
+        <SectionTitle>우선 확인사항</SectionTitle>
+        <ol className="report-priority-actions">
+          {overview.actions.map((action) => <li key={action}>{action}</li>)}
+        </ol>
         <p>
           전력 공급·용수·통신 협의, 비용 누락 및 전체 확인사항은 다음 장에
           이어집니다.
@@ -111,12 +90,9 @@ export function ChecklistReport({
         </footer>
       </section>
       <section className="report-detail-page">
-        <h2>입력 조건과 협의 기록</h2>
+        <SectionTitle>입력 조건과 협의 기록</SectionTitle>
         <p>
-          용도지역: {LAND_USE_LABEL[input.landUse]} ·{' '}
-          {landUseSource === 'manual'
-            ? '사용자 선택'
-            : (zoningName ?? '조회 미확인')}
+          용도지역: {zoning?.detail ?? '용도지역 근거 미확인'}
         </p>
         <p>
           IT부하 {p.itMw ?? '미입력'}MW · 랙당 전력 {p.rackKw ?? '미입력'}kW ·
@@ -124,7 +100,7 @@ export function ChecklistReport({
           {p.whiteSpacePct ?? '미입력'}%
         </p>
         <ConsultationReview result={r} />
-        <h2>사업비 상세</h2>
+        <SectionTitle>사업비 상세</SectionTitle>
         <CostReview result={r} />
         <p>
           참고점수:{' '}
@@ -139,13 +115,13 @@ export function ChecklistReport({
           평균 차입잔액은 총사업비와 구분합니다. 현재 입력:{' '}
           {fmtKrw(r.finance.debtKrw)}.
         </p>
-        <h2>전체 추가 확인사항</h2>
+        <SectionTitle>전체 추가 확인사항</SectionTitle>
         <ol>
           {r.review.actions.map((a, i) => (
             <li key={i}>{a}</li>
           ))}
         </ol>
-        <h2>항목별 근거</h2>
+        <SectionTitle>항목별 근거</SectionTitle>
         <table className="business-checklist">
           <thead>
             <tr>
@@ -177,14 +153,13 @@ export function ChecklistReport({
             ))}
           </tbody>
         </table>
-        <h2>자료 출처·기준일·공간 단위·한계</h2>
+        <SectionTitle>자료 출처·기준일·공간 단위·한계</SectionTitle>
         <EvidenceList result={r} />
         {memo && (
           <section className="report-ai">
-            <h2>추가 AI 검토 의견</h2>
+            <SectionTitle>추가 AI 검토 의견</SectionTitle>
             <p>
               {generatedBy} · {generatedAt?.toLocaleString('ko-KR')}
-              {!memo.complete && ' · 일부만 생성됨'}
             </p>
             <p>{memo.overall}</p>
             <ul>

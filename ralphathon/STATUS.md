@@ -1,6 +1,6 @@
 # 현재 작업 상태
 
-기준: 2026-09-21 17:03 KST. 마감: 2026-09-22 12:00 KST.
+기준: 2026-09-21 17:18 KST. 마감: 2026-09-22 12:00 KST.
 
 ## 필독
 
@@ -49,4 +49,17 @@ GOAL.md의 전체 목표와 저장소 AGENTS.md, 관련 PLAN/DATA/DEMO를 읽는
 - 2번 실제 goal 원문을 outputs/02_goal_실제입력원문.txt로 복사하고 원본과 SHA256 일치 확인(9ab4359f4a10716a4b38d68e880186cf5919e23b91651ff0716192dd305b1786). 팀 소개 반영을 이유로 실제 goal 원문을 고쳐 제출하지 않음.
 - 17:07 KST root 및 하위 agent 실제 JSONL7개를 work/private-logs/20260921T080727Z에 추가 스냅샷 보존. 진행 중 사본이며 최종제출용 비밀정보 검사 전. FFmpeg9.0.2 공식 연결 mirror 패키지 해시 검증·실행 준비 완료, 실제 녹화는 아직 없음.
 
+- 17:17 KST 의미 요약 및 출처 경계 총괄 검수 완료, 605bddb 커밋. 19파일192테스트·production build 통과(evidence/review-final). 기존 계산은 보존. 실제 보고서 AI 없이 표시 확인, A4 파일 저장/전페이지 검수는 여전히 미완료.
+- 다음 유일 실행 agent report_export_design(gpt-5.6-sol/high)는 보고서/PDF 경로 설계만 담당한다. report/checklist.ts의 용도지역 상태가 엔진 근거와 어긋나는 경계를 추가 발견해 제안/다음 구현에 포함하도록 전달했다.
+- artifact-env에 reportlab/pdfplumber/pypdf 설치 완료, Poppler 기존 실행 경로 확인. PDF 생성·렌더 아직 수행하지 않음. 로그 9개 추가 스냅샷은 work/private-logs/20260921T082200Z/20260921T081814Z(상위 폴더 시각은 추정 이름, 실제 manifest 생성시각 기준).
+
 기초 감사 → 사용자 흐름/디자인 조사 → 순차 반론 검수 → 구현. 기후·IC 대규모 신규 수집은 이번 목표 범위에 추가하지 않는다.
+
+## 2026-09-21 20:38 KST 후속 상태
+
+- 직전 목표 작업은 보고서 흐름·공통 모델 구현과 실제 글꼴 시험/새 근거 파일을 만든 진척이다. 사용자 요청의 팀 기원 설명은 별도 문제·아이디어 초안에 반영했고, 실제 제출하지 않았다.
+- stage3A 구현 완료 보고: 21파일 200테스트/타입/린트/데이터/build 통과. 총괄 source 검수에서 예약된 보고서 focus의 화면 전환 경계를 추가 보완하도록 새 report_focus_hardening 담당에 위임했다. 실행 에이전트는 여전히 하나다.
+- 한글 A4 시험 PDF의 렌더·텍스트 추출 성공. 실패한 OTF/subset 경로를 기록했고 deterministic TTF+전체 삽입+feature 해제를 다음 구현에 인계한다. 제품 보고서 A4 파일/전체 페이지 검수는 미완료다.
+- 지정 extensionInstanceId는 그대로지만 runtime reset 뒤 inventory의 browser ID가 1에서 2로 바뀌었다. 다른 Chrome instance는 사용하지 않았다. 현재 CUA는 request-header policy 오류 및 tab timeout으로 실제 화면 검수를 진행하지 못했다. 동일 local tab 480715127이 inventory에는 있으나 관찰 성공으로 계산하지 않는다. getTabContext 읽기도 응답하지 않아 해당 읽기만 중단했다. 코드 작업을 이어가며 화면 검수는 미검증으로 유지한다.
+- PDF 의존성 추가 전 npm audit: 모든 severity 0. API 외부 오류 본문 반사·입력/스트림 경계 보완 필요는 evidence/security/PRECHECK.md에 기록.
+- 605bddb 원격 push 완료. stage3A와 후속 보완은 아직 커밋 전이며 최종 배포/공개 저장소/미디어/최종 품질 측정은 남아 있다.

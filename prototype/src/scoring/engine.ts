@@ -563,7 +563,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     return {
       ...meta,
       detail: key === 'zoning'
-        ? `현재 적용: ${LAND_USE_LABEL[input.landUse]} · ${landUseEvidence.label}. 공식 용도지역과 적용 조례는 별도 확인하세요. ${meta.detail}`
+        ? `현재 적용: ${LAND_USE_LABEL[input.landUse]}${landUseEvidence.available && input.zoning?.name ? ` (${input.zoning.name})` : ''} · ${landUseEvidence.label}. 공식 용도지역과 적용 조례는 별도 확인하세요. ${meta.detail}`
         : meta.detail,
       period,
       dataVersion,

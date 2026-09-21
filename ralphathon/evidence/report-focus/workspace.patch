@@ -1,0 +1,159 @@
+diff --git a/../report-focus-baseline/ReviewWorkspace.tsx b/prototype/src/pages/ReviewWorkspace.tsx
+index 26ef901..09e813b 100644
+--- a/../report-focus-baseline/ReviewWorkspace.tsx
++++ b/prototype/src/pages/ReviewWorkspace.tsx
+@@ -1,5 +1,5 @@
+ import '../styles/workspace.css';
+-import { useEffect, useMemo, useState, useRef } from 'react';
++import { useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react';
+ import { useAppData } from '../hooks/useAppData';
+ import { useZoning } from '../hooks/useZoning';
+ import { useDisaster } from '../hooks/useDisaster';
+@@ -57,10 +57,21 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
+   const [compareOpen, setCompareOpen] = useState(false);
+   const [reportOpen, setReportOpen] = useState(false);
+-  const [pendingReportPinId, setPendingReportPinId] = useState<string | null>(null);
++  const [reportFocusRequest, setReportFocusRequest] = useState<{
++    site: SiteSelection;
++    pinId: string | null;
++  } | null>(null);
+   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
+   const panelScroll = useRef<HTMLDivElement>(null);
+   const titleRef = useRef<HTMLHeadingElement>(null);
++  const reportRef = useRef<HTMLDetailsElement>(null);
++
++  // Reset on the route render; a fast return must not revive a deferred close.
++  if (!active && (compareOpen || reportOpen || reportFocusRequest)) {
++    setCompareOpen(false);
++    setReportOpen(false);
++    setReportFocusRequest(null);
++  }
+ 
+   useEffect(() => {
+     if (!active || !data) return;
+@@ -68,16 +79,6 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+     return () => cancelAnimationFrame(frame);
+   }, [active, data]);
+ 
+-  useEffect(() => {
+-    if (active) return;
+-    const frame = requestAnimationFrame(() => {
+-      setCompareOpen(false);
+-      setReportOpen(false);
+-      setPendingReportPinId(null);
+-    });
+-    void frame;
+-  }, [active]);
+-
+   const zoning = useZoning(site);
+   const zoningLookup = zoning.status === 'done' ? zoning.lookup : null;
+   // Separate request from zoning so a VWorld hiccup on one never blanks the other.
+@@ -182,23 +183,24 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+     [data, resolvedPins, project],
+   );
+ 
+-  useEffect(() => {
+-    if (!active || !pendingReportPinId || !site || openedPinId !== pendingReportPinId) return;
+-    const matchingPin = resolvedPins.find((pin) => pin.id === pendingReportPinId);
+-    if (!matchingPin) {
+-      requestAnimationFrame(() => setPendingReportPinId(null));
+-      return;
+-    }
++  // Focus only after the requested site and its conditions have committed together.
++  // Layout cleanup cancels the frame before a new screen or candidate can paint.
++  useLayoutEffect(() => {
++    if (!active || !reportOpen || !reportFocusRequest || site !== reportFocusRequest.site) return;
++    if (reportFocusRequest.pinId !== null && (
++      openedPinId !== reportFocusRequest.pinId ||
++      !resolvedPins.some((pin) => pin.id === reportFocusRequest.pinId)
++    )) return;
+     const frame = requestAnimationFrame(() => {
+-      setReportOpen(true);
+-      setPendingReportPinId(null);
+-      requestAnimationFrame(() => {
+-        document.getElementById('report-section')?.scrollIntoView({ block: 'start' });
+-        document.getElementById('report-title')?.focus();
+-      });
++      const report = reportRef.current;
++      if (report?.isConnected && report.open) {
++        report.scrollIntoView({ block: 'start' });
++        report.querySelector<HTMLElement>('#report-title')?.focus();
++      }
++      setReportFocusRequest(null);
+     });
+     return () => cancelAnimationFrame(frame);
+-  }, [active, pendingReportPinId, openedPinId, resolvedPins, site]);
++  }, [active, reportOpen, reportFocusRequest, openedPinId, resolvedPins, site]);
+ 
+   if (error) {
+     return (
+@@ -223,7 +225,7 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+   }
+ 
+   const selectSite = (selection: SiteSelection, zoom?: number) => {
+-    setPendingReportPinId(null);
++    setReportFocusRequest(null);
+     setReportOpen(false);
+     setPins(resolvedPins);
+     panelScroll.current?.scrollTo({ top: 0 });
+@@ -243,6 +245,8 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+ 
+   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
+   const openPin = (pin: PinnedSite) => {
++    setReportFocusRequest(null);
++    setReportOpen(false);
+     setPins(resolvedPins);
+     panelScroll.current?.scrollTo({ top: 0 });
+     setSite(pin.selection);
+@@ -252,21 +256,16 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+     setFlyTo({ lat: pin.selection.lat, lng: pin.selection.lng, zoom: 13 });
+   };
+ 
+-  const focusReport = () => {
+-    requestAnimationFrame(() => {
+-      document.getElementById('report-title')?.focus();
+-    });
+-  };
+   const openCurrentReport = () => {
++    if (!active || !site) return;
+     setReportOpen(true);
+-    requestAnimationFrame(() => {
+-      document.getElementById('report-section')?.scrollIntoView({ block: 'start' });
+-      focusReport();
+-    });
++    setReportFocusRequest({ site, pinId: null });
+   };
+   const openPinReport = (pin: PinnedSite) => {
++    if (!active || !resolvedPins.some((candidate) => candidate.id === pin.id)) return;
+     openPin(pin);
+-    setPendingReportPinId(pin.id);
++    setReportOpen(true);
++    setReportFocusRequest({ site: pin.selection, pinId: pin.id });
+     setCompareOpen(false);
+   };
+ 
+@@ -498,9 +497,13 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+             {result?.site.eligible && input && site && (
+               <details
+                 id="report-section"
++                ref={reportRef}
+                 className="report-section"
+                 open={reportOpen}
+-                onToggle={(event) => setReportOpen(event.currentTarget.open)}
++                onToggle={(event) => {
++                  setReportOpen(event.currentTarget.open);
++                  if (!event.currentTarget.open) setReportFocusRequest(null);
++                }}
+               >
+                 <summary>
+                   기본 보고서 <span>근거 18항목 · 브라우저 인쇄</span>
+@@ -564,7 +567,7 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
+         onOpen={openPin}
+         onOpenReport={openPinReport}
+         onRemove={(id) => {
+-          if (pendingReportPinId === id) setPendingReportPinId(null);
++          if (reportFocusRequest?.pinId === id || openedPinId === id) setReportFocusRequest(null);
+           if (openedPinId === id) setReportOpen(false);
+           setPins(removePin(resolvedPins, id));
+         }}

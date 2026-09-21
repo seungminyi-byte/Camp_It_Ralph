@@ -1,5 +1,4 @@
 import type { AppData, LandUseSource, ScoreInput, ScoreResult } from '../types';
-import { LAND_USE_LABEL } from '../scoring/engine';
 import { summarizeRestriction } from '../scoring/restriction';
 import { summarizeDisaster } from '../lib/disasterSummary';
 import { fmtArea, fmtCount, fmtKrw } from '../lib/format';
@@ -60,7 +59,7 @@ export function verdictFromPoints(points: number): Verdict {
 export function buildChecklist(
   r: ScoreResult,
   data: AppData,
-  ctx: ChecklistContext,
+  _ctx: ChecklistContext,
 ): ChecklistRow[] {
   const rows: ChecklistRow[] = [];
   const add = (
@@ -108,12 +107,17 @@ export function buildChecklist(
     r.power.score === null ? 'na' : 'good',
     `${r.emd?.sido ?? '지역 미확인'} · 지역 참고값 ${r.power.regionScore}. 개별 사업의 심사 결과를 예측하지 않음.`,
   );
+  const zoningEvidence = r.evidence.find((item) => item.key === 'zoning');
   add(
     'permit.landUse',
     '인허가',
     '용도지역',
-    ctx.input.landUse === 'unknown' ? 'na' : 'good',
-    `${LAND_USE_LABEL[ctx.input.landUse]} · ${ctx.landUseSource === 'manual' ? '사용자 선택' : ctx.landUseSource === 'auto' ? `VWorld 자동 조회: ${ctx.zoningName ?? LAND_USE_LABEL[ctx.input.landUse]}` : '자동 조회 미확인'} · 건축 가능 여부·적용 용적률은 별도 확인.`,
+    zoningEvidence?.status === 'available'
+      ? 'good'
+      : zoningEvidence?.status === 'partial'
+        ? 'caution'
+        : 'na',
+    zoningEvidence?.detail ?? '용도지역 근거 미확인',
     source('zoning'),
   );
   add(

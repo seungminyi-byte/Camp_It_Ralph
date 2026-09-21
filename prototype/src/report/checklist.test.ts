@@ -26,7 +26,7 @@ describe('evidence report without AI', () => {
     const result = scoreSite(at, data);
     const rows = buildChecklist(result, data, { input: at, landUseSource: at.landUseSource!, zoningName: null });
     expect(rows.map(r => r.key)).toEqual([...CHECKLIST_KEYS]);
-    expect(rows.find(r => r.key === 'permit.landUse')?.evidence).toContain('사용자 선택');
+    expect(rows.find(r => r.key === 'permit.landUse')?.evidence).toContain('사용자 입력');
     expect(result.review.overview.issues.map(i => i.id)).toEqual(expect.arrayContaining(['supply.power', 'supply.water', 'supply.telecom']));
   });
   it('keeps absent news distinct from a collected zero and has no acceptance deduction', () => {

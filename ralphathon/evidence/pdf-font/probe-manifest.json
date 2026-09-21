@@ -1,0 +1,20 @@
+{
+  "font": "NotoSansKR-Regular.ttf (derived weight 400, see PDF-FONT-PRECHECK.md)",
+  "fontSha256": "d2a33412bcbd2503d0a0222936da3830ac5d76eec92bcf0eab58ea955f32f6d4",
+  "pdfBytes": 3129232,
+  "pdfSha256": "1023af25da3eed4609b76d00874976e3f73262f4464b371d4e10cb16de8655e1",
+  "subset": false,
+  "generationMs": 535,
+  "lines": [
+    "여기 DC 돼요? - PDF 글꼴 삽입 검증",
+    "후보 부지 검토 보고서 / 공개자료와 합성 입력",
+    "확인된 제약 · 미확인 조건 · 다음 확인사항",
+    "연면적 30,000㎡ · 용적률 200% · 건폐율 50% · 4층",
+    "이론상 최소 대지 15,000㎡ / 금융비용 60억원",
+    "미입력과 명시적 0을 구별합니다. 0원 ≠ 미확인",
+    "표기 검증: ²㎡㎞°℃·→−₩①✓–—",
+    "스크리닝 참고용, 한전 공식 검토·법률 판단 대체 불가",
+    "https://www.data.go.kr/data/15128065/fileData.do"
+  ],
+  "missing": []
+}

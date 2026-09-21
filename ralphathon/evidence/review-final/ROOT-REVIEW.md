@@ -1,6 +1,6 @@
 # 의미 요약 및 출처 경계 총괄 검수
 
-2026-09-21 17:20 KST. 기준: 389f0cd 위의 review-semantics 및 source-integrity 변경.
+2026-09-21 17:17 KST. 기준: 389f0cd 위의 review-semantics 및 source-integrity 변경. 최초 기록의 17:20은 시각 추정 오기여서 명령 실행 시각에 맞춰 정정했다.
 
 - diff 검수: 점수·면적·비용·금융비용 산식 유지. 제약/미확인/입력조건 분류와 우선 행동만 추가. 자동 용도지역의 공개조회 표시는 성공·값 일치·non-unknown 조건을 공유한다.
 - 총괄 전체 검사: Node v24.21.0, 19파일 192테스트 통과, production build 통과. 명령 결과는 tests.txt/build.txt/checks.json. 담당의 typecheck/lint 통과는 source-integrity 증거에 있다.

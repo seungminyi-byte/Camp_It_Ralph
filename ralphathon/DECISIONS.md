@@ -30,3 +30,10 @@
 - D011: 단계2 별도 총괄 검수에서 auto source와 실제 zoning 값이 불일치할 때 available은 unknown인데 issue.basis/detail은 public_data/공개조회로 남는 경계 발견. 정상 UI의 matching 입력만으로 이 계약을 완결됐다고 보지 않고 새 fix_source_integrity 담당에 단일 source 해석·경계 테스트 수정 위임. 계산은 보존한다.
 - fix_source_integrity: 실제 모델 gpt-5.6-terra, reasoning high, 새 독립 문맥. bounded TypeScript 출처 정합성·회귀 수정은 코딩 적합성과 비용/응답속도를 고려해 이 모델을 선택하고 총괄이 별도 검수한다. 다른 실행 에이전트는 종료된 뒤 시작했다. 이전 단계 모델 전환을 소급하여 기록하지 않는다.
 - D012 2026-09-21: 용도지역 공개조회 표시는 source enum만으로 추정하지 않는다. auto·조회 성공·조회값과 적용값 일치·적용값 non-unknown을 단일 해석에서 모두 만족할 때만 public_data/공개 조회로 표시하고, 수동은 user_input/사용자 입력, 나머지는 unverified/출처 미확인으로 통일한다. 점수·감점·제한·등급·산식과 후보 source 전달은 보존한다. 정상 주거지역 auto fixture에는 실제 일치 zoning값을 넣고, 불일치 fixture는 unverified를 검증한다.
+- report_export_design: 605bddb 단계 검수·인계 후 gpt-5.6-sol/high에 보고서/PDF의 최소 대안 비교를 위임. 기존 코드와 브라우저 제약을 함께 검토하는 설계 작업이므로 범용 분석 적합성과 응답 비용을 고려했다. 코드 작성 전에 새 반론 담당의 순차 검수를 거친다.
+- report_export_challenge: 제안 완료 후 gpt-5.6-terra/high로 제한된 비동기 상태·보고서 데이터 경계를 반론 검수했다. 실행 에이전트 병렬화 없음. REPORT-EXPORT-REVIEW.md에 결과 인계.
+- D013 2026-09-21: 제안과 반론 검수 후 pdf-lib/fontkit의 클라이언트 A4 직접다운로드를 추가하고 기존 브라우저 인쇄를 보존하기로 확정. PDF 코드와 한국어 글꼴은 다운로드 클릭 때만 읽는다. 화면/PDF는 같은 결과·18행·유효 AI를 표현하는 최소 view-model을 공유하되, 계산·출처·AI 상태를 재판정하거나 별도 캐시하지 않는다. 18행 검증 실패를 일반 render에서 throw하지 않고 내보내기 경계로 격리한다. stale 저장은 현재 ref·서명·작업 토큰·활성 화면으로 막고 Object URL은 다운로드 시작 뒤 지연 정리한다. 먼저 표시 정합성/보고서 진입/비교를 구현하고 별도 순차 단계에서 실제 PDF 생성기를 구현한다. 후보별 보고서 연결을 마감 편의상 제외하지 않는다.
+
+- build_report_flow: gpt-5.6-terra/high, 공통 표현 모델·보고서 흐름 구현 완료. 총괄 source 검수에서 rAF로 예약된 포커스의 화면 전환 경계를 보강할 필요를 발견했다. 보고된 200테스트 통과는 실제 브라우저 검수와 구분한다.
+- report_focus_hardening: 직전 실행 담당 완료 후 새 독립 문맥으로 한정 보완을 위임했다. 부모 모델 상속, 별도 모델 전환 없음. 예약된 보고서 포커스 취소와 UI 전환 회귀를 담당한다. 동시에 둘 이상의 실행 에이전트를 가동하지 않는다.
+- D014: 글꼴 subset 방식이 한글 렌더를 훼손함을 실제 PDF로 확인해 전체 정적 TTF 삽입을 채택한다. 약 6.2MB 글꼴과 3.1MB 시험 PDF의 크기를 감수하고 다운로드 클릭에만 로딩한다. 폰트 shaping 특성에 따른 숫자/공백 복사 오류를 검증된 feature 해제로 해결한다. PDF-FONT-PRECHECK.md에 실패와 재현 가능한 최종 파생 글꼴 해시를 기록했다.

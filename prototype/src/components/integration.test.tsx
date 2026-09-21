@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { loadAppData, loadScenarios } from '../test/loadData';
 import { scoreSite } from '../scoring/engine';
 import { CHECKLIST_KEYS, buildChecklist } from '../report/checklist';
+import { buildReportViewModel } from '../report/viewModel';
 import type { ScoreInput } from '../types';
 import { ChecklistReport } from './ChecklistReport';
 import { ResultOverview } from './ResultOverview';
@@ -30,19 +31,11 @@ function renderSurfaces(input: ScoreInput) {
     landUseSource: 'manual',
     zoningName: null,
   });
+  const model = buildReportViewModel({ data, input, result, site });
   const report = (variant: 'screen' | 'print') =>
     renderToStaticMarkup(
       <ChecklistReport
-        data={data}
-        input={input}
-        result={result}
-        rows={rows}
-        site={site}
-        landUseSource="manual"
-        zoningName={null}
-        memo={null}
-        generatedBy={null}
-        generatedAt={null}
+        model={model}
         variant={variant}
       />,
     );
@@ -76,6 +69,7 @@ function renderSurfaces(input: ScoreInput) {
         entries={[{ pin, result }]}
         onClose={() => {}}
         onOpen={() => {}}
+        onOpenReport={() => {}}
         onRemove={() => {}}
       />,
     ),
@@ -204,7 +198,7 @@ describe('ARIA integration across summary surfaces', () => {
       rendered.compare,
       ...rendered.reports,
     ]) {
-      expect(html).toContain('추가 확인 필요');
+      expect(html).toMatch(/추가 확인 필요|미확인 조건/);
       expect(html).toContain('미산정');
       expect(html).not.toContain('예상 인허가 지연');
       expect(html).not.toContain('주민 갈등 가능성');

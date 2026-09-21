@@ -8,6 +8,7 @@ import type {
   SiteSelection,
 } from '../types';
 import { buildChecklist, type ChecklistRow } from '../report/checklist';
+import { buildReportViewModel, completedReportMemo } from '../report/viewModel';
 import { buildMemoPrompt } from '../genai/prompts';
 import { parseMemo, type ParsedMemo } from '../genai/memoFormat';
 import {
@@ -86,20 +87,33 @@ export function MemoPanel({
     setRun({ ...run, status: 'stopped' });
   }
   const busy = active && run?.status === 'streaming' && !stale;
-  const completed = !stale && run?.status === 'done' && run.parsed.complete && !run.parsed.error;
-  const reportMemo = completed ? run.parsed : null;
-  const shown = { input, result, rows, landUseSource, zoningName, site };
+  const reportMemo = completedReportMemo(run?.parsed ?? null, run?.status ?? null, stale);
+  const completed = reportMemo !== null;
   useEffect(() => {
     if (stale || !active) {
       ctrl.current?.abort();
     }
   }, [active, stale, currentContext]);
   const generatedBy =
-    completed && run.mode
+    completed && run?.mode
       ? run.mode === 'proxy'
         ? `AI 생성${run.meta.model ? ` · ${run.meta.model}` : ''}`
         : `사전 생성 의견 (오프라인${run.meta.distanceKm !== undefined ? ` · 등록 지점에서 ${Math.round(run.meta.distanceKm * 1000)}m` : ''})`
       : null;
+  const reportModel = useMemo(
+    () =>
+      buildReportViewModel({
+        data,
+        input,
+        result,
+        site,
+        rows,
+        memo: reportMemo,
+        generatedBy,
+        generatedAt: completed && run ? run.at : null,
+      }),
+    [data, input, result, site, rows, reportMemo, generatedBy, completed, run],
+  );
 
   const start = async () => {
     if (!active) return;
@@ -176,7 +190,7 @@ export function MemoPanel({
       <header className="report-tools-header">
         <div>
           <span>REPORT PREVIEW</span>
-          <h2>부지 검토 보고서</h2>
+          <h2 id="report-title" tabIndex={-1}>부지 검토 보고서</h2>
         </div>
         {generatedBy && (
           <span className="report-generation-badge">{generatedBy}</span>
@@ -185,94 +199,42 @@ export function MemoPanel({
 
       <div className="report-actions">
         <button
+          onClick={() => { if (active) printWithTitle(reportFileTitle(areaLabel, new Date())); }}
+          className="report-pdf-button"
+        >
+          브라우저 인쇄 <span aria-hidden="true">↗</span>
+        </button>
+      </div>
+
+      <div className="report-preview-shell">
+        <ChecklistReport model={reportModel} variant="screen" />
+      </div>
+
+      <details className="report-ai-tools">
+        <summary>선택 AI 검토 의견 <small>완료되고 현재 조건과 일치할 때만 보고서에 반영</small></summary>
+        <button
           onClick={busy ? stop : () => void start()}
           className={`report-ai-button${busy ? ' is-stop' : ''}`}
         >
           <span aria-hidden="true">{busy ? '■' : '✦'}</span>
-          {busy
-            ? '생성 중지'
-            : run
-              ? 'AI 검토 의견 다시 생성'
-              : 'AI 검토 의견 생성'}
+          {busy ? '생성 중지' : run ? 'AI 검토 의견 다시 생성' : 'AI 검토 의견 생성'}
         </button>
-        <button
-          onClick={() => { if (active) printWithTitle(reportFileTitle(areaLabel, new Date())); }}
-          className="report-pdf-button"
-        >
-          PDF 저장 <span aria-hidden="true">↗</span>
-        </button>
-      </div>
-
-      {busy && <p className="memo-state" role="status">AI 의견을 생성하고 있습니다. 기본 보고서는 계속 사용할 수 있으며, 완료된 의견만 PDF에 포함합니다.</p>}
-      {!stale && run?.status === 'stopped' && <p className="memo-state" role="status">AI 생성을 중단했습니다. 부분 의견은 보고서에 포함하지 않습니다.</p>}
-      {!stale && run?.status === 'done' && !run.parsed.complete && !run.parsed.error && <p className="memo-state" role="status">AI 의견이 완성되지 않아 보고서에 포함하지 않았습니다. 기본 보고서는 계속 사용할 수 있습니다.</p>}
-
-      {stale && (
-        <p className="mt-2 rounded bg-amber-50 p-1.5 text-xs text-amber-900">
-          입력 또는 근거 자료가 변경되어 이전 AI 의견을 해제했습니다. 기본
-          보고서는 현재 조건으로 갱신되었습니다.
-        </p>
-      )}
-      {!stale && (run?.status === 'error' || run?.parsed.error) && (
-        <p role="alert" className="mt-2 text-xs text-red-600">
-          {run?.error ??
-            `${run?.parsed.error} 기본 보고서는 계속 출력할 수 있습니다.`}
-        </p>
-      )}
-
-      <div className="report-preview-shell">
-        <ChecklistReport
-          data={data}
-          input={shown.input}
-          result={shown.result}
-          rows={shown.rows}
-          site={shown.site}
-          landUseSource={shown.landUseSource}
-          zoningName={shown.zoningName}
-          memo={reportMemo}
-          generatedBy={generatedBy}
-          generatedAt={completed ? run.at : null}
-          variant="screen"
-        />
-      </div>
-
-      {run && !stale && run.status !== 'stopped' && run.raw.length > 0 && (
-        <details
-          className="mt-2"
-          open={showRaw}
-          onToggle={(e) => setShowRaw(e.currentTarget.open)}
-        >
-          <summary className="cursor-pointer text-[11px] text-gray-500">
-            원문 보기
-          </summary>
-          <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap rounded bg-gray-50 p-2 text-[11px]">
-            {run.parsed.visible}
-          </pre>
-          <button
-            className="mt-1 text-[11px] text-gray-500 underline"
-            onClick={() =>
-              void navigator.clipboard.writeText(run.parsed.visible)
-            }
-          >
-            복사
-          </button>
-        </details>
-      )}
+        {busy && <p className="memo-state" role="status">AI 의견을 생성하고 있습니다. 기본 보고서는 계속 사용할 수 있으며, 완료된 의견만 보고서에 포함합니다.</p>}
+        {!stale && run?.status === 'stopped' && <p className="memo-state" role="status">AI 생성을 중단했습니다. 부분 의견은 보고서에 포함하지 않습니다.</p>}
+        {!stale && run?.status === 'done' && !run.parsed.complete && !run.parsed.error && <p className="memo-state" role="status">AI 의견이 완성되지 않아 보고서에 포함하지 않았습니다. 기본 보고서는 계속 사용할 수 있습니다.</p>}
+        {stale && <p className="memo-state">입력 또는 근거 자료가 변경되어 이전 AI 의견을 해제했습니다. 기본 보고서는 현재 조건으로 갱신되었습니다.</p>}
+        {!stale && (run?.status === 'error' || run?.parsed.error) && <p role="alert" className="memo-state">{run?.error ?? `${run?.parsed.error} 기본 보고서는 계속 출력할 수 있습니다.`}</p>}
+        {run && !stale && run.status !== 'stopped' && run.raw.length > 0 && (
+          <details className="report-ai-raw" open={showRaw} onToggle={(e) => setShowRaw(e.currentTarget.open)}>
+            <summary>원문 보기</summary>
+            <pre>{run.parsed.visible}</pre>
+            <button onClick={() => void navigator.clipboard.writeText(run.parsed.visible)}>복사</button>
+          </details>
+        )}
+      </details>
 
       <PrintPortal active={active}>
-        <ChecklistReport
-          data={data}
-          input={shown.input}
-          result={shown.result}
-          rows={shown.rows}
-          site={shown.site}
-          landUseSource={shown.landUseSource}
-          zoningName={shown.zoningName}
-          memo={reportMemo}
-          generatedBy={generatedBy}
-          generatedAt={completed ? run.at : null}
-          variant="print"
-        />
+        <ChecklistReport model={reportModel} variant="print" />
       </PrintPortal>
     </section>
   );

@@ -17,12 +17,14 @@ export function CompareDialog({
   entries,
   onClose,
   onOpen,
+  onOpenReport,
   onRemove,
 }: {
   open: boolean;
   entries: CompareEntry[];
   onClose: () => void;
   onOpen: (pin: PinnedSite) => void;
+  onOpenReport: (pin: PinnedSite) => void;
   onRemove: (id: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -79,7 +81,7 @@ export function CompareDialog({
         </p>
       )}
       {entries.length > 0 && (
-        <div className="comparison-scroll">
+        <div className="comparison-scroll" role="region" aria-label="후보별 비교 표" tabIndex={0}>
           <table>
             <thead>
               <tr>
@@ -91,20 +93,50 @@ export function CompareDialog({
                       {pin.selection.lat.toFixed(4)},{' '}
                       {pin.selection.lng.toFixed(4)}
                     </small>
+                    <div className="compare-candidate-actions">
+                      <button className="text-button" onClick={() => onOpenReport(pin)}>
+                        보고서 보기
+                      </button>
+                      <button
+                        className="text-button"
+                        onClick={() => {
+                          onOpen(pin);
+                          onClose();
+                        }}
+                      >
+                        조건 수정
+                      </button>
+                      <button className="text-button" onClick={() => onRemove(pin.id)}>
+                        후보에서 제거
+                      </button>
+                    </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {row('우선 검토', (r) => (
+              {row('확인된 제약', (r) => (
                 <>
-                  <strong>{r.review.label}</strong>
                   <ul>
-                    {r.review.issues.slice(0, 3).map((i, n) => (
-                      <li key={n}>{i.title}</li>
+                    {r.review.overview.issues.filter((issue) => issue.category === 'confirmed_constraint').map((issue) => (
+                      <li key={issue.id}>{issue.title}</li>
                     ))}
+                    {!r.review.overview.issues.some((issue) => issue.category === 'confirmed_constraint') && <li>현재 확인된 자료에서 제약 항목 없음</li>}
                   </ul>
                 </>
+              ))}
+              {row('미확인 조건', (r) => (
+                <ul>
+                  {r.review.overview.issues.filter((issue) => issue.category === 'unknown').slice(0, 3).map((issue) => (
+                    <li key={issue.id}>{issue.title}</li>
+                  ))}
+                  {!r.review.overview.issues.some((issue) => issue.category === 'unknown') && <li>요약 미확인 조건 없음</li>}
+                </ul>
+              ))}
+              {row('다음 확인사항', (r) => (
+                <ol>
+                  {r.review.overview.actions.slice(0, 3).map((action) => <li key={action}>{action}</li>)}
+                </ol>
               ))}
               {row(
                 '사업조건',
@@ -155,33 +187,6 @@ export function CompareDialog({
               {row('비용 시나리오', (r) => (
                 <CostReview result={r} compact />
               ))}
-              {row('참고점수', (r) =>
-                r.composite.score === null
-                  ? `미산정${r.composite.grade === 'E' ? ' · 법적 입지 제한 E등급 상한' : ''}`
-                  : `${r.composite.score}점 · ${r.composite.grade}등급`,
-              )}
-              <tr>
-                <th scope="row">후보 관리</th>
-                {entries.map(({ pin }) => (
-                  <td key={pin.id}>
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        onOpen(pin);
-                        onClose();
-                      }}
-                    >
-                      조건 수정·지도 보기
-                    </button>
-                    <button
-                      className="text-button"
-                      onClick={() => onRemove(pin.id)}
-                    >
-                      후보에서 제거
-                    </button>
-                  </td>
-                ))}
-              </tr>
             </tbody>
           </table>
         </div>
