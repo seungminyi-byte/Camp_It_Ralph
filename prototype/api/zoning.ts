@@ -5,9 +5,11 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // the dropdown automatically instead of asking the user to read it off the WMS overlay.
 // A hit also tells the scoring engine that a water-looking cell is reclaimed land, not open sea.
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
+import { fetchVworld, jsonResponse, vworldEnv, vworldJson, vworldFeatures, vworldPageComplete, LOOKUP_VERSION, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
+import { ApiError, coordinateQuery, errorResponse, methodNotAllowed, Operation, queryParams } from './_http.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/data';
+const PAGE_SIZE = 5;
 
 // 도시지역 / 관리지역 / 농림지역 / 자연환경보전지역
 const LAYERS = ['LT_C_UQ111', 'LT_C_UQ112', 'LT_C_UQ113', 'LT_C_UQ114'] as const;
@@ -44,7 +46,8 @@ async function queryLayer(
   lng: number,
   key: string,
   domain: string,
-): Promise<Found[]> {
+  operation: Operation,
+): Promise<{ hits: Found[]; complete: boolean }> {
   const url = new URL(UPSTREAM);
   const set = (k: string, v: string) => url.searchParams.set(k, v);
   set('service', 'data');
@@ -52,7 +55,7 @@ async function queryLayer(
   set('request', 'GetFeature');
   set('format', 'json');
   set('errorFormat', 'json');
-  set('size', '5');
+  set('size', String(PAGE_SIZE));
   set('page', '1');
   set('geometry', 'false');
   set('attribute', 'true');
@@ -60,19 +63,9 @@ async function queryLayer(
   set('data', layer);
   set('geomFilter', `POINT(${lng} ${lat})`);
 
-  const body = await vworldJson(await fetchVworld(url, key, domain));
-  const response = body.response as
-    | {
-        status?: string;
-        result?: { featureCollection?: { features?: { properties?: Record<string, unknown> }[] } };
-      }
-    | undefined;
-  const status = response?.status;
-  if (status === 'NOT_FOUND') return [];
-  if (status !== 'OK') throw new Error(`${layer}: status ${String(status)}`);
-
-  const features = response?.result?.featureCollection?.features ?? [];
-  return features.map((f) => {
+  const body = await vworldJson(await fetchVworld(url, key, domain, operation));
+  const features = vworldFeatures(body);
+  const hits = features.map((f) => {
     const props = f.properties ?? {};
     const raw = props.uname;
     // uname is the documented 용도지역명; fall back to any "…지역" attribute, then the layer name.
@@ -87,54 +80,36 @@ async function queryLayer(
       sigungu: typeof props.sigg_name === 'string' ? props.sigg_name : undefined,
     };
   });
+  return { hits, complete: vworldPageComplete(body, features.length, PAGE_SIZE) };
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'GET') return textResponse('method not allowed', 405);
-
-  const { key, domain } = vworldEnv();
-  if (!key) return textResponse('no VWORLD_API_KEY configured on server', 503);
-
-  const q = new URL(req.url).searchParams;
-  const lat = Number(q.get('lat'));
-  const lng = Number(q.get('lng'));
-  if (!(lat >= 33 && lat <= 39.5 && lng >= 124 && lng <= 132)) {
-    return textResponse('lat/lng outside Korea', 400);
-  }
-  // Round server-side too, so the CDN key matches what the client already rounded (~11m).
-  const rlat = Math.round(lat * 1e4) / 1e4;
-  const rlng = Math.round(lng * 1e4) / 1e4;
-
-  const settled = await Promise.all(
-    LAYERS.map((layer) =>
-      queryLayer(layer, rlat, rlng, key, domain).then(
-        (hits) => ({ hits, error: null as string | null }),
-        (e: unknown) => ({ hits: [] as Found[], error: e instanceof Error ? e.message : String(e) }),
-      ),
-    ),
-  );
-
-  const hits = settled.flatMap((s) => s.hits);
-  const errors = settled.map((s) => s.error).filter((e): e is string => e !== null);
-
-  // "Nothing here" and "the lookup failed" mean opposite things to the caller: only the former is
-  // evidence of open water, so a failure must not be cached or reported as found:false.
-  if (hits.length === 0 && errors.length > 0) {
-    return textResponse(`vworld zoning failed: ${errors.join(' / ')}`, 502);
-  }
-
-  const first = hits[0];
-  return jsonResponse(
-    {
+  if (req.method !== 'GET') return methodNotAllowed('GET');
+  const operation = new Operation(req.signal, UPSTREAM_TIMEOUT_MS);
+  try {
+    const coordinate = coordinateQuery(queryParams(req), 4);
+    const { key, domain } = vworldEnv();
+    const settled = await Promise.all(LAYERS.map(async (layer) => {
+      try {
+        const result = await queryLayer(layer, coordinate.lat, coordinate.lng, key, domain, operation);
+        return { layer, hits: result.hits, error: result.complete ? null : new ApiError('UPSTREAM_INCOMPLETE') };
+      }
+      catch (error) { return { layer, hits: [] as Found[], error }; }
+    }));
+    const hits = settled.flatMap((s) => s.hits);
+    const failed = settled.filter((s) => s.error !== null).map((s) => s.layer);
+    if (failed.length === LAYERS.length && hits.length === 0) throw settled[0].error;
+    const complete = failed.length === 0;
+    const first = hits[0];
+    return jsonResponse({
       found: hits.length > 0,
-      layer: first?.layer ?? null,
-      name: first?.name ?? null,
+      layer: first?.layer ?? null, name: first?.name ?? null,
       landUse: first ? landUseFromName(first.layer, first.name) : 'unknown',
-      sido: first?.sido,
-      sigungu: first?.sigungu,
+      sido: first?.sido, sigungu: first?.sigungu,
       all: hits.map((h) => ({ layer: h.layer, name: h.name })),
-    },
-    // VWorld's terms require live use, so this is a short CDN cache, not a stored copy.
-    'public, max-age=600, s-maxage=3600',
-  );
+      queried: [...LAYERS], failed, complete,
+      coordinate, fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION,
+    }, complete ? 'public, max-age=600, s-maxage=3600' : 'no-store');
+  } catch (error) { return errorResponse(error); }
+  finally { operation.dispose(); }
 }

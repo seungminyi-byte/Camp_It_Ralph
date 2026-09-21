@@ -1,108 +1,93 @@
-// Pinned to Seoul: VWorld rejects Vercel's global edge egress (HAProxy 502 / connection reset from
-// e.g. hnd1), while requests from the icn1 region succeed.
+// VWorld requires Korean egress; keep the existing Seoul edge deployment.
 export const config = { runtime: 'edge', regions: ['icn1'] };
+import { fetchVworld, UPSTREAM_TIMEOUT_MS, vworldEnv } from './_vworld.js';
+import { ApiError, errorResponse, methodNotAllowed, Operation, queryParams } from './_http.js';
 
-// Proxies VWorld WMS GetMap requests for the 용도지역 (zoning) and 규제구역 overlays so the server-side
-// VWORLD_API_KEY never reaches the browser. VWorld requires the registered service URL in the
-// `domain` parameter for non-browser calls (VWORLD_DOMAIN overrides the production URL).
-// Only whitelisted layers, PNG output and tile-sized images are forwarded; tiles are cached at
-// the edge for a day to stay well inside the 40,000 calls/day quota.
-
-import { fetchVworld, registeredDomain, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
-
-declare const process: { env: Record<string, string | undefined> };
-
-const UPSTREAM = 'https://api.vworld.kr/req/wms';
-// 용도지역 4종 + 규제구역 5종 (개발제한구역·상수원보호구역·국가유산·농업진흥지역·도시자연공원구역); ≤ 4 layers per request.
 const ALLOWED_LAYERS = new Set([
   'lt_c_uq111', 'lt_c_uq112', 'lt_c_uq113', 'lt_c_uq114',
   'lt_c_ud801', 'lt_c_um710', 'lt_c_uo301', 'lt_c_agrixue101', 'lt_c_uq162',
 ]);
 const ALLOWED_CRS = new Set(['EPSG:3857', 'EPSG:900913', 'EPSG:4326']);
-const MAX_SIZE = 512;
-
-function param(q: URLSearchParams, name: string): string {
-  return q.get(name) ?? q.get(name.toUpperCase()) ?? q.get(name.toLowerCase()) ?? '';
-}
-
-function validLayerList(value: string): string | null {
-  const parts = value.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!parts.length || parts.length > 4 || !parts.every((p) => ALLOWED_LAYERS.has(p))) return null;
+function layerList(value: string): string {
+  const parts = value.split(',').map((s) => s.trim().toLowerCase());
+  if (!parts.length || parts.length > 4 || new Set(parts).size !== parts.length || !parts.every((p) => ALLOWED_LAYERS.has(p))) throw new ApiError('BAD_REQUEST', 400);
   return parts.join(',');
 }
-
-function validSize(value: string): number | null {
+function imageSize(value: string): number {
   const n = Number(value);
-  return Number.isInteger(n) && n > 0 && n <= MAX_SIZE ? n : null;
+  if (!Number.isInteger(n) || n <= 0 || n > 512) throw new ApiError('BAD_REQUEST', 400);
+  return n;
+}
+function boundingBox(value: string, crs: string, version: string): string {
+  const parts = value.split(',');
+  const n = parts.map(Number);
+  const limits = crs === 'EPSG:4326' ? (version === '1.3.0' ? [90, 180] : [180, 90]) : [20037508.342789244, 20037508.342789244];
+  if (parts.length !== 4 || parts.some((p) => !p.trim()) || !n.every(Number.isFinite) ||
+    n[0] >= n[2] || n[1] >= n[3] || n.some((v, i) => Math.abs(v) > limits[i % 2])) throw new ApiError('BAD_REQUEST', 400);
+  return n.join(',');
 }
 
-function validBbox(value: string): string | null {
-  const nums = value.split(',').map(Number);
-  return nums.length === 4 && nums.every(Number.isFinite) ? nums.join(',') : null;
+/** Validate the PNG container, dimensions, allowed IHDR fields, every CRC, and terminal IEND. */
+function validPng(bytes: Uint8Array, width: number, height: number): boolean {
+  const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+  if (bytes.length < 57 || !signature.every((v, i) => bytes[i] === v)) return false;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 8, hasData = false, hasPalette = false, color = -1;
+  while (offset + 12 <= bytes.length) {
+    const length = view.getUint32(offset);
+    if (length > bytes.length - offset - 12) return false;
+    const kind = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+    if (!/^[A-Za-z]{4}$/.test(kind)) return false;
+    let crc = 0xffffffff;
+    for (let i = offset + 4; i < offset + 8 + length; i++) {
+      crc ^= bytes[i];
+      for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+    }
+    if ((crc ^ 0xffffffff) >>> 0 !== view.getUint32(offset + 8 + length)) return false;
+    if (offset === 8) {
+      if (kind !== 'IHDR' || length !== 13 || view.getUint32(16) !== width || view.getUint32(20) !== height) return false;
+      const depth = bytes[24]; color = bytes[25];
+      const depths: Record<number, number[]> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+      if (!depths[color]?.includes(depth) || bytes[26] !== 0 || bytes[27] !== 0 || bytes[28] > 1) return false;
+    } else if (kind === 'IHDR') return false;
+    if (kind === 'PLTE') { if (!length || length % 3 || length > 768 || hasData) return false; hasPalette = true; }
+    if (kind === 'IDAT') { if (color === 3 && !hasPalette) return false; hasData ||= length > 0; }
+    if (kind === 'IEND') return length === 0 && hasData && offset + 12 === bytes.length;
+    if (!['IHDR', 'PLTE', 'IDAT', 'IEND'].includes(kind) && kind[0] === kind[0].toUpperCase()) return false;
+    offset += length + 12;
+  }
+  return false;
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'GET') return new Response('method not allowed', { status: 405 });
-  const env = process.env;
-  const key = env.VWORLD_API_KEY;
-  if (!key) return new Response('no VWORLD_API_KEY configured on server', { status: 503 });
-
-  const q = new URL(req.url).searchParams;
-  if (param(q, 'request').toLowerCase() !== 'getmap') {
-    return new Response('only GetMap is supported', { status: 400 });
-  }
-  const layers = validLayerList(param(q, 'layers'));
-  const styles = param(q, 'styles') ? validLayerList(param(q, 'styles')) : layers;
-  const crs = (param(q, 'crs') || param(q, 'srs') || 'EPSG:3857').toUpperCase();
-  const bbox = validBbox(param(q, 'bbox'));
-  const width = validSize(param(q, 'width') || '256');
-  const height = validSize(param(q, 'height') || '256');
-  if (!layers || !styles || !bbox || !width || !height || !ALLOWED_CRS.has(crs)) {
-    return new Response('bad wms params', { status: 400 });
-  }
-  const version = param(q, 'version') === '1.1.1' ? '1.1.1' : '1.3.0';
-  const transparent = param(q, 'transparent').toLowerCase() === 'false' ? 'false' : 'true';
-
-  const domain = registeredDomain(env);
-  const upstream = new URL(UPSTREAM);
-  const set = (k: string, v: string) => upstream.searchParams.set(k, v);
-  set('service', 'WMS');
-  set('request', 'GetMap');
-  set('version', version);
-  set('layers', layers);
-  set('styles', styles);
-  set(version === '1.3.0' ? 'crs' : 'srs', crs);
-  set('bbox', bbox);
-  set('width', String(width));
-  set('height', String(height));
-  set('format', 'image/png');
-  set('transparent', transparent);
-  set('bgcolor', '0xFFFFFF');
-  set('exceptions', 'text/xml');
-
-  // VWorld occasionally stalls; fail fast so Leaflet can retry on the next pan.
-  let res: Response;
+  if (req.method !== 'GET') return methodNotAllowed('GET');
+  const operation = new Operation(req.signal, UPSTREAM_TIMEOUT_MS);
   try {
-    res = await fetchVworld(upstream, key, domain, UPSTREAM_TIMEOUT_MS);
-  } catch (e) {
-    return new Response(`vworld unreachable: ${e instanceof Error ? e.message : String(e)}`, {
-      status: 502,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
-  }
-  const contentType = res.headers.get('content-type') ?? '';
-  if (!res.ok || !contentType.startsWith('image/')) {
-    // VWorld reports key/domain problems as XML or HTML with status 200; surface them as 502.
-    const detail = (await res.text()).replace(/\s+/g, ' ').slice(0, 1500);
-    return new Response(`vworld ${res.status} ${contentType}: ${detail}`, {
-      status: 502,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
-  }
-  return new Response(res.body, {
-    headers: {
-      'Content-Type': contentType,
+    const q = queryParams(req, true);
+    if (q.get('request')?.toLowerCase() !== 'getmap' || q.has('format') && q.get('format')?.toLowerCase() !== 'image/png' || q.has('crs') && q.has('srs')) throw new ApiError('BAD_REQUEST', 400);
+    const layers = layerList(q.get('layers') ?? '');
+    const styles = q.get('styles') ? layerList(q.get('styles')!) : layers;
+    const crs = (q.get('crs') ?? q.get('srs') ?? 'EPSG:3857').toUpperCase();
+    const version = q.get('version') ?? '1.3.0';
+    if (!ALLOWED_CRS.has(crs) || !['1.1.1', '1.3.0'].includes(version)) throw new ApiError('BAD_REQUEST', 400);
+    const bbox = boundingBox(q.get('bbox') ?? '', crs, version);
+    const width = imageSize(q.get('width') ?? '256'), height = imageSize(q.get('height') ?? '256');
+    const { key, domain } = vworldEnv();
+    const upstream = new URL('https://api.vworld.kr/req/wms');
+    for (const [name, value] of Object.entries({
+      service: 'WMS', request: 'GetMap', version, layers, styles,
+      [version === '1.3.0' ? 'crs' : 'srs']: crs,
+      bbox, width: String(width), height: String(height), format: 'image/png',
+      transparent: q.get('transparent')?.toLowerCase() === 'false' ? 'false' : 'true',
+      bgcolor: '0xFFFFFF', exceptions: 'text/xml',
+    })) upstream.searchParams.set(name, value);
+    const res = await fetchVworld(upstream, key, domain, operation);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (!validPng(bytes, width, height)) throw new ApiError('UPSTREAM_INVALID');
+    return new Response(bytes, { headers: {
+      'Content-Type': 'image/png', 'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
-    },
-  });
+    } });
+  } catch (error) { return errorResponse(error); }
+  finally { operation.dispose(); }
 }

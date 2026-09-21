@@ -40,7 +40,7 @@ describe('parseDisasterRiskHits', () => {
 
   it('rejects an unexpected VWorld response status', () => {
     expect(() => parseDisasterRiskHits({ response: { status: 'ERROR' } })).toThrow(
-      'LT_C_UP201: status ERROR',
+      'UPSTREAM_UNAVAILABLE',
     );
   });
 

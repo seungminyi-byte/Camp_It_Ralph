@@ -3,7 +3,8 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 // Address -> coordinate through the VWorld Geocoder, for the search box in the site panel.
 // Offline 읍면동 search is handled in the bundle; this route only covers 도로명/지번 addresses.
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
+import { fetchVworld, jsonResponse, vworldEnv, vworldJson, vworldResponse, LOOKUP_VERSION, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
+import { ApiError, cleanString, isRecord, serviceCoordinate, errorResponse, methodNotAllowed, Operation, queryParams } from './_http.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/address';
 
@@ -18,6 +19,7 @@ async function lookup(
   type: 'ROAD' | 'PARCEL',
   key: string,
   domain: string,
+  operation: Operation,
 ): Promise<Hit | null> {
   const url = new URL(UPSTREAM);
   const set = (k: string, v: string) => url.searchParams.set(k, v);
@@ -31,39 +33,38 @@ async function lookup(
   set('type', type);
   set('address', address);
 
-  const body = await vworldJson(await fetchVworld(url, key, domain));
-  const response = body.response as
-    | {
-        status?: string;
-        result?: { point?: { x?: string | number; y?: string | number } };
-        refined?: { text?: string };
-      }
-    | undefined;
-  if (response?.status !== 'OK') return null;
-
-  // VWorld returns the point as strings; x is longitude and y is latitude.
-  const lng = Number(response.result?.point?.x);
-  const lat = Number(response.result?.point?.y);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return { lat, lng, label: response.refined?.text || address };
+  const body = await vworldJson(await fetchVworld(url, key, domain, operation));
+  const response = vworldResponse(body);
+  if (response.status === 'NOT_FOUND') return null;
+  if (!isRecord(response.result) || !isRecord(response.result.point)) throw new ApiError('UPSTREAM_INVALID');
+  const point = response.result.point;
+  const validNumber = (value: unknown): value is number | string =>
+    typeof value === 'number' || typeof value === 'string' && value.trim().length > 0 && value.length <= 30;
+  if (!validNumber(point.x) || !validNumber(point.y)) throw new ApiError('UPSTREAM_INVALID');
+  const lng = Number(point.x), lat = Number(point.y);
+  if (!serviceCoordinate(lat, lng)) throw new ApiError('UPSTREAM_INVALID');
+  let label = address;
+  if (response.refined !== undefined && response.refined !== null) {
+    if (!isRecord(response.refined)) throw new ApiError('UPSTREAM_INVALID');
+    const text = response.refined.text;
+    if (text !== undefined && text !== null) {
+      if (!cleanString(text, 500) || !text.trim()) throw new ApiError('UPSTREAM_INVALID');
+      label = text.trim();
+    }
+  }
+  return { lat, lng, label };
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'GET') return textResponse('method not allowed', 405);
-
-  const { key, domain } = vworldEnv();
-  if (!key) return textResponse('no VWORLD_API_KEY configured on server', 503);
-
-  const q = (new URL(req.url).searchParams.get('q') ?? '').trim();
-  if (!q || q.length > 200) return textResponse('bad query', 400);
-
-  let hit: Hit | null;
+  if (req.method !== 'GET') return methodNotAllowed('GET');
+  const operation = new Operation(req.signal, UPSTREAM_TIMEOUT_MS);
   try {
-    hit = (await lookup(q, 'ROAD', key, domain)) ?? (await lookup(q, 'PARCEL', key, domain));
-  } catch (e) {
-    return textResponse(`vworld geocode failed: ${e instanceof Error ? e.message : String(e)}`, 502);
-  }
-  if (!hit) return textResponse('address not found', 404);
-
-  return jsonResponse(hit, 'public, max-age=3600');
+    const q = (queryParams(req).get('q') ?? '').trim();
+    if (!q || q.length > 200) throw new ApiError('BAD_REQUEST', 400);
+    const { key, domain } = vworldEnv();
+    const hit = await lookup(q, 'ROAD', key, domain, operation) ?? await lookup(q, 'PARCEL', key, domain, operation);
+    if (!hit) throw new ApiError('NOT_FOUND', 404);
+    return jsonResponse({ ...hit, fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION }, 'public, max-age=3600');
+  } catch (error) { return errorResponse(error); }
+  finally { operation.dispose(); }
 }

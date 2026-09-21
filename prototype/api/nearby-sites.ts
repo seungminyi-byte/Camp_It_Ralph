@@ -1,7 +1,8 @@
 // Pinned to Seoul like the other VWorld routes: calls from overseas Vercel regions can fail.
 export const config = { runtime: 'edge', regions: ['icn1'] };
 
-import { fetchVworld, jsonResponse, textResponse, vworldEnv, vworldJson } from './_vworld.js';
+import { fetchVworld, jsonResponse, vworldEnv, vworldJson, vworldFeatures, vworldPageComplete, LOOKUP_VERSION, UPSTREAM_TIMEOUT_MS } from './_vworld.js';
+import { ApiError, coordinateQuery, errorResponse, methodNotAllowed, Operation, queryParams, isRecord } from './_http.js';
 
 const UPSTREAM = 'https://api.vworld.kr/req/data';
 const LAYER = 'LP_PA_CBND_BUBUN';
@@ -12,7 +13,7 @@ const TILE_HALF_WIDTH_KM = 1.5;
 const PAGE_SIZE = 1_000;
 const MAX_CANDIDATES = 3;
 
-type Position = [number, number];
+type Position = [number, number, number?];
 type PolygonCoordinates = Position[][];
 type MultiPolygonCoordinates = Position[][][];
 
@@ -39,24 +40,38 @@ interface ParsedCandidate {
 }
 
 function isPosition(value: unknown): value is Position {
-  return Array.isArray(value) && value.length >= 2 &&
-    typeof value[0] === 'number' && Number.isFinite(value[0]) &&
-    typeof value[1] === 'number' && Number.isFinite(value[1]);
+  return Array.isArray(value) && (value.length === 2 || value.length === 3) &&
+    value.every((ordinate) => typeof ordinate === 'number' && Number.isFinite(ordinate)) &&
+    typeof value[0] === 'number' && value[0] >= -180 && value[0] <= 180 &&
+    typeof value[1] === 'number' && value[1] >= -90 && value[1] <= 90;
 }
 
 function isRing(value: unknown): value is Position[] {
-  return Array.isArray(value) && value.length >= 4 && value.every(isPosition);
+  if (!Array.isArray(value) || value.length < 4 || !value.every(isPosition)) return false;
+  const first = value[0], last = value[value.length - 1];
+  if (first.length !== last.length || !first.every((ordinate, index) => ordinate === last[index])) return false;
+  if (new Set(value.slice(0, -1).map(([lng, lat]) => `${lng},${lat}`)).size < 3) return false;
+  // Use coordinates relative to the first point to reject zero-area rings without
+  // subtracting large longitude/latitude products. This does not repair topology.
+  let twiceArea = 0;
+  for (let index = 1; index < value.length - 1; index++) {
+    const current = value[index], next = value[index + 1];
+    twiceArea += (current[0] - first[0]) * (next[1] - first[1]) -
+      (next[0] - first[0]) * (current[1] - first[1]);
+  }
+  return Number.isFinite(twiceArea) && twiceArea !== 0;
+}
+
+function isPolygonCoordinates(value: unknown): value is PolygonCoordinates {
+  return Array.isArray(value) && value.length > 0 && value.every(isRing);
 }
 
 function polygonParts(geometry: GeoGeometry | undefined): PolygonCoordinates[] {
-  if (geometry?.type === 'Polygon' && Array.isArray(geometry.coordinates) &&
-      geometry.coordinates.every(isRing)) {
-    return [geometry.coordinates as PolygonCoordinates];
+  if (geometry?.type === 'Polygon' && isPolygonCoordinates(geometry.coordinates)) {
+    return [geometry.coordinates];
   }
   if (geometry?.type === 'MultiPolygon' && Array.isArray(geometry.coordinates) &&
-      geometry.coordinates.every(
-        (polygon) => Array.isArray(polygon) && polygon.every(isRing),
-      )) {
+      geometry.coordinates.length > 0 && geometry.coordinates.every(isPolygonCoordinates)) {
     return geometry.coordinates as MultiPolygonCoordinates;
   }
   return [];
@@ -125,20 +140,12 @@ function stringProp(properties: Record<string, unknown>, keys: string[]): string
   return null;
 }
 
-function parseFeatures(body: Record<string, unknown>): { features: RawFeature[]; total: number | null } {
-  const response = body.response as {
-    status?: unknown;
-    record?: { total?: unknown };
-    result?: { featureCollection?: { features?: unknown } };
-  } | undefined;
-  if (response?.status === 'NOT_FOUND') return { features: [], total: 0 };
-  if (response?.status !== 'OK') throw new Error(`${LAYER}: status ${String(response?.status)}`);
-  const features = response.result?.featureCollection?.features;
-  if (!Array.isArray(features)) throw new Error(`${LAYER}: malformed feature collection`);
-  return {
-    features: features.filter((feature): feature is RawFeature => !!feature && typeof feature === 'object'),
-    total: typeof response.record?.total === 'number' ? response.record.total : Number(response.record?.total) || null,
-  };
+function parseFeatures(body: Record<string, unknown>): { features: RawFeature[]; complete: boolean } {
+  const features = vworldFeatures(body);
+  for (const feature of features) {
+    if (!isRecord(feature.geometry) || polygonParts(feature.geometry).length === 0) throw new ApiError('UPSTREAM_INVALID');
+  }
+  return { features: features as RawFeature[], complete: vworldPageComplete(body, features.length, PAGE_SIZE) };
 }
 
 export function buildCandidates(
@@ -181,7 +188,7 @@ export function buildCandidates(
   }).slice(0, MAX_CANDIDATES);
 }
 
-async function queryParcelTile(lat: number, lng: number, key: string, domain: string) {
+async function queryParcelTile(lat: number, lng: number, key: string, domain: string, operation: Operation) {
   const latDelta = TILE_HALF_WIDTH_KM / 110.574;
   const lngDelta = TILE_HALF_WIDTH_KM / (111.32 * Math.cos((lat * Math.PI) / 180));
   const url = new URL(UPSTREAM);
@@ -198,7 +205,7 @@ async function queryParcelTile(lat: number, lng: number, key: string, domain: st
   set('crs', 'EPSG:4326');
   set('data', LAYER);
   set('geomFilter', `BOX(${lng - lngDelta},${lat - latDelta},${lng + lngDelta},${lat + latDelta})`);
-  return parseFeatures(await vworldJson(await fetchVworld(url, key, domain)));
+  return parseFeatures(await vworldJson(await fetchVworld(url, key, domain, operation)));
 }
 
 function ringCenters(lat: number, lng: number, distance: number): { lat: number; lng: number }[] {
@@ -213,19 +220,19 @@ function ringCenters(lat: number, lng: number, distance: number): { lat: number;
   });
 }
 
-async function stagedParcelSearch(lat: number, lng: number, key: string, domain: string) {
+async function stagedParcelSearch(lat: number, lng: number, key: string, domain: string, operation: Operation) {
   const stages = [[{ lat, lng }], ...[5, 10, 14].map((distance) => ringCenters(lat, lng, distance))];
   const features: RawFeature[] = [];
   let totalFeatures = 0;
   let truncated = false;
   let searchedTiles = 0;
   for (const centers of stages) {
-    const settled = await Promise.all(centers.map((center) => queryParcelTile(center.lat, center.lng, key, domain)));
+    const settled = await Promise.all(centers.map((center) => queryParcelTile(center.lat, center.lng, key, domain, operation)));
     searchedTiles += centers.length;
     for (const result of settled) {
       features.push(...result.features);
       totalFeatures += result.features.length;
-      truncated ||= result.total !== null && result.total > PAGE_SIZE;
+      truncated ||= !result.complete;
     }
     if (buildCandidates(features, lat, lng).length >= MAX_CANDIDATES) break;
   }
@@ -233,28 +240,21 @@ async function stagedParcelSearch(lat: number, lng: number, key: string, domain:
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  if (req.method !== 'GET') return textResponse('method not allowed', 405);
-  const { key, domain } = vworldEnv();
-  if (!key) return textResponse('no VWORLD_API_KEY configured on server', 503);
-  const query = new URL(req.url).searchParams;
-  const lat = Number(query.get('lat'));
-  const lng = Number(query.get('lng'));
-  if (!(lat >= 33 && lat <= 39.5 && lng >= 124 && lng <= 132)) return textResponse('lat/lng outside Korea', 400);
-  const roundedLat = Math.round(lat * 1e5) / 1e5;
-  const roundedLng = Math.round(lng * 1e5) / 1e5;
+  if (req.method !== 'GET') return methodNotAllowed('GET');
+  const operation = new Operation(req.signal, UPSTREAM_TIMEOUT_MS);
   try {
-    const result = await stagedParcelSearch(roundedLat, roundedLng, key, domain);
+    const coordinate = coordinateQuery(queryParams(req), 5);
+    const { key, domain } = vworldEnv();
+    const result = await stagedParcelSearch(coordinate.lat, coordinate.lng, key, domain, operation);
     return jsonResponse({
       basis: 'vworld-continuous-cadastral-map',
-      minimumAreaM2: MINIMUM_AREA_M2,
-      minimumAreaPyeong: MINIMUM_AREA_PYEONG,
+      minimumAreaM2: MINIMUM_AREA_M2, minimumAreaPyeong: MINIMUM_AREA_PYEONG,
       searchRadiusKm: SEARCH_RADIUS_KM,
-      candidates: buildCandidates(result.features, roundedLat, roundedLng),
-      truncated: result.truncated,
-      searchedTiles: result.searchedTiles,
+      candidates: buildCandidates(result.features, coordinate.lat, coordinate.lng),
+      truncated: result.truncated, searchedTiles: result.searchedTiles,
+      coordinate, fetchedAt: new Date().toISOString(), version: LOOKUP_VERSION,
       note: '15km 안에서 가까운 구역부터 단계적으로 탐색한 결과입니다. 연속지적도 도형 추정면적이며 권리·거래·접도·공식 대장면적 확인 전의 1차 후보입니다.',
     }, 'public, max-age=300, s-maxage=1800');
-  } catch {
-    return textResponse('vworld nearby-site lookup failed', 502);
-  }
+  } catch (error) { operation.abort(); return errorResponse(error); }
+  finally { operation.dispose(); }
 }
