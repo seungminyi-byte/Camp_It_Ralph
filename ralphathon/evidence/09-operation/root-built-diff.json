@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "old": "assets/ReviewApp-BHw_eluz.js",
+      "new": "assets/ReviewApp-CtUQnV01.js",
+      "only_label_or_asset_reference": true,
+      "old_sha256": "de89cc629fcb02275d1d40acb35beecca731f24b095110520a59333358b5f121",
+      "new_sha256": "73cb280481ea40bba1b7566325e51ba7422f59746a5edc5a2e879eb10fd58c84"
+    },
+    {
+      "old": "assets/index-DrCQO3hg.js",
+      "new": "assets/index-DZyXmLOf.js",
+      "only_label_or_asset_reference": true,
+      "old_sha256": "e2b2ee270cbd55cc241aab826ca9cc2f0ba1b86af77db75baab0574a92d2ccc4",
+      "new_sha256": "ef4d16d080c0074c9135d32957e87743e4556ef49be1743345e8ad6d1db73795"
+    },
+    {
+      "old": "index.html",
+      "new": "index.html",
+      "only_label_or_asset_reference": true,
+      "old_sha256": "dcb1bdbdaff342584d82c0d6028706668e897f48c579b1cfb44d3b1df54ccb8c",
+      "new_sha256": "7deb15928c1fe4918906e2dc926ceb3ac8944ba18593daa6c6f8692a6733b82f"
+    }
+  ],
+  "unchanged_count": 31,
+  "all_other_assets_exact": true,
+  "passed": true,
+  "scope": "08 assets versus 09 source-label change; earlier53-page PDFs remain earlier-build evidence"
+}

@@ -1,0 +1,316 @@
+{
+  "at": "2026-09-21T13:27:19.215331+00:00",
+  "deploymentSha": "bb1828450564813d9d91d23142409fa480529106",
+  "base": "https://grand-site-dc.vercel.app",
+  "localBuildHead": "135dd1363b4ddb42baacf833907ec6079f0fd4ce",
+  "files": [
+    {
+      "path": "/404.html",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 359,
+      "localSha256": "7a2eacf19acfa879614c612b9c621c46270d6285e764e745fd1fa427ad9e683d",
+      "publicSha256": "7a2eacf19acfa879614c612b9c621c46270d6285e764e745fd1fa427ad9e683d",
+      "sameBytes": true
+    },
+    {
+      "path": "/assets/ReviewApp-CdEnWCwE.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "bytes": 29356,
+      "localSha256": "dcb5d024d50d2ea70ec62f88fb198ecd555858daf1f8f01da006a6dfa856ec62",
+      "publicSha256": "dcb5d024d50d2ea70ec62f88fb198ecd555858daf1f8f01da006a6dfa856ec62",
+      "sameBytes": true
+    },
+    {
+      "path": "/assets/ReviewApp-CtUQnV01.js",
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "bytes": 337632,
+      "localSha256": "73cb280481ea40bba1b7566325e51ba7422f59746a5edc5a2e879eb10fd58c84",
+      "publicSha256": "73cb280481ea40bba1b7566325e51ba7422f59746a5edc5a2e879eb10fd58c84",
+      "sameBytes": true
+    },
+    {
+      "path": "/assets/index-B5qVm_Aq.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "bytes": 76459,
+      "localSha256": "32866e27fa441934de6f552662f4891bffa34d27082d438228cb14b4a08894b7",
+      "publicSha256": "32866e27fa441934de6f552662f4891bffa34d27082d438228cb14b4a08894b7",
+      "sameBytes": true
+    },
+    {
+      "path": "/assets/index-DZyXmLOf.js",
+      "status": 200,
+      "contentType": "application/javascript; charset=utf-8",
+      "bytes": 225160,
+      "localSha256": "ef4d16d080c0074c9135d32957e87743e4556ef49be1743345e8ad6d1db73795",
+      "publicSha256": "ef4d16d080c0074c9135d32957e87743e4556ef49be1743345e8ad6d1db73795",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/cases.csv",
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8",
+      "bytes": 4187,
+      "localSha256": "817d69553864251893d6e0a774eeb96465b20a5366da9a079e66548b1181eb38",
+      "publicSha256": "817d69553864251893d6e0a774eeb96465b20a5366da9a079e66548b1181eb38",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/constants.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 28702,
+      "localSha256": "6c776bcb97a6aae231e542deb48c69b6698a8b820625e32054a3fbb4aef25f04",
+      "publicSha256": "6c776bcb97a6aae231e542deb48c69b6698a8b820625e32054a3fbb4aef25f04",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/data_centers.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 23730,
+      "localSha256": "9aa791f17827b5e508963c510233cfe8e04b86213941353c19beb6955bc68100",
+      "publicSha256": "9aa791f17827b5e508963c510233cfe8e04b86213941353c19beb6955bc68100",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/dc_stats.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 674,
+      "localSha256": "7b5646848b6de5bddac7559483c89544b3e8172e4f6c6c392fad55b06720dc1f",
+      "publicSha256": "7b5646848b6de5bddac7559483c89544b3e8172e4f6c6c392fad55b06720dc1f",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/emd_centroids.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 734753,
+      "localSha256": "a565213a5e7be99c16c735dbac1f50eb4734a77a3172e499cfa9a60c19fb75c4",
+      "publicSha256": "a565213a5e7be99c16c735dbac1f50eb4734a77a3172e499cfa9a60c19fb75c4",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/emd_power.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 428999,
+      "localSha256": "812d042f3d9606a0006c31412052aabc938b53f72fb6d6202081c938c6c6fcb9",
+      "publicSha256": "812d042f3d9606a0006c31412052aabc938b53f72fb6d6202081c938c6c6fcb9",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/households_grid.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 2616534,
+      "localSha256": "c8a0b0e41b3c12bd897d16a7ce7e9452ea7872f05fa030e68c1b7121fbb1f133",
+      "publicSha256": "c8a0b0e41b3c12bd897d16a7ce7e9452ea7872f05fa030e68c1b7121fbb1f133",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/news_signal.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 12953,
+      "localSha256": "4282a24b54db09520c50cd6a8287a3c63a80cb1ef86c616e400474c1f24bef86",
+      "publicSha256": "4282a24b54db09520c50cd6a8287a3c63a80cb1ef86c616e400474c1f24bef86",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/permit_delay.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 15252,
+      "localSha256": "8543e403a4f793237668824fa5a0233cff1c227791fe229520616be235e75f0b",
+      "publicSha256": "8543e403a4f793237668824fa5a0233cff1c227791fe229520616be235e75f0b",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/pop_grid.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 1968787,
+      "localSha256": "352a8101e8db0cbe65ddce5bfbd7c371a9c615797fddd05ce5b42502807dc04d",
+      "publicSha256": "352a8101e8db0cbe65ddce5bfbd7c371a9c615797fddd05ce5b42502807dc04d",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/protected_zones.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 3259933,
+      "localSha256": "e470bc843977a0d781278d2f935ea7644590ef1d2fab974d142737cb6d476f29",
+      "publicSha256": "e470bc843977a0d781278d2f935ea7644590ef1d2fab974d142737cb6d476f29",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/regulations.csv",
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8",
+      "bytes": 1379,
+      "localSha256": "56d64fffabf36af8c752df07086f73e18f593bb1c28fadb286ccfe6898f9ff65",
+      "publicSha256": "56d64fffabf36af8c752df07086f73e18f593bb1c28fadb286ccfe6898f9ff65",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/scenarios.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 1378,
+      "localSha256": "ef2bca263b0f8011f14df8eed5af0d4c29bb70cc180c187d44c3416b2def5c07",
+      "publicSha256": "ef2bca263b0f8011f14df8eed5af0d4c29bb70cc180c187d44c3416b2def5c07",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/schools.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 742263,
+      "localSha256": "f3b8438ad307deda7522be2e08611d6302d228bb44f327a5e1c7b26005d119f8",
+      "publicSha256": "f3b8438ad307deda7522be2e08611d6302d228bb44f327a5e1c7b26005d119f8",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/substations_osm.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 119768,
+      "localSha256": "a7035ef9cbe8dca68071a6bd2e2ddac4c38fea2e215057f134ceca5c3bb3cf00",
+      "publicSha256": "a7035ef9cbe8dca68071a6bd2e2ddac4c38fea2e215057f134ceca5c3bb3cf00",
+      "sameBytes": true
+    },
+    {
+      "path": "/data/terrain_grid.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 1277706,
+      "localSha256": "9b45ffb32ef9377f738bea5ea624bdb6b7674830755165a82ccc7b9a4efc5a9f",
+      "publicSha256": "9b45ffb32ef9377f738bea5ea624bdb6b7674830755165a82ccc7b9a4efc5a9f",
+      "sameBytes": true
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "bytes": 9522,
+      "localSha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "publicSha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "sameBytes": true
+    },
+    {
+      "path": "/icons.svg",
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "bytes": 5031,
+      "localSha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "publicSha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/product/review-example-mobile.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 31612,
+      "localSha256": "ada7363da9290acf36de5e8111a588f648a3814bb20e7bc9085803c8b91d36f3",
+      "publicSha256": "ada7363da9290acf36de5e8111a588f648a3814bb20e7bc9085803c8b91d36f3",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/product/review-example.provenance.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 9228,
+      "localSha256": "b5bef90021e414478a7141f88adf3f30398c0c12d7632a0077a9417e1f642a4c",
+      "publicSha256": "b5bef90021e414478a7141f88adf3f30398c0c12d7632a0077a9417e1f642a4c",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/product/review-example.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 31142,
+      "localSha256": "558d6f2fa8eb6e6610dae62ecdb0c2290081ae7637d50127693eb05ec1fa5c66",
+      "publicSha256": "558d6f2fa8eb6e6610dae62ecdb0c2290081ae7637d50127693eb05ec1fa5c66",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-back-portrait-480.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 52320,
+      "localSha256": "8c9fe2b582d3f79d17a656b77e50b6f1ba384cd98a2e21d4b47dc4c2b15f11dd",
+      "publicSha256": "8c9fe2b582d3f79d17a656b77e50b6f1ba384cd98a2e21d4b47dc4c2b15f11dd",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-back-portrait-800.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 116158,
+      "localSha256": "fc112da0c75fb604b9fa8a8f47ed5e396cae0fce05e551487c08a07cbd8ae056",
+      "publicSha256": "fc112da0c75fb604b9fa8a8f47ed5e396cae0fce05e551487c08a07cbd8ae056",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-back-wide-1440.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 184426,
+      "localSha256": "0b0abc59ff262f1c38f15df2814b1dab7eeecd59135886b96b6d23d34dafb74d",
+      "publicSha256": "0b0abc59ff262f1c38f15df2814b1dab7eeecd59135886b96b6d23d34dafb74d",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-back-wide-800.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 81324,
+      "localSha256": "260d082bf8eafdbeae380e198ade25f6ecd12deecdad5941a3ec22a52e8a5efe",
+      "publicSha256": "260d082bf8eafdbeae380e198ade25f6ecd12deecdad5941a3ec22a52e8a5efe",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-front-1200.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 222078,
+      "localSha256": "760e5cba62c769a6206e2948fb51b0f556eb11609668c7c0cf2c540839f11348",
+      "publicSha256": "760e5cba62c769a6206e2948fb51b0f556eb11609668c7c0cf2c540839f11348",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-front-480.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 54716,
+      "localSha256": "27f5da223f1777a9d057fa9f7ec45b57fbe93b5d74312c1bb22f9ccce11f167f",
+      "publicSha256": "27f5da223f1777a9d057fa9f7ec45b57fbe93b5d74312c1bb22f9ccce11f167f",
+      "sameBytes": true
+    },
+    {
+      "path": "/images/team/team-front-800.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "bytes": 120294,
+      "localSha256": "039f5cb20c9f11740d64e4da3ec13a9d1791674cba54a02de7dd898a5c853641",
+      "publicSha256": "039f5cb20c9f11740d64e4da3ec13a9d1791674cba54a02de7dd898a5c853641",
+      "sameBytes": true
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 517,
+      "localSha256": "7deb15928c1fe4918906e2dc926ceb3ac8944ba18593daa6c6f8692a6733b82f",
+      "publicSha256": "7deb15928c1fe4918906e2dc926ceb3ac8944ba18593daa6c6f8692a6733b82f",
+      "sameBytes": true
+    }
+  ],
+  "count": 34,
+  "pass": true
+}

@@ -1,0 +1,1 @@
+{"hits":[],"queried":["LT_C_UD801","LT_C_UM710","LT_C_UO301","LT_C_AGRIXUE101","LT_C_UQ162","LT_C_UO301@500"],"failed":[],"complete":true,"coordinate":{"lat":36.4967,"lng":127.3007},"bufferM":500,"fetchedAt":"2026-09-21T13:18:29.921Z","version":"vworld-v2-20260921"}

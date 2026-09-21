@@ -1,0 +1,57 @@
+{
+  "liveApiTestDeployment": "da8f9f7235c6d01aa008c406e2bc44d6c254b40a",
+  "finalDeployment": "bb1828450564813d9d91d23142409fa480529106",
+  "files": [
+    {
+      "path": "prototype/api/_generation.ts",
+      "same": true,
+      "sha256": "7c64c0e39f66a1d7ea69548e5dd4c1cc28cacb25cc14ff6d7c7b173bb5a2d544"
+    },
+    {
+      "path": "prototype/api/_http.ts",
+      "same": true,
+      "sha256": "ec1c515adef7a56cf67dfa1363e8a930db05ca182854035890e02ae1987ba5a2"
+    },
+    {
+      "path": "prototype/api/_vworld.ts",
+      "same": true,
+      "sha256": "3c851fc9383b798ef0ddd0297cdc0ee4611871d362151f2887664780707e6f57"
+    },
+    {
+      "path": "prototype/api/disaster.ts",
+      "same": true,
+      "sha256": "fc3a29ba03b36496f7ae30bc131bf009ab6443461e76e1b6b5effb5409a33d78"
+    },
+    {
+      "path": "prototype/api/generate.ts",
+      "same": true,
+      "sha256": "e7463a743bd9ed85f497429372a9f7a369cc60c1159660da421c59678b963748"
+    },
+    {
+      "path": "prototype/api/geocode.ts",
+      "same": true,
+      "sha256": "67c102fc365de716ee2559ae0535d29e20c4c513439fbef66bcc349912bdae4a"
+    },
+    {
+      "path": "prototype/api/nearby-sites.ts",
+      "same": true,
+      "sha256": "5c088d56fcdd533f4a15df477fe08933b45b1caab43ff80ad7c61bef73695fc0"
+    },
+    {
+      "path": "prototype/api/restrictions.ts",
+      "same": true,
+      "sha256": "c7a090b78157b55a74ae02eff3a98e286c2d0a572a0365eba644af92c86b1762"
+    },
+    {
+      "path": "prototype/api/wms.ts",
+      "same": true,
+      "sha256": "b8bd09127dcd2ad8c3ec424126a3c2f53d6a3ed59c79feea5a43094d13a547fc"
+    },
+    {
+      "path": "prototype/api/zoning.ts",
+      "same": true,
+      "sha256": "819bc95891fd0546ebc932a79ba114200548dcaad35ea7441707594b14b91b9b"
+    }
+  ],
+  "allApiSourcesSame": true
+}

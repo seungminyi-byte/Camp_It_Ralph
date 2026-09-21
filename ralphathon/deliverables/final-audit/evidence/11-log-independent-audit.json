@@ -1,0 +1,21 @@
+{
+  "status": "pass",
+  "cutoff_at": "2026-09-21T23:12:32.027597+09:00",
+  "sessions": 15,
+  "rows_compared": 15136,
+  "schema_counts": {
+    "typed_hidden_or_reasoning_objects": 3693,
+    "unmasked_configuration_or_domain_summary": 48,
+    "nested_json_strings": 3363,
+    "unmasked_configuration_or_domain_reasoning_summary": 24,
+    "compacted_records": 22,
+    "context_compaction_marker": 18,
+    "unmasked_configuration_or_domain_instructions": 4
+  },
+  "issues": [],
+  "issue_count": 0,
+  "zip_entries_hash_equal": true,
+  "root_final_reply_included": false,
+  "configuration_boundary": "turn_context.summary=detailed and thread_settings.reasoning_summary are configuration, not hidden reasoning text. Other summary keys are domain/test/tool data. ContextCompaction has id/type only; compacted summaries, guardian_history and verified_answers are masked.",
+  "source_manifest_sha256": "fedf03dd1b33e8ef1d117015da785ce9a15d4f558b73e6afec3ecfd0429fa1fa"
+}

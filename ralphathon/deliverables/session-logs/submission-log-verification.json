@@ -1,0 +1,30 @@
+{
+  "status": "pass",
+  "cutoff_at": "2026-09-21T23:12:32.027597+09:00",
+  "archive": "session-logs/20260921-root-final.zip",
+  "archive_bytes": 13781589,
+  "archive_sha256": "229739b2294525f66977b40179dc10b655b0021c435758692a659552b299c39e",
+  "entries": 19,
+  "jsonl_rows": 15136,
+  "zip_crc": "pass",
+  "zip_hashes": "all_members_match",
+  "zip_jsonl_parse_errors": 0,
+  "selected_rescan_findings": 0,
+  "source_copy_row_mapping": "all_rows_preserved",
+  "manifest_sha256": "fedf03dd1b33e8ef1d117015da785ce9a15d4f558b73e6afec3ecfd0429fa1fa",
+  "selfcheck": {
+    "status": "pass",
+    "checks": [
+      "user_goal_preserved",
+      "nested_json_reasoning_masked",
+      "identifier_preserved",
+      "secret_masked",
+      "signed_query_masked",
+      "media_masked",
+      "system_developer_masked",
+      "rescan_zero",
+      "overlapping_authorization_original_hash",
+      "overlapping_query_original_hash"
+    ]
+  }
+}

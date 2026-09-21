@@ -1,0 +1,50 @@
+{
+  "purpose": "공개·합성 입력을 사용한 최종 제품 검수 예시. 실제 특정 부지 적합 판정 아님.",
+  "files": [
+    {
+      "file": "empty.pdf",
+      "pages": 6,
+      "bytes": 358991,
+      "sha256": "aaec924ff95a9b1c46c50dce097364a7a124c3ac81108da08f169914ba82e66f",
+      "snapshotId": "R-20260921122403-1",
+      "pins": 0,
+      "aiAppendix": false
+    },
+    {
+      "file": "numeric.pdf",
+      "pages": 9,
+      "bytes": 448088,
+      "sha256": "4aa6e42279099c4df44c242c98dcb80d82aa5b2c464bf5046ecb6dca9eb77757",
+      "snapshotId": "R-20260921122404-1",
+      "pins": 2,
+      "aiAppendix": false
+    },
+    {
+      "file": "zero.pdf",
+      "pages": 7,
+      "bytes": 424905,
+      "sha256": "8f2953a7ba1285f16ab86772ad6af83ae58985e437d823c31e4fbd85ebd4d8c9",
+      "snapshotId": "R-20260921122405-1",
+      "pins": 1,
+      "aiAppendix": false
+    },
+    {
+      "file": "long-partial.pdf",
+      "pages": 25,
+      "bytes": 616615,
+      "sha256": "fec33459feefbd49490844a40e81b432dcd7f6603a926573f735db8044b22731",
+      "snapshotId": "R-20260921122407-1",
+      "pins": 4,
+      "aiAppendix": false
+    },
+    {
+      "file": "ai.pdf",
+      "pages": 6,
+      "bytes": 362882,
+      "sha256": "e102d04587a02687315219708c4027d5f50efb5915b1b46c98338e0b78f9f9c4",
+      "snapshotId": "R-20260921122408-2",
+      "pins": 0,
+      "aiAppendix": true
+    }
+  ]
+}

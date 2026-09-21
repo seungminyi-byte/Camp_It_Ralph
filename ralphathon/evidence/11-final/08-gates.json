@@ -1,0 +1,168 @@
+{
+  "baseHead": "9db8ccf4928a865fb55331897bcfccda4b473183",
+  "commands": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:02.460670+09:00",
+      "finishedAt": "2026-09-21T21:37:05.717211+09:00",
+      "seconds": 3.257,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-typecheck-final.log",
+      "sha256": "86ed5ba986530b8c8e6ba6afe0c2b3fbdb443ba68f6c57081abaefc085ccc21c",
+      "bytes": 151
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:05.737040+09:00",
+      "finishedAt": "2026-09-21T21:37:05.865951+09:00",
+      "seconds": 0.129,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-lint-final.log",
+      "sha256": "cfea5769801fd711e8e1e29d34e4d642a8314b0c9da79ca3406f8a97f0d96203",
+      "bytes": 58
+    },
+    {
+      "name": "vitest",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:05.885202+09:00",
+      "finishedAt": "2026-09-21T21:37:08.976583+09:00",
+      "seconds": 3.091,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-vitest-final.log",
+      "sha256": "d4979dcc597d7ec6dddfd2c114b67074eb24ffde116435e39c6fbff8a9658db3",
+      "bytes": 348
+    },
+    {
+      "name": "data-validation",
+      "command": [
+        "/Users/yiseungmin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "data-pack/scripts/validate_out.py"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph",
+      "startedAt": "2026-09-21T21:37:08.997084+09:00",
+      "finishedAt": "2026-09-21T21:37:09.143528+09:00",
+      "seconds": 0.146,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-data-validation-final.log",
+      "sha256": "e3c0e8f157c01994c1613fe22ae6fabd99f807f53a33cf39072debef48054e4a",
+      "bytes": 5519
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:09.162997+09:00",
+      "finishedAt": "2026-09-21T21:37:10.835286+09:00",
+      "seconds": 1.672,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-build-final.log",
+      "sha256": "8cbad044323506e1ba878f53d5388ce3f2ff958ef6891488572ea11bff642826",
+      "bytes": 569
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph",
+      "startedAt": "2026-09-21T21:37:10.854360+09:00",
+      "finishedAt": "2026-09-21T21:37:10.867509+09:00",
+      "seconds": 0.013,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-diff-check-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "security-scan",
+      "command": [
+        "node",
+        "e2e/security-scan.mjs"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:10.887021+09:00",
+      "finishedAt": "2026-09-21T21:37:10.948331+09:00",
+      "seconds": 0.061,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-security-scan-final.log",
+      "sha256": "5e39dc1c31e51e8255b7336dd836027fd3461553364ca306bf50be61ddd69572",
+      "bytes": 419
+    },
+    {
+      "name": "e2e",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/Camp_It_Ralph/prototype",
+      "startedAt": "2026-09-21T21:37:10.967382+09:00",
+      "finishedAt": "2026-09-21T21:38:29.109094+09:00",
+      "seconds": 78.141,
+      "exitCode": 0,
+      "log": "/Users/yiseungmin/Documents/Codex/2026-09-21/camp-it-ralph-goal/work/evidence/08-e2e-final.log",
+      "sha256": "ea3579dfa17ad80fc317d0a48d3e210759204dec7263f96bbdafc92ac869cf53",
+      "bytes": 2148
+    }
+  ],
+  "buildSameAsPrintedProduct": true,
+  "productionFileHashes": {
+    "index.html": "dcb1bdbdaff342584d82c0d6028706668e897f48c579b1cfb44d3b1df54ccb8c",
+    "404.html": "7a2eacf19acfa879614c612b9c621c46270d6285e764e745fd1fa427ad9e683d",
+    "icons.svg": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+    "favicon.svg": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+    "data/constants.json": "6c776bcb97a6aae231e542deb48c69b6698a8b820625e32054a3fbb4aef25f04",
+    "data/pop_grid.json": "352a8101e8db0cbe65ddce5bfbd7c371a9c615797fddd05ce5b42502807dc04d",
+    "data/data_centers.json": "9aa791f17827b5e508963c510233cfe8e04b86213941353c19beb6955bc68100",
+    "data/emd_power.json": "812d042f3d9606a0006c31412052aabc938b53f72fb6d6202081c938c6c6fcb9",
+    "data/terrain_grid.json": "9b45ffb32ef9377f738bea5ea624bdb6b7674830755165a82ccc7b9a4efc5a9f",
+    "data/substations_osm.json": "a7035ef9cbe8dca68071a6bd2e2ddac4c38fea2e215057f134ceca5c3bb3cf00",
+    "data/households_grid.json": "c8a0b0e41b3c12bd897d16a7ce7e9452ea7872f05fa030e68c1b7121fbb1f133",
+    "data/cases.csv": "817d69553864251893d6e0a774eeb96465b20a5366da9a079e66548b1181eb38",
+    "data/permit_delay.json": "8543e403a4f793237668824fa5a0233cff1c227791fe229520616be235e75f0b",
+    "data/schools.json": "f3b8438ad307deda7522be2e08611d6302d228bb44f327a5e1c7b26005d119f8",
+    "data/dc_stats.json": "7b5646848b6de5bddac7559483c89544b3e8172e4f6c6c392fad55b06720dc1f",
+    "data/emd_centroids.json": "a565213a5e7be99c16c735dbac1f50eb4734a77a3172e499cfa9a60c19fb75c4",
+    "data/news_signal.json": "4282a24b54db09520c50cd6a8287a3c63a80cb1ef86c616e400474c1f24bef86",
+    "data/regulations.csv": "56d64fffabf36af8c752df07086f73e18f593bb1c28fadb286ccfe6898f9ff65",
+    "data/scenarios.json": "ef2bca263b0f8011f14df8eed5af0d4c29bb70cc180c187d44c3416b2def5c07",
+    "data/protected_zones.json": "e470bc843977a0d781278d2f935ea7644590ef1d2fab974d142737cb6d476f29",
+    "assets/ReviewApp-CdEnWCwE.css": "dcb5d024d50d2ea70ec62f88fb198ecd555858daf1f8f01da006a6dfa856ec62",
+    "assets/ReviewApp-BHw_eluz.js": "de89cc629fcb02275d1d40acb35beecca731f24b095110520a59333358b5f121",
+    "assets/index-DrCQO3hg.js": "e2b2ee270cbd55cc241aab826ca9cc2f0ba1b86af77db75baab0574a92d2ccc4",
+    "assets/index-B5qVm_Aq.css": "32866e27fa441934de6f552662f4891bffa34d27082d438228cb14b4a08894b7",
+    "images/product/review-example.webp": "558d6f2fa8eb6e6610dae62ecdb0c2290081ae7637d50127693eb05ec1fa5c66",
+    "images/product/review-example-mobile.webp": "ada7363da9290acf36de5e8111a588f648a3814bb20e7bc9085803c8b91d36f3",
+    "images/product/review-example.provenance.json": "b5bef90021e414478a7141f88adf3f30398c0c12d7632a0077a9417e1f642a4c",
+    "images/team/team-back-portrait-800.webp": "fc112da0c75fb604b9fa8a8f47ed5e396cae0fce05e551487c08a07cbd8ae056",
+    "images/team/team-front-1200.webp": "760e5cba62c769a6206e2948fb51b0f556eb11609668c7c0cf2c540839f11348",
+    "images/team/team-front-480.webp": "27f5da223f1777a9d057fa9f7ec45b57fbe93b5d74312c1bb22f9ccce11f167f",
+    "images/team/team-back-wide-800.webp": "260d082bf8eafdbeae380e198ade25f6ecd12deecdad5941a3ec22a52e8a5efe",
+    "images/team/team-back-wide-1440.webp": "0b0abc59ff262f1c38f15df2814b1dab7eeecd59135886b96b6d23d34dafb74d",
+    "images/team/team-front-800.webp": "039f5cb20c9f11740d64e4da3ec13a9d1791674cba54a02de7dd898a5c853641",
+    "images/team/team-back-portrait-480.webp": "8c9fe2b582d3f79d17a656b77e50b6f1ba384cd98a2e21d4b47dc4c2b15f11dd"
+  },
+  "pass": true
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "scenario": "goyang-deogi",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": false,
+    "characters": 11505,
+    "requestBytes": 18755,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "goyang-deogi",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": true,
+    "characters": 13423,
+    "requestBytes": 21923,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "goyang-deogi",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": false,
+    "characters": 17544,
+    "requestBytes": 36760,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "goyang-deogi",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": true,
+    "characters": 19462,
+    "requestBytes": 39928,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "incheon-residential",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": false,
+    "characters": 11308,
+    "requestBytes": 18469,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "incheon-residential",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": true,
+    "characters": 13227,
+    "requestBytes": 21638,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "incheon-residential",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": false,
+    "characters": 17347,
+    "requestBytes": 36474,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "incheon-residential",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": true,
+    "characters": 19266,
+    "requestBytes": 39643,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "sejong-contrast",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": false,
+    "characters": 11184,
+    "requestBytes": 18249,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "sejong-contrast",
+    "maximumNotes": false,
+    "mixedHeritagePartialStale": true,
+    "characters": 13102,
+    "requestBytes": 21417,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "sejong-contrast",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": false,
+    "characters": 17223,
+    "requestBytes": 36254,
+    "issue": null,
+    "notesIntact": true
+  },
+  {
+    "scenario": "sejong-contrast",
+    "maximumNotes": true,
+    "mixedHeritagePartialStale": true,
+    "characters": 19141,
+    "requestBytes": 39422,
+    "issue": null,
+    "notesIntact": true
+  }
+]

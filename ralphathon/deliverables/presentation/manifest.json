@@ -1,0 +1,30 @@
+{
+  "created_at_kst": "2026-09-21T22:49:14.256360+09:00",
+  "product_deployment": "bb1828450564813d9d91d23142409fa480529106",
+  "slides": 5,
+  "pdf_pages": 5,
+  "human_reading_measured": false,
+  "files": [
+    {
+      "path": "여기_DC_돼요_5분발표_20260921.pptx",
+      "bytes": 1282523,
+      "sha256": "e072cbcd2a7bb49795e61d9f0e2b3034dd2f273a9b8ba2ded20aeb3109d83c59"
+    },
+    {
+      "path": "여기_DC_돼요_5분발표_20260921.pdf",
+      "bytes": 1428564,
+      "sha256": "363ced907705384d62beea8aad280fe35fd5007b488a3eaf3662826197bfca56"
+    },
+    {
+      "path": "여기_DC_돼요_5분발표_대본_20260921.md",
+      "bytes": 9589,
+      "sha256": "8eb5930ee378ca0cc5324fe49821948290ae5ee2b02e604f331ad60196550e79"
+    },
+    {
+      "path": "발표자료_검수결과.md",
+      "bytes": 2245,
+      "sha256": "6643b4597f1e94b87113fb622b98c1d4cecea3b2fcee0746ee1a780716bfd721"
+    }
+  ],
+  "final_verification_sha256": "852a5ead232e47cf5ceff26df505a96528bf803c5d9226bbe57a689483f37478"
+}

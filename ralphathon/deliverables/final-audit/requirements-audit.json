@@ -1,0 +1,1299 @@
+{
+  "at": "2026-09-21T23:07:45.446451+09:00",
+  "head": "16fd9d3165f6023b2f707595c319062cf3c80638",
+  "product_deployment_sha": "bb1828450564813d9d91d23142409fa480529106",
+  "goal_status_claim": "active; root final review and remote documentation still pending",
+  "recommendation_counts": {
+    "verified": 55,
+    "partial": 3,
+    "pending": 2
+  },
+  "rows": [
+    {
+      "id": "R01",
+      "requirement": "GS건설 데이터센터 개발·사업검토 실무자, 분산된 정보의 후보 비교/보고 문제",
+      "previous": "verified: 조사01/G002·07 웹과10 5쪽 발표의 동일 문제정의/대상/가정 직접대조",
+      "recommendation": "verified",
+      "observation": "웹·발표의 대상과 분산자료 정리 문제는 같다. 현장 절감량은 가설·후속측정으로 남겼다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R02",
+      "requirement": "기존 prototype 엔진·데이터·유효 기능 계승, 사용자/팀원 변경 보존",
+      "previous": "verified: 기준66e310b/기존엔진·자료 재사용표·회귀563·PR7/8/9 merge와원격보존;PR6유지",
+      "recommendation": "verified",
+      "observation": "기준66e310b에서 계승한 엔진/자료와 변경표, 회귀·PR 이력을 대조했다. 최종제품 대비 현 HEAD의 prototype/워크플로 차이는 없다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        },
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        }
+      ]
+    },
+    {
+      "id": "R03",
+      "requirement": "메인: 문제·대상·대표 결과 화면·부지 검토 시작",
+      "previous": "verified: 07 실제 제품 캡처·합성 조건/한계·대상·문제·CTA와 root IAB 메인 CTA 앱 진입",
+      "recommendation": "verified",
+      "observation": "메인의 문제·사용자·실제 제품 합성 예시·CTA 진입 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R04",
+      "requirement": "프로젝트 소개: 배경·불편·절차·기능·데이터 출처·활용 범위",
+      "previous": "verified: 07 프로젝트 전체 내용·공식 배경 링크·자료별 기준/한계·3폭 출처 표와 fragment 검수",
+      "recommendation": "verified",
+      "observation": "프로젝트 페이지에 배경·3단계 흐름·기능·출처별 기준과 한계가 있으며07/08 검수로 연결된다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R05",
+      "requirement": "팀 소개: 캠핑왕 랄프·GS건설 국내법무팀 변호사·지정 제목/이야기",
+      "previous": "verified: 07 정확한 제목·팀명·제공 이야기·3폭 정면/뒷모습 검수, 추측 경력 없음",
+      "recommendation": "verified",
+      "observation": "지정 제목·팀명·제공 이야기가 화면에 반영됐고 새로운 개인 경력·사건 주장을 넣지 않았다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R06",
+      "requirement": "진행 중 법무시스템 개발, 소송/의견서 플러그인·스킬 경험",
+      "previous": "verified: 07 팀소개와10 발표/대본에서 법무시스템 개발 중·법률플러그인/스킬 제작 활용 구분",
+      "recommendation": "verified",
+      "observation": "진행 중 법무시스템과 이미 제작·활용하는 법률플러그인/스킬을 웹·발표가 구분한다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R07",
+      "requirement": "팀 원본 3장 보존, 선별 활용·반응형 크롭·용량·alt",
+      "previous": "verified: 원본3 SHA 불변/비율·방향·파생7 WebP·EXIF0·srcset/alt·3폭 전신/얼굴 검수",
+      "recommendation": "verified",
+      "observation": "원본3장과 파생7개를 현재 바이트로 재대조했다. EXIF제거·alt·3폭 검수 기록을 계승한다.",
+      "evidence": [
+        {
+          "file": "evidence/07-photo-assets.json",
+          "sha256": "3ed08afd850ef90522791e28b38ae248b4e34641e156824c4245f094c756f7ed"
+        },
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R08",
+      "requirement": "Paces 메인·Felt 지도 우선, GS 오렌지",
+      "previous": "verified: 01/02/G003/G011과07 Paces/Felt 우선·GS 오렌지 계열·보조3개 실제 적용표",
+      "recommendation": "verified",
+      "observation": "01/02/07의 Paces 정보흐름·Felt 지도/패널·GS 오렌지 적용과 대안 결정이 연결된다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R09",
+      "requirement": "getdesign.md 보조 후보 정확히 3개 검토·토의",
+      "previous": "verified: 조사01·설계02·G002/G003의 Airtable/IBM/Linear 3후보 비교/반론/채택",
+      "recommendation": "verified",
+      "observation": "조사01은 Airtable·IBM·Linear 정확히3개를 비교하고02/G003에서 반론·선택을 기록했다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "requirement": "공개 유사 서비스·GitHub 구조/흐름 비교, 필요한 부분 적용",
+      "previous": "verified: 조사01 공식3프로젝트/라이선스·docs/ARCHITECTURE_REUSE 적용/독립구현표",
+      "recommendation": "verified",
+      "observation": "Kepler.gl·TerriaJS·uMap의 구조와 라이선스를 공식 원문으로 비교한 조사 및 독립 구현표를 확인했다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "requirement": "기존 빌드/배포 유지하며 책임별 디렉터리 정리",
+      "previous": "verified: 05책임분리·09구조문서/새clone빌드·기존워크플로production Ready",
+      "recommendation": "verified",
+      "observation": "경로/상태/도메인 책임 분리 문서와 새clone/기존Actions 배포가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        },
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "requirement": "공통 내비게이션·푸터·디자인, 페이지/앱 이동",
+      "previous": "verified: 07 공통12화면과08 세폭Playwright/IAB 모든경로·내비/푸터검수",
+      "recommendation": "verified",
+      "observation": "공통셸의 4경로×3폭과 앱 이동 검수 기록을 확인했다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "requirement": "직접 접속·새로고침·뒤로가기 정상",
+      "previous": "verified: 08로컬12경로·폭과09최종비로그인4경로direct/reload/back·404검수",
+      "recommendation": "verified",
+      "observation": "08 로컬12조합과09 최종 익명4경로 직접열기·새로고침·back 검수를 구분한다.",
+      "evidence": [
+        {
+          "file": "evidence/09-browser-results.json",
+          "sha256": "fa1a35de60df1408a18bd0b43d72e8bb2b1a6e1f449905ad666fd46e3745b72e"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "requirement": "앱 이탈 후 진행 중 검토 불필요 손실 방지",
+      "previous": "verified: 05세션회귀·08 세폭왕복/새로고침·청크실패복구 및root실입력독립복원",
+      "recommendation": "verified",
+      "observation": "허용된sessionStorage 입력/핀 복원·TTL·불완전상태 복구와 실제왕복/새로고침을 확인했다.",
+      "evidence": [
+        {
+          "file": "evidence/05-final-checks.json",
+          "sha256": "a41496674c456a6a76680e1688c9a7d65b60b7476a14e0cceb02e7d134673bd2"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "requirement": "주소 검색/지도 선택 → 기본 검토 → 선택적 상세 입력",
+      "previous": "verified: 08 Playwright3폭·actualIAB 검색/목록/주소/좌표/지도→결과→선택조건",
+      "recommendation": "verified",
+      "observation": "주소·좌표·지도 선택, 기본 결과와 선택 조건까지 자동/실제IAB 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "requirement": "후보 추가/삭제·4곳 제한·조건 변경·비교",
+      "previous": "verified: 08 모든폭 새4핀/5번째차단/삭제재추가/현재E제외/공통·개별변경→비교",
+      "recommendation": "verified",
+      "observation": "세 폭에서 새4핀·5번째차단·삭제재추가·개별/공통 재계산을 검수했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "requirement": "내부 사업정보·AI 없이 기본 검토/보고서",
+      "previous": "verified: 08 AI요청0·조건빈 기본보고서·새empty PDF6쪽",
+      "recommendation": "verified",
+      "observation": "모든사업조건빈 상태와 AI호출0의 기본보고서/empty PDF6쪽이 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "requirement": "독립 기대값: 30,000㎡/200%/50%/4층 → 15,000㎡",
+      "previous": "verified: 독립기대값/전체563·08UI/PDF·09실제운영비교/11쪽PDF 최소15000㎡·부족5000㎡",
+      "recommendation": "verified",
+      "observation": "구현전 독립식15,000㎡/부족5,000㎡와 최종운영UI·PDF 수치가 일치한다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-operating-pdf-final.json",
+          "sha256": "6a1af120a3c8aab7976155d90d3f66a7074e9d11328fa9619930648fed6f99ee"
+        },
+        {
+          "file": "evidence/09-pdf-checks.json",
+          "sha256": "4ee3b7a2435aba2bafcf7965775261b87dabefba844567b67b09204d4bfcb688"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "requirement": "독립 기대값: 평균 차입 1,000억원/연6%/12개월 → 60억원",
+      "previous": "verified: 08검수와09실제IAB/운영PDF 60억원·18숫자셀+9미입력셀 독립대조",
+      "recommendation": "verified",
+      "observation": "1,000억원×6%×12/12=60억원. 운영 금융표18숫자셀과9미입력셀 검수 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-operating-pdf-final.json",
+          "sha256": "6a1af120a3c8aab7976155d90d3f66a7074e9d11328fa9619930648fed6f99ee"
+        },
+        {
+          "file": "evidence/09-pdf-checks.json",
+          "sha256": "4ee3b7a2435aba2bafcf7965775261b87dabefba844567b67b09204d4bfcb688"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "requirement": "㎡/평·억원/원 등 단위 일관, 미입력과 명시적0 구분",
+      "previous": "verified: 08 actualIAB 평3025↔㎡10000/억원원·0-null/zero PDF·경계회귀",
+      "recommendation": "verified",
+      "observation": "10,000㎡↔3,025평·원/억원·0/null 회귀와 화면/PDF 대조를 확인했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "requirement": "불완전 비용을 최저비용으로 표시하지 않음",
+      "previous": "verified: 08 numbers/UI/비교·새PDF 완전300억원/불완전·혼합보류",
+      "recommendation": "verified",
+      "observation": "전체금액300억원차이와 누락·방식혼합시 보류를 별도 검수했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "requirement": "주요 판단의 출처·기준일·입력 가정·미확인",
+      "previous": "verified: 08 실제화면/새PDF 출처·기준일·조회시각·가정·미확인 구분",
+      "recommendation": "verified",
+      "observation": "출처·원자료기준일·조회시각·입력가정·미확인의 구분을 유지한다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "requirement": "보고서 첫 장 위치·제약·중요 미확인·비교 요약·다음 확인",
+      "previous": "verified: 08 새PDF5종 첫장5요소·후보/핀내용 root독립추출시각검수",
+      "recommendation": "verified",
+      "observation": "5종합성PDF와 운영PDF 첫장에 위치·제약·중요미확인·비교·다음확인이 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "requirement": "실제 A4 PDF 모든 페이지 잘림·겹침·누락 없음",
+      "previous": "verified: 08합성5종53쪽은이전빌드,09최종운영11쪽 root/실행자각전페이지검수;hash별경계유지",
+      "recommendation": "verified",
+      "observation": "08합성53쪽과09최종운영11쪽 모두 실행자/root 전쪽검수 기록 및 현재해시일치. 이번 감사가 새 시각검수를 했다는 주장은 하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-operating-pdf-final.json",
+          "sha256": "6a1af120a3c8aab7976155d90d3f66a7074e9d11328fa9619930648fed6f99ee"
+        },
+        {
+          "file": "evidence/09-pdf-checks.json",
+          "sha256": "4ee3b7a2435aba2bafcf7965775261b87dabefba844567b67b09204d4bfcb688"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R25",
+      "requirement": "빈 입력·잘못된 숫자·결측·지원 밖 위치",
+      "previous": "verified: 08 recovery/numbers/security·551회귀 빈입력/층수2.5/결측재시도/지원밖안내",
+      "recommendation": "verified",
+      "observation": "빈값·잘못된수·층수2.5·결측·범위밖의 회귀/보류/재시도 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R26",
+      "requirement": "조회 지연/실패 제한시간과 재시도",
+      "previous": "verified: 08 lifecycle 실제15초오류후재시도·production chunk복구;04A body15.008초 별도",
+      "recommendation": "verified",
+      "observation": "고정지연→15초오류→재시도와 서버12초/AI55초·클라이언트65초 경계를 검사했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R27",
+      "requirement": "늦은 이전 조회가 현재 후보를 덮어쓰지 않음",
+      "previous": "verified: 08 지연A→B/늦은A/no overwrite와unmount lifecycle·기존race회귀",
+      "recommendation": "verified",
+      "observation": "지연A→B→늦은A·unmount에서 현재결과 덮어쓰기 차단 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "requirement": "실패 조회를 제약 없음으로 해석하지 않음",
+      "previous": "verified: 08 strictwire/partialhit/실패미산정/TTL비선택핀 재평가·PDF상태",
+      "recommendation": "verified",
+      "observation": "부분적중 보존·실패점수보류·TTL비선택핀 재평가와 오류표시를 검수했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R29",
+      "requirement": "AI 중단·빈 응답·오류·시간제한, 기본 보고서 유지",
+      "previous": "verified: 08stop/empty/502/65초회귀와09실제AI오류안내·기본보고서유지;운영생성성공아님",
+      "recommendation": "verified",
+      "observation": "중단/빈응답/오류/65초고정회귀 및 실제운영AI실패 후 기본보고서가 유지된다. 운영생성성공은 아니다.",
+      "evidence": [
+        {
+          "file": "evidence/04B-prompt-matrix.json",
+          "sha256": "11fef567d57233ea5baf090fa7c372dbb2d7be1641fbff1c98d97fbf8f325621"
+        },
+        {
+          "file": "evidence/root-ai-facts-final-04B.json",
+          "sha256": "280b0c781ac9f481c4ffda492b101f348d2ad81328aaa2fa4312e83befa7d2b1"
+        },
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        }
+      ]
+    },
+    {
+      "id": "R30",
+      "requirement": "입력/근거 변경 시 진행 중·완료·사전 AI 의견 무효화",
+      "previous": "verified: 08 진행중·완료변경→되돌림/근거갱신/unmount·늦은응답부활차단",
+      "recommendation": "verified",
+      "observation": "입력변경→되돌림·근거갱신·늦은응답·사전메모 무효화 회귀가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R31",
+      "requirement": "AI 수치·주요 주장과 제공 근거 대조",
+      "previous": "verified: 08 근거밖금액/보장주장/악성HTML·URL차단 및04B26조건;전체자유서술의미검증아님",
+      "recommendation": "verified",
+      "observation": "근거밖금액·공급/허가확정 주장·악성HTML/URL을 대조/차단한다. 모든 자유문장의 의미적 정확성을 보장하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/04B-prompt-matrix.json",
+          "sha256": "11fef567d57233ea5baf090fa7c372dbb2d7be1641fbff1c98d97fbf8f325621"
+        },
+        {
+          "file": "evidence/root-ai-facts-final-04B.json",
+          "sha256": "280b0c781ac9f481c4ffda492b101f348d2ad81328aaa2fa4312e83befa7d2b1"
+        },
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        }
+      ]
+    },
+    {
+      "id": "R32",
+      "requirement": "390/768/1440px 핵심 업무 완료",
+      "previous": "verified: 08 Playwright3폭 전체흐름·actualIAB 각폭 새입력/새4핀/비교/보고서수치",
+      "recommendation": "verified",
+      "observation": "390/768/1440 각각 새입력·새4핀·비교·보고서 수치를 자동/실제브라우저에서 검수했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R33",
+      "requirement": "지도 없이 검색·목록으로 주요 정보 확인",
+      "previous": "verified: 08 keyboard읍면동/검색목록·좌표/분야근거·핀관리;숨긴지도focus0",
+      "recommendation": "verified",
+      "observation": "지도 없이 검색·추천목록·키보드·근거·핀 관리가 가능하고 숨긴지도 focus0을 확인했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R34",
+      "requirement": "키보드·포커스·입력 라벨·명암 대비 직접 확인",
+      "previous": "verified: 08 label/대비·Tab/ShiftTab순환·Escape복원,root actualIAB9동작",
+      "recommendation": "verified",
+      "observation": "대비결함3.44:1 수정, modal Tab/ShiftTab 순환·Escape복원 및 root9동작 근거가 있다.",
+      "evidence": [
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        },
+        {
+          "file": "evidence/08-e2e-attachments.json",
+          "sha256": "2e002d0acaf81a92fe5dd55ad4a5b7dfc2a28ecb1ff8a51b370d8e581b0dd6ac"
+        },
+        {
+          "file": "evidence/08-iab-observations.json",
+          "sha256": "0911573c1ce404df3f5ac0778ce91a7e4ff3f3f8d0ebd762436ce44d1506988a"
+        },
+        {
+          "file": "evidence/root-08-pdf-final.json",
+          "sha256": "7eb08b45ba6537bab6ccc475b163fdf95b41220895286bd95bb3b8695116ae94"
+        }
+      ]
+    },
+    {
+      "id": "R35",
+      "requirement": "주요 화면 axe Critical·Serious 0건",
+      "previous": "verified: 08 axe원본26개 전severity0 root해시/violations직접대조",
+      "recommendation": "verified",
+      "observation": "08 원본axe26개 모든severity0. 테스트한화면 범위이며 모든 접근성의 완전성보장은 아니다.",
+      "evidence": [
+        {
+          "file": "evidence/08-axe-summary.json",
+          "sha256": "70ac91bd74a65aa8e0cfba96867a5bfe9298b07d9eabdb76d35dfc602e2b29cb"
+        },
+        {
+          "file": "evidence/root-08-acceptance-hashes.json",
+          "sha256": "fe26de976b7db10b6bf24ab393f915f945b840a8f54adc8d58bbc42b7b8280f7"
+        }
+      ]
+    },
+    {
+      "id": "R36",
+      "requirement": "첫 결과·비교 갱신·보고서 열기 측정 및 병목 개선",
+      "previous": "verified: 08 1후보 및 root추가4후보 cold1/warm5·시점/요청계수;4후보비교98.9/105.5ms·보고서36.4/38.6ms(중앙/최대),로컬목표충족",
+      "recommendation": "verified",
+      "observation": "로컬고정응답 cold1/warm5. 4핀 비교중앙98.9/최대105.5ms,보고서36.4/38.6ms. 실제 운영속도/업무절감은 미측정이다.",
+      "evidence": [
+        {
+          "file": "evidence/four-pin-performance.json",
+          "sha256": "a18a5acae994a60a8c5b608966ca9fb1e15e1d5bcb736bf1550a37974d74c4ab"
+        },
+        {
+          "file": "evidence/08-final-checks.json",
+          "sha256": "0ed6f738e2d25608c4905a5df3aec54ab746e47e162f8a7952ebe13a04bfaf5d"
+        }
+      ]
+    },
+    {
+      "id": "R37",
+      "requirement": "외부 API 정상/오류/지연 고정 회귀와 실제 연결 구분",
+      "previous": "verified: 03~08고정응답회귀와09실제7API본문분리;기본6정상·AI오류·소스연속성명시",
+      "recommendation": "verified",
+      "observation": "고정API회귀와 da8f9 시점 실제7API를 구분하고 최종bb18284 API10소스 동일성을 대조했다.",
+      "evidence": [
+        {
+          "file": "evidence/08-gates.json",
+          "sha256": "f6c9631407f89963a6a14b31e43b0268863eda5214c4e212d3b7801b693d74f1"
+        },
+        {
+          "file": "evidence/09-workflow.json",
+          "sha256": "8b24d44ecbd11ffdbb0996e5afd8eabc877b58b6dc02fa313168d74f44b147bf"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R38",
+      "requirement": "타입·린트·전체 Vitest·데이터 검증·빌드",
+      "previous": "verified: 최종제품135dd13/bb18284·47파일563검사/type/lint/data/build·최종Actions성공;관련원로그SHA대조",
+      "recommendation": "verified",
+      "observation": "최종47파일563테스트·타입·린트·자료·빌드/Actions성공.08의551/17E2E는 이전빌드로 구분한다.",
+      "evidence": [
+        {
+          "file": "evidence/08-gates.json",
+          "sha256": "f6c9631407f89963a6a14b31e43b0268863eda5214c4e212d3b7801b693d74f1"
+        },
+        {
+          "file": "evidence/09-workflow.json",
+          "sha256": "8b24d44ecbd11ffdbb0996e5afd8eabc877b58b6dc02fa313168d74f44b147bf"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R39",
+      "requirement": "공개 API 잘못된 형식·과도 입력·중복 요청",
+      "previous": "verified: 입력/본문/중복·인스턴스보조제어회귀+09실제잘못된좌표/빈AI400/no-store;분산제한보장아님",
+      "recommendation": "verified",
+      "observation": "입력/본문크기·중복·동시성·시간제한 및 실제잘못된좌표/빈AI400/no-store. 분산 전역rate 제한 보장은 아니다.",
+      "evidence": [
+        {
+          "file": "evidence/08-gates.json",
+          "sha256": "f6c9631407f89963a6a14b31e43b0268863eda5214c4e212d3b7801b693d74f1"
+        },
+        {
+          "file": "evidence/09-workflow.json",
+          "sha256": "8b24d44ecbd11ffdbb0996e5afd8eabc877b58b6dc02fa313168d74f44b147bf"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R40",
+      "requirement": "외부자료/AI 안전한 표시·비밀키 노출 방지",
+      "previous": "partial: 안전DOM/URL/AI·번들/소유43파일selected패턴0;11실제세션제출사본스캔남음",
+      "recommendation": "verified",
+      "observation": "제품187추적/34빌드 선별스캔과11실제로그 사본 재스캔을 연결한다. 모든 비밀형식 부재를 단정하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/08-security-scan.json",
+          "sha256": "65a0835f6a0afc0b43f14fc6c4221c4da7ec335c3d8e0d64ec2d35c1e283c6ae"
+        },
+        {
+          "file": "evidence/log-verification.json",
+          "sha256": "ab854acda1b406711ed46225dff9b24c0e424f6463f9f02ea6335e5779162aa7"
+        },
+        {
+          "file": "evidence/11-log-independent-audit.json",
+          "sha256": "46984272c502d5d6358b6bd5358cd99285458c7a898abc6a3ff4f0c7544d6a3b"
+        },
+        {
+          "file": "evidence/root-11-submission-review.json",
+          "sha256": "b42759c9ad5aaed02ff287d49292e772abe021a5813da8fa67ab6b65d32e90a0"
+        }
+      ]
+    },
+    {
+      "id": "R41",
+      "requirement": "발견 취약점 사용 경로·영향별 조치",
+      "previous": "verified: 03~09실제사용경로반례→수정→검수;Edge리디렉션거부경계유지와운영기본조회복구",
+      "recommendation": "verified",
+      "observation": "실사용반례→국소수정→독립검수와 운영Edge옵션 복구를 확인했다. 내부Vercel 원인확정은 하지 않았다.",
+      "evidence": [
+        {
+          "file": "evidence/08-gates.json",
+          "sha256": "f6c9631407f89963a6a14b31e43b0268863eda5214c4e212d3b7801b693d74f1"
+        },
+        {
+          "file": "evidence/09-workflow.json",
+          "sha256": "8b24d44ecbd11ffdbb0996e5afd8eabc877b58b6dc02fa313168d74f44b147bf"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R42",
+      "requirement": "새 폴더에서 문서만으로 설치·빌드·실행",
+      "previous": "verified:09새폴더/별도node_modules·Chromium·11명령0·551/17·IAB실행;이후새의존성없음/최종563",
+      "recommendation": "verified",
+      "observation": "새clone·별도node_modules/Chromium·11명령0·551/17E2E·IAB 실행. 이후563수정에 새의존성은 없다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        },
+        {
+          "file": "evidence/09-deployment.json",
+          "sha256": "eee7438aafa176725ca4cf4472168281c6dd707bc9a70fea13a269ab15c1a32f"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R43",
+      "requirement": "작업 브랜치·PR 통한 반영·기존 권한 Vercel 배포",
+      "previous": "verified: PR7/8/9정확head/최신base/merge·Actions35605415209 success·VercelReady/alias bb18284",
+      "recommendation": "verified",
+      "observation": "PR7/8/9 병합·Actions35605415209·Ready/alias는 검증됐다. 최종문서 PR은 이 감사 뒤 root 작업이다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        },
+        {
+          "file": "evidence/09-deployment.json",
+          "sha256": "eee7438aafa176725ca4cf4472168281c6dd707bc9a70fea13a269ab15c1a32f"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R44",
+      "requirement": "실제 배포 화면·핵심 API 본문·비로그인 공개 링크",
+      "previous": "verified: 09최종34공개파일·익명UI16·실제7API본문상태와동일10소스;기본6성공/AI실패를구분",
+      "recommendation": "verified",
+      "observation": "기본API6정상·선택형AI오류, 최종익명UI16·34파일대조. 부분주변필지 탐색을 전체15km 조사로 확대하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/09-browser-results.json",
+          "sha256": "fa1a35de60df1408a18bd0b43d72e8bb2b1a6e1f449905ad666fd46e3745b72e"
+        },
+        {
+          "file": "evidence/09-api-results.json",
+          "sha256": "08cb409762d1a530cdd11847973838358bf25d1c3050b44d4779f26e63b2b111"
+        },
+        {
+          "file": "evidence/09-api-source-continuity.json",
+          "sha256": "2d44ed8f74849b5858e1d062daa031a2ca50226c90f53b417f7c86e9ded27644"
+        }
+      ]
+    },
+    {
+      "id": "R45",
+      "requirement": "공개 웹서비스와 GitHub 저장소 제공",
+      "previous": "verified: 공개grand-site-dc.vercel.app 비로그인확인·GitHub private접근범위명시/설정유지",
+      "recommendation": "verified",
+      "observation": "공개서비스와 private GitHub 링크를 인계한다. 저장소 공개전환·PR6 변경을 하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        },
+        {
+          "file": "evidence/09-deployment.json",
+          "sha256": "eee7438aafa176725ca4cf4472168281c6dd707bc9a70fea13a269ab15c1a32f"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R46",
+      "requirement": "최대5페이지 발표자료·5분 대본",
+      "previous": "verified: 편집PPTX5·PowerPoint네이티브PDF5·300초구성대본,root47검사·전5쪽;실제인간낭독미측정 명시",
+      "recommendation": "verified",
+      "observation": "편집5슬라이드·네이티브PDF5쪽·300초배분 대본. 분당320자가정269.25초+30.75초이며 인간/TTS 실측은 없다.",
+      "evidence": [
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/root-10-ownership-review.json",
+          "sha256": "942b439dc4a08399db251752f023257b0943e3ca5a01fb3672c2b6716f0b41fc"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R47",
+      "requirement": "실행 안내·예제 입력·실제 출력 PDF·검증 결과",
+      "previous": "verified: docs/RUNNING·EXAMPLE_INPUT·최종11쪽운영PDF/입력JSON/검증요약·새clone79링크확인",
+      "recommendation": "verified",
+      "observation": "새 실행안내·예제·최종운영PDF·합성08PDF·검증요약을 outputs 상대링크로 연결하고 파일을 열어 검수한다.",
+      "evidence": [
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        },
+        {
+          "file": "evidence/09-deployment.json",
+          "sha256": "eee7438aafa176725ca4cf4472168281c6dd707bc9a70fea13a269ab15c1a32f"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R48",
+      "requirement": "기존 재사용 범위와 이번 변경",
+      "previous": "verified: ARCHITECTURE_REUSE 기준66e310b/03~08계승·변경표,09서버2곳/문구1곳과PRdiff",
+      "recommendation": "verified",
+      "observation": "ARCHITECTURE_REUSE의 기존엔진/자료 계승·03~08변경 및09 API2곳/문구1곳 변경 이력을 대조했다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        },
+        {
+          "file": "evidence/root-09-final-review.json",
+          "sha256": "f970c1ee0a7ab97313878ad2dfb7d7bf4f448a653ed83ce1c6817e41cd5adac0"
+        }
+      ]
+    },
+    {
+      "id": "R49",
+      "requirement": "실제 주요 세션 JSONL·추가 에이전트 로그 원본 보존·제출 사본",
+      "previous": "partial: root+13완료실행자 실제세션식별/원본보존;11제출사본·비밀점검·ZIP남음",
+      "recommendation": "verified",
+      "observation": "실제15세션 원본과 cutoff사본·변환종류·전행해시연결·parse/ZIP/재스캔. root/현재감사 마지막응답과이후기록은 미포함이며 root 재생성 절차를 제공한다.",
+      "evidence": [
+        {
+          "file": "evidence/08-security-scan.json",
+          "sha256": "65a0835f6a0afc0b43f14fc6c4221c4da7ec335c3d8e0d64ec2d35c1e283c6ae"
+        },
+        {
+          "file": "evidence/log-verification.json",
+          "sha256": "ab854acda1b406711ed46225dff9b24c0e424f6463f9f02ea6335e5779162aa7"
+        },
+        {
+          "file": "evidence/11-log-independent-audit.json",
+          "sha256": "46984272c502d5d6358b6bd5358cd99285458c7a898abc6a3ff4f0c7544d6a3b"
+        },
+        {
+          "file": "evidence/root-11-submission-review.json",
+          "sha256": "b42759c9ad5aaed02ff287d49292e772abe021a5813da8fa67ab6b65d32e90a0"
+        }
+      ]
+    },
+    {
+      "id": "R50",
+      "requirement": "별도 에이전트 산출물 단위 순차 실행→검증→수정→인계",
+      "previous": "partial: 01~10 산출물13실행자순차수락·독립검수·인계;새11 최종감사 남음",
+      "recommendation": "partial",
+      "observation": "14실행자 부모/모델과 앞13개 final·검수수락→다음생성 순서를 확인했다. 최초3개 늦은 AGENT_LOG 작성은 실제검수시각과 분리했다.11 root검수수락은 남았다.",
+      "evidence": [
+        {
+          "file": "evidence/root-11-agent-order.json",
+          "sha256": "8bd31d3bced665f63c1cd019bc4f9ca530a34cebe08e13f5c8f9412aad874b95"
+        },
+        {
+          "file": "evidence/root-11-early-review-proof.json",
+          "sha256": "6dd24d87bb736961b73cb7a9bd8f79d592c04ce49bdbc5cafda7d79c41519c86"
+        },
+        {
+          "file": "evidence/log-verification.json",
+          "sha256": "ab854acda1b406711ed46225dff9b24c0e424f6463f9f02ea6335e5779162aa7"
+        }
+      ]
+    },
+    {
+      "id": "R51",
+      "requirement": "중요 결정 대안·반론 순차 검토·총괄 결론",
+      "previous": "partial: G001~G019 대안·반론·총괄결론;11 최종감사·완료결정 남음",
+      "recommendation": "partial",
+      "observation": "G001~G019 대안·반론·수정·총괄결론과 실제검수근거를 대조했다.11 최종수락결정은 root가 작성한다.",
+      "evidence": [
+        {
+          "file": "evidence/root-11-agent-order.json",
+          "sha256": "8bd31d3bced665f63c1cd019bc4f9ca530a34cebe08e13f5c8f9412aad874b95"
+        },
+        {
+          "file": "evidence/root-11-early-review-proof.json",
+          "sha256": "6dd24d87bb736961b73cb7a9bd8f79d592c04ce49bdbc5cafda7d79c41519c86"
+        },
+        {
+          "file": "evidence/log-verification.json",
+          "sha256": "ab854acda1b406711ed46225dff9b24c0e424f6463f9f02ea6335e5779162aa7"
+        }
+      ]
+    },
+    {
+      "id": "R52",
+      "requirement": "품질 우선 모델 선택·실제 설정/위임 정확 기록",
+      "previous": "partial: root Astra/ultra·완료13실행자Astra/xhigh 실제JSONL 확인;11 실제설정대조 남음",
+      "recommendation": "verified",
+      "observation": "실제15 JSONL turn_context에서 root Astra/ultra,14실행자 Astra/xhigh. G001 품질우선 선택을 계승했고 모델실측비교는 하지 않았다.",
+      "evidence": [
+        {
+          "file": "evidence/root-11-agent-order.json",
+          "sha256": "8bd31d3bced665f63c1cd019bc4f9ca530a34cebe08e13f5c8f9412aad874b95"
+        },
+        {
+          "file": "evidence/root-11-early-review-proof.json",
+          "sha256": "6dd24d87bb736961b73cb7a9bd8f79d592c04ce49bdbc5cafda7d79c41519c86"
+        },
+        {
+          "file": "evidence/log-verification.json",
+          "sha256": "ab854acda1b406711ed46225dff9b24c0e424f6463f9f02ea6335e5779162aa7"
+        }
+      ]
+    },
+    {
+      "id": "R53",
+      "requirement": "공개/합성 자료만, 새 결제·권한 확대·파괴/제출 승인",
+      "previous": "ongoing",
+      "recommendation": "verified",
+      "observation": "감사cutoff까지 공개/합성자료·기존권한내배포만 수행한 근거와 원본/PR6/private보존을 확인했다. 신규권한/결제/파괴/대회제출은 없다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R54",
+      "requirement": "로그인·결제·협업 백엔드·대규모 데이터 수집 제외",
+      "previous": "ongoing",
+      "recommendation": "verified",
+      "observation": "baseline→최종제품 diff·구조/재사용표에서 로그인·결제·협업백엔드·대규모신규수집을 도입하지 않았다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R55",
+      "requirement": "사실/가정/미확인 구별, 공급/인허가/적합·절감효과 단정 금지",
+      "previous": "verified: 제품/보고서/AI/소개 및10 발표/대본에서 사실·합성조건·미확인/공급·허가/미측정절감 구분",
+      "recommendation": "verified",
+      "observation": "화면·PDF·AI경계·발표가 사실/합성가정/미확인·공급/허가별도확인·효과미측정을 유지한다.",
+      "evidence": [
+        {
+          "file": "evidence/07-final-checks.json",
+          "sha256": "395cbad1d6f02f3502a95cfe6f9cb5a7a0eb5f5ff3637c7405f3727bfb10c0aa"
+        },
+        {
+          "file": "evidence/root-10-review.json",
+          "sha256": "73183ad67616be2cbad433fa06b260a0837191c23825a4a91594110eb05703a0"
+        },
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R56",
+      "requirement": "GS/Team Attention 행사·OpenAI Goal/Subagents 공식 자료 참조",
+      "previous": "partial: 조사01 공식GS프로그램·OpenAI Goal/Subagents 원문 확인",
+      "recommendation": "verified",
+      "observation": "조사01 §9의52g·현행Ralphthon·과거TeamAttention 및 공식Goal/Subagents를 참조했다. 인증된팀별공지/최종규격은 미확인이지만 이는 새 필수요구로 확대하지 않는다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R57",
+      "requirement": "목표 원문·단계 기준·결정·증거·남은 일 파일 유지",
+      "previous": "partial: 원문SHA보존·10수락STATE/HANDOFF/DECISIONS/EVIDENCE/AGENT_LOG갱신;11완료상태정리 남음",
+      "recommendation": "partial",
+      "observation": "원문해시·단계기준·G019까지 상태/결정/근거가 있다.11최종root수락·제어표정리·문서원격반영은 남았다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R58",
+      "requirement": "9/22 10:00 KST 미완료이면 안전정리·pause·상태 보고",
+      "previous": "ongoing",
+      "recommendation": "pending",
+      "observation": "마감 전이며 조건 미발동. 사용자가 승인한10:00미완료 pause는 root가 상태확인후 수행하거나 조기완료로 종료한다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R59",
+      "requirement": "모두 완료 시 조기 종료, 미완료 허위 완료 금지",
+      "previous": "pending",
+      "recommendation": "pending",
+      "observation": "이번감사는 완료권고 근거를 제공하며 Goal complete를 호출하지 않는다. root독립검수·문서원격반영·최종상태결정이 남았다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    },
+    {
+      "id": "R60",
+      "requirement": "데모·데모영상·포스터 범위 밖",
+      "previous": "ongoing",
+      "recommendation": "verified",
+      "observation": "선별 최종묶음에 데모·영상·포스터를 추가하지 않았다. 기존docs/DEMO는 회귀이력이다.",
+      "evidence": [
+        {
+          "file": "evidence/11-artifact-audit.json",
+          "sha256": "83602d3ddfd6a469d559e26c71274ad49aa66f313d3f0058603ac6afa5b8c4ee"
+        }
+      ]
+    }
+  ],
+  "method": "Read goal and all 60 requirements, inspect selected original evidence, rehash current artifacts and prior raw proofs, preserve verified time/version boundaries; no unnecessary product retest.",
+  "log_cutoff": "2026-09-21T23:05:23.153633+09:00"
+}
