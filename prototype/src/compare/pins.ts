@@ -63,6 +63,9 @@ export function toScoreInput(
     lat: pin.selection.lat,
     lng: pin.selection.lng,
     landUse: pin.landUse,
+    landUseSource: pin.manualLandUse !== null
+      ? 'manual'
+      : pin.zoning?.found && pin.zoning.landUse === pin.landUse ? 'auto' : 'unknown',
     project,
     conditions: pin.conditions,
     zoning: pin.zoning,

@@ -502,6 +502,15 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     restriction.checked.bundled &&
     restriction.checked.vworld === 'ok' &&
     disaster.status !== 'unknown';
+  const landUseEvidence =
+    input.landUseSource === 'manual'
+      ? { available: false, basis: 'user_input' as const, label: '사용자 입력' }
+      : input.landUseSource === 'auto' &&
+          !!input.zoning?.found &&
+          input.landUse === input.zoning.landUse &&
+          input.landUse !== 'unknown'
+        ? { available: true, basis: 'public_data' as const, label: '공개 조회' }
+        : { available: false, basis: 'unverified' as const, label: '출처 미확인' };
   const evidence = Object.entries(scoring.evidence).map(([key, meta]) => {
     const availability: Record<string, boolean> = {
       power: powerKnown,
@@ -509,7 +518,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       population: popCells.length > 0,
       households: householdsNearby !== null,
       schools: !!nearestSchool,
-      zoning: input.landUse !== 'unknown',
+      zoning: landUseEvidence.available,
       restrictions:
         restriction.checked.bundled && restriction.checked.vworld === 'ok',
       disaster: disaster.status !== 'unknown',
@@ -553,6 +562,9 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
         : undefined;
     return {
       ...meta,
+      detail: key === 'zoning'
+        ? `현재 적용: ${LAND_USE_LABEL[input.landUse]} · ${landUseEvidence.label}. 공식 용도지역과 적용 조례는 별도 확인하세요. ${meta.detail}`
+        : meta.detail,
       period,
       dataVersion,
       key,
@@ -575,95 +587,154 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   const issues: ReviewIssue[] = [];
   const overviewIssues: ReviewIssue[] = [];
   const add = (
-    title: string,
-    detail: string,
-    tone: ReviewIssue['tone'] = 'caution',
+    item: Omit<ReviewIssue, 'tone'> & { tone?: ReviewIssue['tone'] },
     showInOverview = true,
   ) => {
-    const issue = { title, detail, tone };
+    const issue: ReviewIssue = { tone: 'caution', ...item };
     issues.push(issue);
     if (showInOverview) overviewIssues.push(issue);
   };
   if (!site.eligible)
-    add(site.label, site.detail, site.status === 'sea' ? 'risk' : 'caution');
+    add({
+      id: 'site.unavailable', category: 'unknown', basis: 'public_estimate',
+      title: site.label, detail: site.detail,
+      tone: site.status === 'sea' ? 'risk' : 'caution',
+      nextAction: '선택 좌표와 자료 범위를 확인하고 실제 육지·필지 위치를 다시 선택하세요.',
+    });
+  const estimatedRestrictionHits = restriction.hits.filter(hit =>
+    hit.source === 'vworld' && hit.layer && scoring.restriction.vworldLayers[hit.layer]?.buffered === hit.type);
+  const directRestrictionHits = restriction.hits.filter(hit => !estimatedRestrictionHits.includes(hit));
   if (restriction.level === 'prohibited')
-    add(
-      '법적 입지 제한 구역',
-      describeRestrictionHits(restriction.hits) +
-        ' · 고시 도면·토지이용계획확인서 확인 필요',
-      'risk',
-    );
-  else if (restriction.level === 'conditional')
-    add('규제구역 검토 필요', describeRestrictionHits(restriction.hits));
+    add({
+      id: 'restriction.prohibited', category: 'confirmed_constraint', basis: 'public_data',
+      title: '법적 입지 제한 구역',
+      detail: describeRestrictionHits(directRestrictionHits), tone: 'risk',
+      nextAction: '최신 고시 도면·토지이용계획확인서로 해당 경계와 적용 제한·예외를 관할기관에 확인하세요.',
+    });
+  else if (restriction.level === 'conditional' && directRestrictionHits.length)
+    add({
+      id: 'restriction.conditional', category: 'confirmed_constraint', basis: 'public_data',
+      title: '규제구역 검토 필요', detail: describeRestrictionHits(directRestrictionHits),
+      nextAction: '고시 도면으로 실제 구역 경계를 확인하고 적용 조례·허용기준과 인허가 영향을 관할기관에 확인하세요.',
+    });
+  if (estimatedRestrictionHits.length)
+    add({
+      id: 'restriction.estimated', category: 'unknown', basis: 'public_estimate',
+      title: '규제구역 추정 범위 확인', detail: describeRestrictionHits(estimatedRestrictionHits),
+      nextAction: '추정 범위가 실제 규제구역에 해당하는지 고시 도면의 경계와 조례·허용기준을 관할기관에 확인하세요.',
+    });
   if (deductions.some((d) => d.label === '조례상 입지 불가'))
-    add(
-      '조례상 입지 제한 검토',
-      '사용자 선택 또는 조회된 용도지역과 적용 조례를 관할기관에 확인하세요.',
-      'risk',
-    );
+    add({
+      id: 'land-use.ordinance', category: 'input_condition',
+      basis: landUseEvidence.basis,
+      title: '조례상 입지 제한 검토',
+      detail: `${landUseEvidence.label} 용도지역을 적용한 검토사항입니다. 용도지역 명칭만으로 법적 입지 제한을 확정하지 않습니다.`,
+      nextAction: '공식 용도지역과 해당 필지에 적용되는 조례·건축 가능 여부를 관할기관에 확인하세요.',
+    });
   if (terrain?.unsuitable)
-    add('급경사 정밀 검토', '정밀측량·사면 안정성과 토목공사비를 확인하세요.');
+    add({
+      id: 'terrain.slope', category: 'unknown', basis: 'public_estimate',
+      title: '급경사 정밀 검토', detail: '공개 지형 격자에서 급경사 검토 대상입니다. 실제 필지의 측량 결과와 다를 수 있습니다.',
+      nextAction: '정밀측량·사면 안정성과 토목공사비를 확인하세요.',
+    });
   if (disaster.status === 'hit')
-    add('재해위험지구 검토 필요', scoring.disaster.reviewNote);
+    add({
+      id: 'disaster.hit', category: 'confirmed_constraint', basis: 'public_data',
+      title: '재해위험지구 검토 필요', detail: scoring.disaster.reviewNote,
+      nextAction: '관할기관에 재해위험지구 지정 내용·경계와 인허가 영향, 필요한 방재대책을 확인하세요.',
+    });
   if (area.status === 'shortfall')
-    add(
-      area.label,
-      `${area.shortfallM2!.toLocaleString()}㎡ 부족 · 입력 조건을 재검토하세요.`,
-    );
+    add({
+      id: 'area.shortfall', category: 'input_condition', basis: 'calculation',
+      title: area.label, detail: `${area.shortfallM2!.toLocaleString()}㎡ 부족 · 입력 조건의 단순 계산 결과입니다.`,
+      nextAction: '입력한 확보 면적·계획 연면적과 설계조건을 재검토하세요. 실제 배치는 설계 담당자와 확인하세요.',
+    });
   if (area.status === 'unknown')
-    add('면적 계산 보류', area.missing.join(' · '), 'caution', area.hasInputs);
+    add({
+      id: 'area.incomplete', category: 'input_condition', basis: 'calculation',
+      title: '면적 계산 보류', detail: area.missing.join(' · '),
+      nextAction: `${area.missing.join(' · ')} 입력값을 확인하세요. 면적 검토는 선택 사항입니다.`,
+    }, area.hasInputs);
   if (!positive(project.targetMw))
-    add('목표 수전용량 미입력', '목표 수전용량은 양수로 입력하고 실제 공급 가능량은 공급기관과 확인하세요.', 'caution', project.targetMw !== null);
+    add({
+      id: 'power.target', category: 'input_condition', basis: 'user_input',
+      title: '목표 수전용량 미입력', detail: '목표 수전용량은 양수로 입력하고 실제 공급 가능량은 공급기관과 확인하세요.',
+      nextAction: '규모 검토가 필요하면 목표 수전용량을 양수로 입력하고 실제 공급 가능량을 공급기관에 확인하세요.',
+    }, project.targetMw !== null);
   const missingSources = evidence.filter(
     (e) => e.status !== 'available' && e.key !== 'news' && e.key !== 'permits',
   );
   if (missingSources.length)
-    add('공개자료 추가 확인', missingSources.map((e) => e.title).join(' · '));
+    add({
+      id: 'evidence.missing', category: 'unknown', basis: 'public_data',
+      title: '공개자료 추가 확인', detail: missingSources.map((e) => `${e.title} (${e.status === 'partial' ? '일부 미확인' : '미확인'})`).join(' · '),
+      nextAction: `${missingSources.map((e) => e.title).join(' · ')}의 출처·자료 상태를 확인하고 누락·실패한 조회와 최신 자료를 다시 확인하세요.`,
+    });
   if (
     positive(project.targetMw) &&
     positive(project.itMw) &&
     project.itMw! > project.targetMw!
   )
-    add('전력 입력조건 재검토', 'IT부하가 목표 수전용량보다 큽니다.');
+    add({
+      id: 'power.input-conflict', category: 'input_condition', basis: 'calculation',
+      title: '전력 입력조건 재검토', detail: 'IT부하가 목표 수전용량보다 큽니다.',
+      nextAction: 'IT부하와 목표 수전용량 입력을 확인하고 전산실 외 설비 전력을 함께 검토하세요.',
+    });
   for (const [key, label] of Object.entries(CONSULTATION_LABELS)) {
     const c =
       conditions.consultations[key as keyof typeof conditions.consultations];
-    const started = c.status !== 'unknown' || !!c.note.trim() || !!c.date;
     if (c.status !== 'confirmed' || !c.note.trim() || !validDate(c.date))
-      add(
-        `${label} 공급조건 확인`,
-        `${label} 협의 내용과 확인일을 기록하세요. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.`,
-        'caution', started,
-      );
+      add({
+        id: `supply.${key}`, category: 'unknown', basis: 'user_input',
+        title: `${label} 공급조건 확인`,
+        detail: `${label} ${c.status === 'discussing' ? '협의 중' : c.status === 'confirmed' ? '확인 내용·날짜 보완 필요' : '미확인'} · 유효한 사용자 확인 기록이 필요합니다. 사용자 확인은 공급기관의 확약을 대체하지 않습니다.`,
+        nextAction: `${label} 공급기관과 공급조건을 협의하고 확인 내용과 유효한 확인일을 기록하세요.`,
+      });
   }
   if (!businessCost.complete)
-    add('사업비 범위 확인', businessCost.missing.join(' · '), 'caution', hasCostInputs);
+    add({
+      id: 'cost.incomplete', category: 'input_condition', basis: 'user_input',
+      title: '사업비 범위 확인', detail: businessCost.missing.join(' · '),
+      nextAction: `${businessCost.missing.join(' · ')}를 확인하세요. 비용 미입력과 실제 비용 0원을 구분해 기록하세요.`,
+    }, hasCostInputs);
   if (finance.missing.length)
-    add('금융비용 계산 보류', finance.missing.join(' · '), 'caution', conditions.averageDebtKrw !== null || finance.missing.some(item => item !== '지연 중 평균 차입잔액'));
+    add({
+      id: 'finance.incomplete', category: 'input_condition', basis: 'calculation',
+      title: '금융비용 계산 보류', detail: finance.missing.join(' · '),
+      nextAction: `${finance.missing.join(' · ')}를 확인하세요. 총사업비를 차입잔액으로 대신 쓰지 않습니다.`,
+    }, conditions.averageDebtKrw !== null || finance.missing.some(item => item !== '지연 중 평균 차입잔액'));
   const summarize = (items: ReviewIssue[]): ScoreResult['review']['overview'] => {
-    const risk = items.some(i => i.tone === 'risk');
+    // Display priority only; preserve existing branch order within each category.
+    const ordered = (['confirmed_constraint', 'unknown', 'input_condition'] as const)
+      .flatMap(category => items.filter(item => item.category === category));
+    const constrained = ordered.some(item => item.category === 'confirmed_constraint');
+    const prohibited = ordered.some(item => item.id === 'restriction.prohibited');
     return {
-      label: !site.eligible ? site.label : risk ? '중대 제약 확인'
+      label: !site.eligible ? site.label : prohibited ? '중대 제약 확인'
+        : constrained ? '공개자료 제약·검토사항 확인'
         : area.status === 'shortfall' ? '입력 조건 재검토'
         : items.length ? '추가 확인 필요'
         : !area.hasInputs ? '상세조건 입력 전' : '후속 실사 검토',
-      tone: risk ? 'risk' : items.length || !area.hasInputs ? 'caution' : 'good',
-      reason: items[0]?.detail ?? (!area.hasInputs
-        ? '공개자료를 먼저 확인하세요. 면적·비용·공급조건의 미확인은 전체 확인사항과 보고서에 남아 있습니다.'
+      tone: prohibited || site.status === 'sea' ? 'risk' : 'caution',
+      reason: !site.eligible ? site.detail : ordered[0]?.detail ?? (!area.hasInputs
+        ? '상세조건을 입력하면 면적·비용을 추가 검토합니다. 현재 확인된 자료에 제약 항목이 없어도 사업 가능·안전 판정은 아닙니다.'
         : '입력 조건의 단순 검토를 마쳤습니다. 실제 공급·설계·인허가는 후속 실사에서 확인하세요.'),
-      issues: items,
+      issues: ordered,
+      actions: ordered.map(item => `${item.title}: ${item.nextAction}`),
     };
   };
+  const followupActions = [
+    project.development === 'conversion'
+      ? '기존 건물의 구조하중·층고·장비 반입·냉각설비 설치 가능성을 설계 담당자에게 확인하세요.'
+      : '옥외설비·이격거리·주차·높이 제한과 실제 배치 가능성을 설계 담당자에게 확인하세요.',
+    '실제 전력·통신 인입 경로, 도로점용과 주거지 통과 영향을 확인하세요.',
+  ];
+  const summary = summarize(issues);
+  const overview = summarize(overviewIssues);
   const review: ScoreResult['review'] = {
-    ...summarize(issues),
-    overview: summarize(overviewIssues),
-    actions: [
-      ...issues.map((i) => `${i.title}: ${i.detail}`),
-      project.development === 'conversion'
-        ? '기존 건물의 구조하중·층고·장비 반입·냉각설비 설치 가능성을 설계 담당자에게 확인하세요.'
-        : '옥외설비·이격거리·주차·높이 제한과 실제 배치 가능성을 설계 담당자에게 확인하세요.',
-      '실제 전력·통신 인입 경로, 도로점용과 주거지 통과 영향을 확인하세요.',
-    ],
+    ...summary,
+    overview: { ...overview, actions: overview.actions.length ? overview.actions : followupActions },
+    actions: [...summary.actions, ...followupActions],
   };
 
   return {

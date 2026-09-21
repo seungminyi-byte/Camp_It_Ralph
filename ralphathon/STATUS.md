@@ -1,6 +1,6 @@
 # 현재 작업 상태
 
-기준: 2026-09-21 16:30 KST. 마감: 2026-09-22 12:00 KST.
+기준: 2026-09-21 17:03 KST. 마감: 2026-09-22 12:00 KST.
 
 ## 필독
 
@@ -12,8 +12,8 @@ GOAL.md의 전체 목표와 저장소 AGENTS.md, 관련 PLAN/DATA/DEMO를 읽는
 - 기존 React/TypeScript/Vite/Leaflet, 계산 scoreSite(), 4개 후보 비교, AI 없는 보고서, AI 서명 무효화 기능을 계승한다.
 - 기존 9월 12일 검증 기록은 현 작업의 완료 증거로 재사용하지 않는다.
 - 제출 화면 0/4. 1번 문제와 아이디어 답변 초안을 채팅으로 작성했다. 실제 제출하지 않음.
-- 브라우저 extensionInstanceId 498bfcd2-9d11-4d53-9698-78a699f2accc는 browser 1(Edge). getTabContext 읽기는 성공. 제어는 request-header policy 로딩 오류로 2회 실패. 다른 브라우저로 전환 금지, 다음 브라우저 작업 때 동일 인스턴스로 재확인.
-- PATH의 node/npm/gh/vercel/ffmpeg 없음. Git/Python 사용 가능. 필요한 공식 실행환경을 별도 work/tools에서 마련한다.
+- 브라우저 extensionInstanceId 498bfcd2-9d11-4d53-9698-78a699f2accc는 browser 1(Edge). 초기 연결 오류 뒤 복구되어 현재 실제 로컬 화면 검증에 사용 중. 다른 브라우저/런타임으로 전환하지 않는다.
+- 공식 portable Node24.21.0·GitHub CLI2.101.0을 work/tools에 해시 검증 후 설치. Git/Python 사용 가능. 시스템 설정 변경 없이 명령별 경로로 실행.
 
 ## 순차 계획 / 초기 예상 12~14시간
 
@@ -36,8 +36,17 @@ GOAL.md의 전체 목표와 저장소 AGENTS.md, 관련 PLAN/DATA/DEMO를 읽는
 - baseline 66e310b의 typecheck/lint/19파일166테스트/데이터/build 전부 통과. evidence/baseline-66e310b 참고. 현재 목표의 최종 통과 아님.
 - Node v24.21.0 공식 portable 설치와 npm ci 완료. 명령 실행 시 PATH에 workspace/work/tools/node-v24.21.0-win-x64를 앞에 추가. 시스템 PATH 변경 없음.
 - 동일 브라우저 연결 복구. 실제 운영 화면과 행사 guide/criteria 열람. 권한 추가나 다른 브라우저 전환 없음.
-- 현재 실행 에이전트: product_design_proposal. 다음은 별도 디자인 반론 검수 후 총괄 확정.
+- 디자인 제안과 별도 반론 검수는 완료했고 결정 D005~D009에 반영.
 - Higgsfield는 plugin 검색에서 DISABLED_BY_ADMIN/NOT_AVAILABLE/미설치로 확인. MEDIA-PLAN.md에 사용자 승인된 실제 녹화 기반 대체 제작 경로 기록.
 - 원문 로그는 공개 저장소에 넣지 않음. 실제 세션 로그 제출 사본은 outputs의 별도 패키지로 마련할 예정.
+- 첫 구현 build_product_entry 완료 및 총괄 검수. 커밋 389f0cd. 홈/lazy 검토/상태 유지/홈 dialog·print portal 통제/AI 부분본 제외. 타입·린트·166테스트·build 통과. 390px 키보드 검색·후보저장·비교열림·뒤로홈·앞으로복귀와 1440/768/390 홈 관찰은 evidence/product-entry/BROWSER-REVIEW.md. 최종 목표 전체 통과 아님.
+- build_review_semantics 완료: 타입·린트·182테스트·build 통과, 실제 덕이동 요약 확인. 총괄은 auto표시와 불일치 zoning 응답을 섞은 엔진 입력 경계에서 출처문구 모순을 발견해 새 fix_source_integrity 에이전트에 한정 수정 위임. 현재 유일 실행 에이전트이며 stage2 커밋 전 이 보완을 검수한다.
+- fix_source_integrity 완료: 유효 자동조회(auto·found·값 일치·non-unknown)만 공개 조회/public_data로 표시하도록 evidence·조례 issue가 공유하는 source 해석을 보완했다. 자동 조회 누락·미해당·불일치·unknown과 source 생략은 출처 미확인/unverified, 수동은 사용자 입력/user_input이다. 실패 우선 경계 테스트는 수정 전 59개 중 7개 실패, 수정 후 engine 59개·관련 4파일 82개와 typecheck/lint 통과. 전체 Vitest·build는 이 제한 수정에서 넓히지 않았으므로 총괄 최종 검사에 남긴다. `evidence/source-integrity/RESULTS.md`, `handoffs/SOURCE-INTEGRITY-FIX.md` 참고.
+- 현재 원본 저장소 private=true, push=true, admin=false 확인. 공개 코드 제출을 위해 안전 점검한 별도 공개 사본 필요. DEPLOYMENT-PLAN.md 참고.
+- 실제 root/하위 agent JSONL 5개를 work/private-logs/20260921T074329Z에 초기 스냅샷 보존(hash manifest). 진행 중 사본이므로 최종 로그가 아니며 제출 직전 새 스냅샷/검사 필요.
+- 사용자가 팀 소개(국내법무팀 변호사, 계약·분쟁 자문 경험)를 제공해 1번 초안에 반영. 별도 outputs 파일과 SUBMISSION-NARRATIVE.md 보존. 실제 대회 저장/제출 없음. 직전 목표 턴은 제출 초안·근거 문서를 변경한 진척으로 분류.
+- 초안 PR #6 생성·원격 HEAD389f0cd 확인. 자동 Vercel Git preview는 commit 계정 확인에서 실패, 기존 Actions production 배포 경로는 미실행. DEPLOYMENT-PLAN.md에 구분 기록.
+- 2번 실제 goal 원문을 outputs/02_goal_실제입력원문.txt로 복사하고 원본과 SHA256 일치 확인(9ab4359f4a10716a4b38d68e880186cf5919e23b91651ff0716192dd305b1786). 팀 소개 반영을 이유로 실제 goal 원문을 고쳐 제출하지 않음.
+- 17:07 KST root 및 하위 agent 실제 JSONL7개를 work/private-logs/20260921T080727Z에 추가 스냅샷 보존. 진행 중 사본이며 최종제출용 비밀정보 검사 전. FFmpeg9.0.2 공식 연결 mirror 패키지 해시 검증·실행 준비 완료, 실제 녹화는 아직 없음.
 
 기초 감사 → 사용자 흐름/디자인 조사 → 순차 반론 검수 → 구현. 기후·IC 대규모 신규 수집은 이번 목표 범위에 추가하지 않는다.

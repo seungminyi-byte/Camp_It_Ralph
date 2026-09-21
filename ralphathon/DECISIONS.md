@@ -9,7 +9,7 @@
 
 - https://learn.chatgpt.com/use-cases/follow-goals — 2026-09-21 열람. 검증 가능한 종료 조건, 단계별 기록·확인, 지속 목표 운영.
 - https://learn.chatgpt.com/docs/agent-configuration/subagents — 2026-09-21 열람. 사용자 명시 위임, 경계가 분명한 작업과 결과 통합. 실제 도구의 모델/동시성 조건 우선.
-- 제출 화면 https://52g-hackathon.ralphthon.org/team/team_add00134a8a42593df9afbcb4cc1/submissions — getTabContext 확인. 4항목, 실제 goal 원문, JSONL 1개/추가 ZIP, 공개 링크3개·최대5p 발표자료. 추가 행사·심사 지침은 아직 미확인.
+- 제출 화면 https://52g-hackathon.ralphthon.org/team/team_add00134a8a42593df9afbcb4cc1/submissions — getTabContext 확인. 4항목, 실제 goal 원문, JSONL 1개/추가 ZIP, 공개 링크3개·최대5p 발표자료. 이후 /guide 및 /criteria 실제 열람, RESEARCH.md에 반영. 최종 제출은 별도 승인.
 
 ## 실제 위임
 
@@ -23,3 +23,10 @@
 - baseline_audit: 코드·데이터·기존 검증 공백 감사 완료. BASELINE-AUDIT.md 검수 후 보강 항목 채택. 부모 모델 상속.
 - product_design_proposal: 3안/사용 흐름·UI·상태 경계 제안 완료. 부모 모델 상속.
 - design_challenge: 별도 새 문맥으로 반론 검수 완료. DESIGN-REVIEW.md의 최소 의미 메타데이터·home portal/dialog·AI 부분본 통제를 채택. 부모 모델 상속. 동시에 둘 이상의 실행 에이전트를 가동하지 않음.
+- build_product_entry: 첫 구현 및 자체검사 완료, 총괄 diff·브라우저 독립 검수 후 389f0cd로 기록. 부모 모델 상속.
+- build_review_semantics: 위 인계 완료 뒤 새 에이전트에 최소 엔진 의미표시·기본 결과 위계 구현 위임. 부모 모델 상속. 모델 교체·실행 에이전트 병렬화 없음.
+
+- D010 2026-09-21: 의미 분류 중간 diff를 총괄 검수한 결과, 격자 경사와 buffer 추정이 '확인된 제약'에 포함되면 출처 배지가 있어도 실제 제약을 확인한 것으로 오해할 수 있음. 개발 에이전트와 검토하여 추정은 미확인 조건으로 이동하고, 직접구역 hit와 buffer 추정이 혼재하면 기존 제한 요약 분기 안에서 둘을 구분하기로 결정. 실제 점수·제한 상한·기존 restriction 결과는 변경하지 않는다. 회귀 기대값을 먼저 추가해 검증한다.
+- D011: 단계2 별도 총괄 검수에서 auto source와 실제 zoning 값이 불일치할 때 available은 unknown인데 issue.basis/detail은 public_data/공개조회로 남는 경계 발견. 정상 UI의 matching 입력만으로 이 계약을 완결됐다고 보지 않고 새 fix_source_integrity 담당에 단일 source 해석·경계 테스트 수정 위임. 계산은 보존한다.
+- fix_source_integrity: 실제 모델 gpt-5.6-terra, reasoning high, 새 독립 문맥. bounded TypeScript 출처 정합성·회귀 수정은 코딩 적합성과 비용/응답속도를 고려해 이 모델을 선택하고 총괄이 별도 검수한다. 다른 실행 에이전트는 종료된 뒤 시작했다. 이전 단계 모델 전환을 소급하여 기록하지 않는다.
+- D012 2026-09-21: 용도지역 공개조회 표시는 source enum만으로 추정하지 않는다. auto·조회 성공·조회값과 적용값 일치·적용값 non-unknown을 단일 해석에서 모두 만족할 때만 public_data/공개 조회로 표시하고, 수동은 user_input/사용자 입력, 나머지는 unverified/출처 미확인으로 통일한다. 점수·감점·제한·등급·산식과 후보 source 전달은 보존한다. 정상 주거지역 auto fixture에는 실제 일치 zoning값을 넣고, 불일치 fixture는 unverified를 검증한다.

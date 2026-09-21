@@ -150,7 +150,19 @@ describe('ARIA integration across summary surfaces', () => {
     expect(rendered.result.composite.score).toBeNull();
   });
 
-  it('shows the base score without detailed design conditions', () => {
+  it('keeps a manual ordinance review out of the confirmed-constraint section despite an E score', () => {
+    const sc = loadScenarios().find(s => s.id === 'incheon-residential')!;
+    const rendered = renderSurfaces({ ...base, lat: sc.lat, lng: sc.lng, landUse: sc.landUse, landUseSource: 'manual' });
+    const beforeUnknowns = rendered.overview.split('미확인 조건 <small>')[0];
+    expect(beforeUnknowns).toContain('현재 확인된 자료에서 제약 항목이 없습니다');
+    expect(beforeUnknowns).not.toContain('조례상 입지 제한 검토');
+    expect(rendered.overview).toContain('입력조건 검토');
+    expect(rendered.overview).toContain('조례상 입지 제한 검토');
+    expect(rendered.overview).toContain('사용자 입력·기록');
+    expect(rendered.overview).not.toContain('중대 제약 확인');
+  });
+
+  it('shows supply unknowns first and retains the base score in a closed optional detail', () => {
     const rendered = renderSurfaces({
       ...base,
       conditions: emptyConditions(),
@@ -168,12 +180,17 @@ describe('ARIA integration across summary surfaces', () => {
       },
     });
     expect(rendered.result.composite.score).not.toBeNull();
-    expect(rendered.overview).toContain('공개자료 기반 참고점수');
+    expect(rendered.overview).toContain('공개자료·입력값 기반 참고점수');
+    expect(rendered.overview).toContain('<details class="review-reference-score">');
+    expect(rendered.overview.indexOf('다음 확인사항')).toBeLessThan(rendered.overview.indexOf('공개자료·입력값 기반 참고점수'));
+    const primarySummary = rendered.overview.split('<details class="review-all-actions">')[0];
+    for (const label of ['전력 공급조건 확인', '용수 공급조건 확인', '통신 공급조건 확인']) expect(primarySummary).toContain(label);
     expect(rendered.overview).toContain('왜 이 점수인가요?');
     expect(rendered.overview).toContain('주요 감점 요인');
     expect(rendered.overview).toContain('상세 설계 · 선택');
     expect(rendered.overview).toContain('선택 미입력');
-    expect(rendered.overview).not.toContain('면적 계산 보류');
+    expect(primarySummary).not.toContain('면적 계산 보류');
+    expect(rendered.overview).toContain('기준일·자료 범위·한계');
     for (const report of rendered.reports) {
       for (const title of ['면적 계산 보류', '사업비 범위 확인', '금융비용 계산 보류', '전력 공급조건 확인']) expect(report).toContain(title);
     }

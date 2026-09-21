@@ -215,9 +215,13 @@ export interface EvidenceItem {
 }
 
 export interface ReviewIssue {
+  id: string;
+  category: 'confirmed_constraint' | 'unknown' | 'input_condition';
+  basis: 'public_data' | 'public_estimate' | 'user_input' | 'calculation' | 'unverified';
   title: string;
   detail: string;
   tone: 'risk' | 'caution';
+  nextAction: string;
 }
 
 export interface PermitDelayStat {
@@ -566,6 +570,8 @@ export interface ScoreInput {
   lat: number;
   lng: number;
   landUse: LandUse;
+  /** Omitted legacy values have an unknown source, even when zoning evidence exists. */
+  landUseSource?: LandUseSource;
   /** Legacy input accepted by saved scenario scripts; never interpreted as a debt balance. */
   projectType?: ProjectType;
   capexKrw?: number;
@@ -636,6 +642,7 @@ export interface ScoreResult {
       tone: 'risk' | 'caution' | 'good';
       reason: string;
       issues: ReviewIssue[];
+      actions: string[];
     };
   };
   emd: {

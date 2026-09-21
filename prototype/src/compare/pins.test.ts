@@ -72,6 +72,21 @@ describe('togglePin / removePin', () => {
 });
 
 describe('common assumptions and separate site conditions', () => {
+  it('passes the saved land-use source explicitly and produces the same review as the current input', () => {
+    const sc = scenarios.find(s => s.id === 'incheon-residential')!;
+    const p = pin(sc.lat, sc.lng, sc.landUse);
+    p.zoning = { found: true, layer: 'test', name: '주거지역', landUse: sc.landUse, all: [] };
+    for (const manual of [sc.landUse, null]) {
+      p.manualLandUse = manual;
+      const input = toScoreInput(p, project);
+      const landUseSource = manual === null ? 'auto' : 'manual';
+      expect(input.landUseSource).toBe(landUseSource);
+      expect(scoreSite(input, data).review).toEqual(scoreSite({ ...input, landUseSource }, data).review);
+      expect(scoreSite(input, data).review.issues.find(i => i.id === 'land-use.ordinance')?.basis).toBe(manual === null ? 'public_data' : 'user_input');
+    }
+    p.zoning = null;
+    expect(toScoreInput(p, project).landUseSource).toBe('unknown');
+  });
   it('applies project changes without replacing site costs, area or evidence', () => {
     const sc = scenarios[2];
     const p = pin(sc.lat, sc.lng, sc.landUse);

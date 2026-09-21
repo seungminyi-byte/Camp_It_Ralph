@@ -16,9 +16,18 @@ const row = (key: string, at = input, d = data) =>
   rowsFor(at, d).find((r) => r.key === key)!;
 describe('evidence report without AI', () => {
   it('includes area, finance and consultations in a deterministic complete checklist', () => {
+    expect(CHECKLIST_KEYS).toHaveLength(18);
     expect(rowsFor().map((r) => r.key)).toEqual([...CHECKLIST_KEYS]);
     expect(rowsFor().every((r) => r.evidence.length > 0)).toBe(true);
     expect(row('cost.finance').evidence).toContain('계산 가정');
+  });
+  it('keeps all 18 report items and the manual source beside the same engine review', () => {
+    const at: ScoreInput = { ...input, landUse: 'residential', landUseSource: 'manual' };
+    const result = scoreSite(at, data);
+    const rows = buildChecklist(result, data, { input: at, landUseSource: at.landUseSource!, zoningName: null });
+    expect(rows.map(r => r.key)).toEqual([...CHECKLIST_KEYS]);
+    expect(rows.find(r => r.key === 'permit.landUse')?.evidence).toContain('사용자 선택');
+    expect(result.review.overview.issues.map(i => i.id)).toEqual(expect.arrayContaining(['supply.power', 'supply.water', 'supply.telecom']));
   });
   it('keeps absent news distinct from a collected zero and has no acceptance deduction', () => {
     expect(

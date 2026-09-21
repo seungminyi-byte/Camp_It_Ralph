@@ -1,0 +1,253 @@
+
+ RUN  v4.1.11 C:/Users/nanac/Documents/Codex/2026-09-21/goal-gs-dc-vercel-1-gs/work/Camp_It_Ralph/prototype
+
+ ❯ src/report/checklist.test.ts (6 tests | 1 failed) 203ms
+     × keeps all 18 report items and the manual source beside the same engine review 14ms
+ ❯ src/compare/pins.test.ts (9 tests | 1 failed) 242ms
+     × passes the saved land-use source explicitly and produces the same review as the current input 8ms
+ ❯ src/scoring/engine.test.ts (44 tests | 9 failed) 796ms
+     × 초기 요약은 선택 면적·비용 미입력을 생략하되 공급 미확인은 항상 보존한다 71ms
+     × 조례 검토의 manual 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다 9ms
+     × 조례 검토의 auto 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다 9ms
+     × 조례 검토의 undefined 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다 9ms
+     × 번들 제한은 실시간 조회 실패에도 유지되고 실패와 별개의 항목으로 남는다 9ms
+     × 재해 해당은 검토 대상 사실이며 인허가 확정이나 E 상한을 만들지 않는다 9ms
+     × 국가유산 추정 범위는 추정 근거와 경계 확인 행동을 보존한다 9ms
+     × 행동은 제약, 필수 미확인, 입력조건 순이고 같은 항목의 행동을 재사용한다 10ms
+     × 유효한 협의 기록도 사용자 확인이며 기관 확약을 검증한 결과로 쓰지 않는다 11ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/compare/pins.test.ts > common assumptions and separate site conditions > passes the saved land-use source explicitly and produces the same review as the current input
+AssertionError: expected undefined to be 'manual' // Object.is equality
+
+- Expected:
+"manual"
+
++ Received:
+undefined
+
+ ❯ src/compare/pins.test.ts:83:35
+     81|       const input = toScoreInput(p, project);
+     82|       const landUseSource = manual === null ? 'auto' : 'manual';
+     83|       expect(input.landUseSource).toBe(landUseSource);
+       |                                   ^
+     84|       expect(scoreSite(input, data).review).toEqual(scoreSite({ ...inp…
+     85|       expect(scoreSite(input, data).review.issues.find(i => i.id === '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/report/checklist.test.ts > evidence report without AI > keeps all 18 report items and the manual source beside the same engine review
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ src/report/checklist.test.ts:29:66
+     27|     const rows = buildChecklist(result, data, { input: at, landUseSour…
+     28|     expect(rows.map(r => r.key)).toEqual([...CHECKLIST_KEYS]);
+     29|     expect(rows.find(r => r.key === 'permit.landuse')?.evidence).toCon…
+       |                                                                  ^
+     30|     expect(result.review.overview.issues.map(i => i.id)).toEqual(expec…
+     31|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 사업조건 면적·비용 > 초기 요약은 선택 면적·비용 미입력을 생략하되 공급 미확인은 항상 보존한다
+AssertionError: expected [] to deeply equal [ Array(3) ]
+
+- Expected
++ Received
+
+- [
+-   "supply.power",
+-   "supply.water",
+-   "supply.telecom",
+- ]
++ []
+
+ ❯ src/scoring/engine.test.ts:45:93
+     43|       expect(r.review.actions.some(action => action.startsWith(title))…
+     44|     }
+     45|     expect(r.review.overview.issues.filter(i => i.id.startsWith('suppl…
+       |                                                                                             ^
+     46|       'supply.power', 'supply.water', 'supply.telecom',
+     47|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 조례 검토의 manual 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다
+AssertionError: expected undefined to match object { category: 'input_condition', …(1) }
+
+- Expected:
+{
+  "basis": "user_input",
+  "category": "input_condition",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:218:19
+    216|     const r = scoreSite({ ...input(sc.lat, sc.lng), landUse: sc.landUs…
+    217|     const issue = r.review.overview.issues.find(i => i.id === 'land-us…
+    218|     expect(issue).toMatchObject({
+       |                   ^
+    219|       category: 'input_condition',
+    220|       basis: landUseSource === 'manual' ? 'user_input' : landUseSource…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 조례 검토의 auto 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다
+AssertionError: expected undefined to match object { category: 'input_condition', …(1) }
+
+- Expected:
+{
+  "basis": "public_data",
+  "category": "input_condition",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:218:19
+    216|     const r = scoreSite({ ...input(sc.lat, sc.lng), landUse: sc.landUs…
+    217|     const issue = r.review.overview.issues.find(i => i.id === 'land-us…
+    218|     expect(issue).toMatchObject({
+       |                   ^
+    219|       category: 'input_condition',
+    220|       basis: landUseSource === 'manual' ? 'user_input' : landUseSource…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 조례 검토의 undefined 출처를 보존하고 법적 제약 확정으로 바꾸지 않는다
+AssertionError: expected undefined to match object { category: 'input_condition', …(1) }
+
+- Expected:
+{
+  "basis": "unverified",
+  "category": "input_condition",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:218:19
+    216|     const r = scoreSite({ ...input(sc.lat, sc.lng), landUse: sc.landUs…
+    217|     const issue = r.review.overview.issues.find(i => i.id === 'land-us…
+    218|     expect(issue).toMatchObject({
+       |                   ^
+    219|       category: 'input_condition',
+    220|       basis: landUseSource === 'manual' ? 'user_input' : landUseSource…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 번들 제한은 실시간 조회 실패에도 유지되고 실패와 별개의 항목으로 남는다
+AssertionError: expected undefined to match object { …(2) }
+
+- Expected:
+{
+  "basis": "public_data",
+  "category": "confirmed_constraint",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:229:83
+    227|   it('번들 제한은 실시간 조회 실패에도 유지되고 실패와 별개의 항목으로 남는다', () => {
+    228|     const r = scoreSite({ ...input(37.66, 126.98), restrictions: null,…
+    229|     expect(r.review.overview.issues.find(i => i.id === 'restriction.pr…
+       |                                                                                   ^
+    230|     expect(r.review.overview.issues.find(i => i.id === 'evidence.missi…
+    231|     expect(r.review.overview.label).toBe('중대 제약 확인');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 재해 해당은 검토 대상 사실이며 인허가 확정이나 E 상한을 만들지 않는다
+AssertionError: expected undefined to match object { …(2) }
+
+- Expected:
+{
+  "basis": "public_data",
+  "category": "confirmed_constraint",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:237:73
+    235|   it('재해 해당은 검토 대상 사실이며 인허가 확정이나 E 상한을 만들지 않는다', () => {
+    236|     const r = evaluate({ disaster: { ...input().disaster!, found: true…
+    237|     expect(r.review.overview.issues.find(i => i.id === 'disaster.hit')…
+       |                                                                         ^
+    238|     expect(r.review.overview.label).not.toBe('중대 제약 확인');
+    239|     expect(r.review.overview.actions[0]).toContain('관할기관');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 국가유산 추정 범위는 추정 근거와 경계 확인 행동을 보존한다
+AssertionError: expected undefined to match object { …(2) }
+
+- Expected:
+{
+  "basis": "public_estimate",
+  "category": "confirmed_constraint",
+}
+
++ Received:
+undefined
+
+ ❯ src/scoring/engine.test.ts:246:19
+    244|     const r = evaluate({ restrictions: { hits: [{ layer: 'LT_C_UO301',…
+    245|     const issue = r.review.overview.issues.find(i => i.id === 'restric…
+    246|     expect(issue).toMatchObject({ category: 'confirmed_constraint', ba…
+       |                   ^
+    247|     expect(issue?.detail).toContain('추정');
+    248|     expect(issue?.nextAction).toContain('경계');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 행동은 제약, 필수 미확인, 입력조건 순이고 같은 항목의 행동을 재사용한다
+AssertionError: expected 1 to be 10 // Object.is equality
+
+- Expected
++ Received
+
+- 10
++ 1
+
+ ❯ src/scoring/engine.test.ts:254:58
+    252|     const r = scoreSite({ ...input(37.66, 126.98), restrictions: null,…
+    253|     const items = r.review.overview.issues;
+    254|     expect(new Set(r.review.issues.map(i => i.id)).size).toBe(r.review…
+       |                                                          ^
+    255|     expect(r.review.overview.actions).toEqual(items.map(i => `${i.titl…
+    256|     const groups = items.map(i => i.category);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  src/scoring/engine.test.ts > 요약의 의미·출처·다음 행동 > 유효한 협의 기록도 사용자 확인이며 기관 확약을 검증한 결과로 쓰지 않는다
+AssertionError: expected [] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
+-   "supply.water",
+-   "supply.telecom",
+- ]
++ []
+
+ ❯ src/scoring/engine.test.ts:268:53
+    266|     expect(r.review.overview.issues.map(i => i.id)).not.toContain('sup…
+    267|     expect(r.conditions.consultations.power).toEqual(c.consultations.p…
+    268|     expect(r.review.overview.issues.map(i => i.id)).toEqual(expect.arr…
+       |                                                     ^
+    269|   });
+    270| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  11 failed | 48 passed (59)
+   Start at  17:01:09
+   Duration  1.25s (transform 282ms, setup 0ms, import 875ms, tests 1.24s, environment 0ms)
+

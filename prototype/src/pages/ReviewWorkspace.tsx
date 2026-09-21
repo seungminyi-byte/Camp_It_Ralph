@@ -97,6 +97,7 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
       lat: site.lat,
       lng: site.lng,
       landUse,
+      landUseSource,
       project,
       conditions,
       zoning: zoningLookup,
@@ -107,6 +108,7 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
     data,
     site,
     landUse,
+    landUseSource,
     project,
     conditions,
     zoningLookup,
@@ -424,7 +426,11 @@ export default function ReviewWorkspace({ active, onHome }: Props) {
                 <span>
                   {landUse === 'unknown'
                     ? '용도지역 미확인'
-                    : '용도지역 확인됨'}
+                    : landUseSource === 'manual'
+                      ? '사용자 선택 적용'
+                      : landUseSource === 'auto'
+                        ? '공개 조회값 적용'
+                        : '출처 확인 필요'}
                 </span>
               </summary>
               <SitePanel
