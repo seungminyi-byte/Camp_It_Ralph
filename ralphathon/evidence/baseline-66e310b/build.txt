@@ -1,0 +1,14 @@
+
+> prototype@0.0.0 build
+> tsc -b && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 100 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.53 kB │ gzip:   0.39 kB
+dist/assets/index-yjxvgu6R.css   72.09 kB │ gzip:  19.25 kB
+dist/assets/index-KZP5-_rP.js   467.81 kB │ gzip: 145.08 kB
+
+✓ built in 905ms
