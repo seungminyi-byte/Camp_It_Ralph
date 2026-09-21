@@ -46,7 +46,7 @@
 | R40 | 외부자료/AI 안전한 표시·비밀키 노출 방지 | DOM/URL sanitization 악성 fixture·번들/추적파일/log 비밀 스캔 | verified: 안전DOM/URL·제품번들/선별파일검사 및11제출사본전행재스캔0·원문SHA표식대조;모든비밀형식부재보장아님 |
 | R41 | 발견 취약점 사용 경로·영향별 조치 | 구체적 재현/심각도/수정/재검증, 미해결 경계 | verified: 03~09실제사용경로반례→수정→검수;Edge리디렉션거부경계유지와운영기본조회복구 |
 | R42 | 새 폴더에서 문서만으로 설치·빌드·실행 | 깨끗한 재현 clone/log, 환경/설정 비밀 복제 없음 | verified:09새폴더/별도node_modules·Chromium·11명령0·551/17·IAB실행;이후새의존성없음/최종563 |
-| R43 | 작업 브랜치·PR 통한 반영·기존 권한 Vercel 배포 | PR 검토/병합·Actions 성공·배포 커밋/Ready/alias | verified: PR7/8/9정확head/최신base/merge·Actions35605415209 success·VercelReady/alias bb18284 |
+| R43 | 작업 브랜치·PR 통한 반영·기존 권한 Vercel 배포 | PR 검토/병합·Actions 성공·배포 커밋/Ready/alias | verified: PR7/8/9 제품배포검수·PR10문서147파일병합/원격대조;제품bb18284의Ready/alias유지 |
 | R44 | 실제 배포 화면·핵심 API 본문·비로그인 공개 링크 | 독립 비로그인 확인·각 API 응답 상태+본문 의미 검증 | verified: 09최종34공개파일·익명UI16·실제7API본문상태와동일10소스;기본6성공/AI실패를구분 |
 | R45 | 공개 웹서비스와 GitHub 저장소 제공 | 사용자용 링크·repository 상태/접근범위, 공개 전환 승인 경계 | verified: 공개grand-site-dc.vercel.app 비로그인확인·GitHub private접근범위명시/설정유지 |
 | R46 | 최대5페이지 발표자료·5분 대본 | 편집 PPTX/PDF·전페이지 렌더·대본 낭독/분량·검증 기능 일치 | verified: 편집PPTX5·PowerPoint네이티브PDF5·300초구성대본,root47검사·전5쪽;실제인간낭독미측정 명시 |
@@ -60,9 +60,9 @@
 | R54 | 로그인·결제·협업 백엔드·대규모 데이터 수집 제외 | diff·네트워크/데이터 작업 기록 | verified: 최종제품diff·작업내역에서범위외로그인/결제/협업백엔드/대규모수집추가없음 |
 | R55 | 사실/가정/미확인 구별, 공급/인허가/적합·절감효과 단정 금지 | 제품·보고서·AI·발표 문구 검수 및 대표 반례 | verified: 제품/보고서/AI/소개 및10 발표/대본에서 사실·합성조건·미확인/공급·허가/미측정절감 구분 |
 | R56 | GS/Team Attention 행사·OpenAI Goal/Subagents 공식 자료 참조 | 읽은 공식 자료 URL/시점/적용·미확인 조건 기록 | verified: 조사01 §9 공식GS/현행Ralphthon·TeamAttention공개자료·OpenAI Goal/Subagents참조;인증된팀별최신공지미확인 |
-| R57 | 목표 원문·단계 기준·결정·증거·남은 일 파일 유지 | ralphathon 최신성·원문 해시·압축복구 검증 | verified: 목표원문SHA·60행·G020·최종근거/로그/인계갱신;문서원격반영은마지막배포확인절차 |
-| R58 | 9/22 10:00 KST 미완료이면 안전정리·pause·상태 보고 | 단계 시각/잔여·마감 get_goal/update_goal 반환 상태 | conditional: 마감2026-09-22 10:00 전완료예정;미완료시pause지침유지,조기종료시발동안함 |
-| R59 | 모두 완료 시 조기 종료, 미완료 허위 완료 금지 | 행별 evidence 직접 감사 후 complete 또는 시한 pause | pending: 필수산출물검수완료;최종문서PR병합/원격대조후Goal complete 도구결과로종료확정 |
+| R57 | 목표 원문·단계 기준·결정·증거·남은 일 파일 유지 | ralphathon 최신성·원문 해시·압축복구 검증 | verified: 원문SHA·최종60행·G001~G021·단계근거/실제로그·전달문서/완료검수 최신화 |
+| R58 | 9/22 10:00 KST 미완료이면 안전정리·pause·상태 보고 | 단계 시각/잔여·마감 get_goal/update_goal 반환 상태 | not_applicable: 2026-09-21 23시대 필수검수완료로9/22 10시미완료조건불성립;마감후허위완료/자동연장없음 |
+| R59 | 모두 완료 시 조기 종료, 미완료 허위 완료 금지 | 행별 evidence 직접 감사 후 complete 또는 시한 pause | verified: 실행자14개완료·60행독립감사·533검사/원문로그/PR10병합·Ready연속성에근거해G021조기종료결정;앱Goal도구반환은최종답변참조 |
 | R60 | 데모·데모영상·포스터 범위 밖 | 산출물 목록에 포함하지 않음 | verified: 별도데모/데모영상/포스터를산출물에추가하지않음 |
 
 ## 주요 시나리오의 독립 기대값

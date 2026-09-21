@@ -1,13 +1,13 @@
 {
-  "at": "2026-09-21T23:13:25.323832+09:00",
+  "at": "2026-09-21T23:17:45.396253+09:00",
   "files": [
     {
       "output": "START_HERE.md",
       "repository": "ralphathon/deliverables/START_HERE.md",
-      "source_bytes": 2744,
-      "source_sha256": "5caafcf4a06be1113fd2680693491c3937564134dd1b597a8ae3980b42082fc8",
-      "copy_bytes": 2898,
-      "copy_sha256": "e31341d6635aba8d220fb552b21a873782ce4f1d13847a94da772d1483495bcf",
+      "source_bytes": 2830,
+      "source_sha256": "7d58cd02b0ee793a8b62c0c75610f082817dbf4cee13515523da5a99d11ceef7",
+      "copy_bytes": 2984,
+      "copy_sha256": "aee3a9a6b120a923aec50556192e45d7a38948234c5205b859053d20cc9cd4f7",
       "transformation": "replace ZIP link with repository-local handoff note; add no-raw-log notice",
       "byte_equal": false
     },
@@ -232,6 +232,26 @@
       "byte_equal": true
     },
     {
+      "output": "final-audit/requirements-final.json",
+      "repository": "ralphathon/deliverables/final-audit/requirements-final.json",
+      "source_bytes": 22990,
+      "source_sha256": "61f99ffbd7caef8772571408f954353353555dfe537f68b67b672679c7edfdc2",
+      "copy_bytes": 22990,
+      "copy_sha256": "61f99ffbd7caef8772571408f954353353555dfe537f68b67b672679c7edfdc2",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
+      "output": "final-audit/완료검수.md",
+      "repository": "ralphathon/deliverables/final-audit/완료검수.md",
+      "source_bytes": 3129,
+      "source_sha256": "2fa456d3dea6623b0583d1613c5ff96bf2bac5bcd78d3ec365a4de8e561dd60d",
+      "copy_bytes": 3129,
+      "copy_sha256": "2fa456d3dea6623b0583d1613c5ff96bf2bac5bcd78d3ec365a4de8e561dd60d",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
       "output": "final-audit/총괄수락.md",
       "repository": "ralphathon/deliverables/final-audit/총괄수락.md",
       "source_bytes": 2263,
@@ -248,6 +268,16 @@
       "source_sha256": "a41496674c456a6a76680e1688c9a7d65b60b7476a14e0cceb02e7d134673bd2",
       "copy_bytes": 782,
       "copy_sha256": "a41496674c456a6a76680e1688c9a7d65b60b7476a14e0cceb02e7d134673bd2",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
+      "output": "final-audit/evidence/root-final-server-cleanup.json",
+      "repository": "ralphathon/deliverables/final-audit/evidence/root-final-server-cleanup.json",
+      "source_bytes": 246,
+      "source_sha256": "df3563f3053ebb286c88d57f7eaf0a56e5ac4770e795fbb1daf73b2a21dc874c",
+      "copy_bytes": 246,
+      "copy_sha256": "df3563f3053ebb286c88d57f7eaf0a56e5ac4770e795fbb1daf73b2a21dc874c",
       "transformation": null,
       "byte_equal": true
     },
@@ -308,6 +338,16 @@
       "source_sha256": "65a0835f6a0afc0b43f14fc6c4221c4da7ec335c3d8e0d64ec2d35c1e283c6ae",
       "copy_bytes": 418,
       "copy_sha256": "65a0835f6a0afc0b43f14fc6c4221c4da7ec335c3d8e0d64ec2d35c1e283c6ae",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
+      "output": "final-audit/evidence/root-11-precommit-review.json",
+      "repository": "ralphathon/deliverables/final-audit/evidence/root-11-precommit-review.json",
+      "source_bytes": 7038,
+      "source_sha256": "5b752d959fafea07bfe18e0c0fc756f6ce9bb77dbc12cac392b82cb3f38980a0",
+      "copy_bytes": 7038,
+      "copy_sha256": "5b752d959fafea07bfe18e0c0fc756f6ce9bb77dbc12cac392b82cb3f38980a0",
       "transformation": null,
       "byte_equal": true
     },
@@ -512,6 +552,16 @@
       "byte_equal": true
     },
     {
+      "output": "final-audit/evidence/root-final-remote-verification.json",
+      "repository": "ralphathon/deliverables/final-audit/evidence/root-final-remote-verification.json",
+      "source_bytes": 1153,
+      "source_sha256": "b4d90525937da8de5edf3aa0414d13fb3a10184d8ed4c6abb3a1614d7724e824",
+      "copy_bytes": 1153,
+      "copy_sha256": "b4d90525937da8de5edf3aa0414d13fb3a10184d8ed4c6abb3a1614d7724e824",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
       "output": "final-audit/evidence/root-08-pdf-final.json",
       "repository": "ralphathon/deliverables/final-audit/evidence/root-08-pdf-final.json",
       "source_bytes": 5980,
@@ -538,6 +588,16 @@
       "source_sha256": "14d9c812068f08b07d36995c45e004a9a2233c7c56ee0cc102c4982c5ed01a57",
       "copy_bytes": 16176,
       "copy_sha256": "14d9c812068f08b07d36995c45e004a9a2233c7c56ee0cc102c4982c5ed01a57",
+      "transformation": null,
+      "byte_equal": true
+    },
+    {
+      "output": "final-audit/evidence/root-final-pr10-merged.json",
+      "repository": "ralphathon/deliverables/final-audit/evidence/root-final-pr10-merged.json",
+      "source_bytes": 251,
+      "source_sha256": "f38dfb9d1b9c3886d3b57a12bb06ead5f6988eb96d82d5abc11a93d9a478241a",
+      "copy_bytes": 251,
+      "copy_sha256": "f38dfb9d1b9c3886d3b57a12bb06ead5f6988eb96d82d5abc11a93d9a478241a",
       "transformation": null,
       "byte_equal": true
     },
@@ -605,8 +665,8 @@
   "zip_excluded": true,
   "original_photos_unchanged": true,
   "link_checks": {
-    "outputs": 232,
-    "repository": 235,
+    "outputs": 238,
+    "repository": 241,
     "pass": true
   }
 }
