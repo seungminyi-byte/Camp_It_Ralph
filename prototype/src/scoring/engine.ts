@@ -318,6 +318,10 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     ? {
         level: 'unknown',
         hits: [],
+        scoringHits: [],
+        requiresLegalReview: false,
+        mapping: rCfg.heritageMapping ?? null,
+        fetchedAt: null,
         checked: { bundled: false, vworld: 'none' },
       }
     : lookupRestrictions(
@@ -331,14 +335,14 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     restriction.level === 'prohibited' ||
     restriction.level === 'conditional'
   ) {
-    // One deduction per site at the highest level; the evidence still lists every hit.
+    // One deduction per site; non-scoring observations are never penalty evidence.
     deductions.push({
       label: RESTRICTION_DEDUCTION_LABEL[restriction.level],
       points:
         restriction.level === 'prohibited'
           ? rCfg.prohibitedDeduction
           : rCfg.conditionalDeduction,
-      evidence: describeRestrictionHits(restriction.hits),
+      evidence: describeRestrictionHits(restriction.scoringHits.filter(h => h.level === restriction.level)),
       anchor:
         restriction.level === 'prohibited'
           ? '자연공원법·수도법·개발제한구역법 등 법정 구역은 해제·지정 변경 없이는 신축 불가 — 스크리닝 판정이며 고시 도면 확인 필요'
@@ -501,6 +505,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
     !!terrainSample &&
     restriction.checked.bundled &&
     restriction.checked.vworld === 'ok' &&
+    !restriction.requiresLegalReview &&
     disaster.status !== 'unknown';
   const evidence = Object.entries(scoring.evidence).map(([key, meta]) => {
     const availability: Record<string, boolean> = {
@@ -511,7 +516,7 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
       schools: !!nearestSchool,
       zoning: input.landUse !== 'unknown',
       restrictions:
-        restriction.checked.bundled && restriction.checked.vworld === 'ok',
+        restriction.checked.bundled && restriction.checked.vworld === 'ok' && !restriction.requiresLegalReview,
       disaster: disaster.status !== 'unknown',
       terrain: !!terrainSample,
       news: !!newsSignal,
@@ -589,12 +594,18 @@ export function scoreSite(input: ScoreInput, data: AppData): ScoreResult {
   if (restriction.level === 'prohibited')
     add(
       '법적 입지 제한 구역',
-      describeRestrictionHits(restriction.hits) +
+      describeRestrictionHits(restriction.scoringHits.filter(h => h.level === 'prohibited')) +
         ' · 고시 도면·토지이용계획확인서 확인 필요',
       'risk',
     );
   else if (restriction.level === 'conditional')
-    add('규제구역 검토 필요', describeRestrictionHits(restriction.hits));
+    add('규제구역 검토 필요', describeRestrictionHits(restriction.scoringHits));
+  if (restriction.requiresLegalReview)
+    add('국가유산 관련 확인 필요',
+      '국가유산 관련 법적 적용 확인 필요 · 인허가·종합 참고점수 미산정. ' +
+      describeRestrictionHits(restriction.hits.filter(h => h.level === 'review')));
+  if (restriction.hits.some(h => h.level === 'reference'))
+    add('국가유산 주변 조회 · 참고', describeRestrictionHits(restriction.hits.filter(h => h.level === 'reference')));
   if (deductions.some((d) => d.label === '조례상 입지 불가'))
     add(
       '조례상 입지 제한 검토',

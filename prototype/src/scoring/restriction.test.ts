@@ -21,8 +21,8 @@ const CFG: Cfg = {
     park: { level: 'prohibited', law: 'law-park' },
     band: { level: 'conditional', law: 'law-band' },
     gb: { level: 'prohibited', law: 'law-gb' },
-    heritage: { level: 'prohibited', law: 'law-heritage' },
-    heritageBuffer: { level: 'conditional', law: 'law-heritage-buffer' },
+    heritage: { level: 'review', law: 'law-heritage' },
+    heritageBuffer: { level: 'reference', law: 'law-heritage-buffer' },
     agri: { level: 'prohibited', law: 'law-agri' },
     agriProtect: { level: 'conditional', law: 'law-agri-protect' },
   },
@@ -132,7 +132,7 @@ describe('classifyVworldHits', () => {
     ]);
   });
 
-  it('a buffered hit only counts when the same layer did not hit directly', () => {
+  it('direct and nearby observations remain distinct without feature identity', () => {
     const bufferedOnly = classifyVworldHits(lookup([{ layer: 'LT_C_UO301', name: null, buffered: true }]), CFG);
     expect(bufferedOnly.map((h) => h.type)).toEqual(['heritageBuffer']);
     expect(bufferedOnly[0].name).toBe('heritageBuffer');
@@ -143,7 +143,9 @@ describe('classifyVworldHits', () => {
       ]),
       CFG,
     );
-    expect(both.map((h) => h.type)).toEqual(['heritage']);
+    expect(both.map((h) => h.type)).toEqual(['heritage', 'heritageBuffer']);
+    expect(both.map((h) => h.level)).toEqual(['review', 'reference']);
+    expect(both.map((h) => h.relation)).toEqual(['direct', 'nearby']);
   });
 });
 

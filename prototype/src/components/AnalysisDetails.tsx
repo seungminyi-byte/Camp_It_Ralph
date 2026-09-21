@@ -112,13 +112,15 @@ export function AnalysisDetails({
           <b>
             {r.restriction.level === 'prohibited'
               ? '입지 제한 · E등급 상한'
-              : r.disaster.status === 'hit'
+              : r.restriction.requiresLegalReview
+                ? '국가유산 관련 확인 필요 · 미산정'
+                : r.disaster.status === 'hit'
                 ? '재해 검토 필요'
                 : `감점 ${permitDeduction}점`}
           </b>
         </summary>
         <div className="detail-body">
-          <p>{summarizeRestriction(r.restriction)}</p>
+          <p>{summarizeRestriction(r.restriction, true)}</p>
           <p>{summarizeDisaster(r.disaster)}</p>
           {r.disaster.status === 'hit' && (
             <p>{data.constants.scoring.disaster.reviewNote}</p>

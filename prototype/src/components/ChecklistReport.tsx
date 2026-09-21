@@ -69,6 +69,11 @@ export function ChecklistReport({
               법정 보호·규제구역 해당으로 E등급으로 제한
             </p>
           )}
+          {r.restriction.requiresLegalReview && (
+            <p>국가유산 관련 법적 적용 확인 필요 · 인허가·종합 참고점수 미산정
+              {r.restriction.level === 'prohibited' && ' · 다른 확인된 법적 입지 제한으로 E등급 상한 유지'}
+            </p>
+          )}
         </div>
         <h2>사업조건</h2>
         <p>

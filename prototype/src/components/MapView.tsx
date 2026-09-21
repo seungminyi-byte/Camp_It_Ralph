@@ -254,7 +254,7 @@ function ProtectedZoneLayer({
               {types[z.type]?.law ?? ''}
               <br />
               <span style={{ color: '#6b7280' }}>
-                {level === 'prohibited' ? '법적 입지 제한' : '검토 필요'} · 단순화 도형, 고시 도면 우선
+                {level === 'prohibited' ? '법적 입지 제한' : level === 'review' ? '국가유산 관련 확인 필요 · 감점 없음' : level === 'reference' ? '주변 참고 · 점수 반영 없음' : '검토 필요'} · 단순화 도형, 고시 도면 우선
               </span>
             </Popup>
           </Polygon>
@@ -612,7 +612,7 @@ export function MapView({ data, site, flyTo, highlightZoneIds, onSelect }: Props
         )}
         {showRestrictions && zoom >= VWORLD_MIN_ZOOM && !restrictionError && (
           <div className="max-w-[200px] border-t border-gray-200 pt-1 text-[11px] text-gray-500">
-            개발제한구역·상수원보호구역·국가유산 보호구역·농업진흥지역 (VWorld 기본 색상)
+            개발제한구역·상수원보호구역·국가유산 관련 도형·농업진흥지역 (VWorld 기본 색상). 국가유산 도형은 법적 적용 확인이 필요합니다.
           </div>
         )}
         {data.protectedZones && (

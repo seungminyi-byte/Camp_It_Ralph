@@ -153,13 +153,21 @@ export function buildChecklist(
     '법정 보호·규제구역',
     r.restriction.level === 'prohibited'
       ? 'risk'
-      : r.restriction.level === 'conditional'
+      : ['conditional', 'review', 'reference'].includes(r.restriction.level)
         ? 'caution'
         : r.restriction.checked.bundled && r.restriction.checked.vworld === 'ok'
           ? 'good'
           : 'na',
-    summarizeRestriction(r.restriction),
-    source('restrictions'),
+    summarizeRestriction(r.restriction, true),
+    [...new Set([
+      ...source('restrictions'),
+      ...(r.restriction.mapping && r.restriction.hits.some(h => h.level === 'review' || h.level === 'reference')
+        ? [r.restriction.mapping.vworldDocumentUrl] : []),
+      ...r.restriction.hits.flatMap(h => h.sourceIds ?? []).flatMap(id => {
+        const legalSource = r.restriction.mapping?.sources[id];
+        return legalSource ? [legalSource.url] : [];
+      }),
+    ])],
     r.permit.deductions.find(
       (x) =>
         x.label === '법적 입지 제한 구역' || x.label === '규제구역 검토 필요',

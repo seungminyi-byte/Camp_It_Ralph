@@ -3,7 +3,7 @@ export const config = { runtime: 'edge', regions: ['icn1'] };
 
 // Point lookup of the 법정 규제구역 layers VWorld publishes but that cannot be bundled (login-only or 변경금지
 // downloads): 개발제한구역, 상수원보호구역, 국가유산 지정/보호구역 (queried twice — on the point and with a buffer
-// for 역사문화환경 보존지역), 농업진흥지역, 도시자연공원구역. The response is raw hits; the scoring engine turns them
+// for nearby observations, not a statutory preservation boundary), 농업진흥지역, 도시자연공원구역. The response is raw hits; the scoring engine turns them
 // into a verdict through constants.scoring.restriction, so this route carries no scoring logic of its own.
 
 import { fetchVworld, jsonResponse, vworldEnv, vworldJson, vworldFeatures, vworldPageComplete, LOOKUP_VERSION, UPSTREAM_TIMEOUT_MS } from './_vworld.js';

@@ -364,10 +364,13 @@ export interface RestrictionLookup {
   failed: string[];
   /** true when every queried layer answered — only then is "no hit" evidence of absence */
   complete: boolean;
+  /** Actual search radius and transport time, distinct from legal/source dates. */
+  bufferM?: number;
+  fetchedAt?: string;
 }
 
 export type RestrictionLevel =
-  'prohibited' | 'conditional' | 'none' | 'unknown';
+  'prohibited' | 'conditional' | 'review' | 'reference' | 'none' | 'unknown';
 /** Which cap is in force on the composite grade (the strictest one, whether or not it lowered the grade). */
 export type CapReason = 'restriction';
 
@@ -375,11 +378,24 @@ export interface RestrictionHit {
   /** canonical type — a key of constants.scoring.restriction.types */
   type: string;
   name: string;
-  level: 'prohibited' | 'conditional';
+  rawName: string | null;
+  level: 'prohibited' | 'conditional' | 'review' | 'reference';
+  relation: 'direct' | 'nearby';
   law: string;
+  reviewNote?: string;
+  sourceIds?: string[];
+  bufferM?: number;
   source: 'bundled' | 'vworld';
   zoneId?: string;
   layer?: string;
+}
+
+export interface HeritageMapping {
+  mappingVersion: string;
+  legalReviewedAt: string;
+  vworldDocumentUpdatedAt: string;
+  vworldDocumentUrl: string;
+  sources: Record<string, { title: string; url: string; effectiveAt: string }>;
 }
 
 /** One protected-area polygon from protected_zones.json (p08_protected_zones.py). */
@@ -504,12 +520,13 @@ export interface Constants {
     restriction: {
       prohibitedDeduction: number;
       conditionalDeduction: number;
-      /** metres; the 국가유산 layer is queried again with this buffer for 역사문화환경 보존지역 */
+      /** Search radius in metres; this does not establish a statutory boundary. */
       heritageBufferM: number;
+      heritageMapping?: HeritageMapping;
       /** canonical zone type → verdict and the statute behind it; bundled zones and VWorld layers share it */
       types: Record<
         string,
-        { level: 'prohibited' | 'conditional'; law: string }
+        { level: RestrictionHit['level']; law: string; reviewNote?: string; sourceIds?: string[] }
       >;
       /** VWorld 2D Data API layer → canonical type; `buffered` names the type of the buffered query's hits */
       vworldLayers: Record<
@@ -517,7 +534,7 @@ export interface Constants {
         {
           type: string;
           buffered?: string;
-          nameRules?: { includes: string; type: string }[];
+          nameRules?: { includes?: string; equals?: string[]; type: string }[];
         }
       >;
     };
@@ -699,6 +716,10 @@ export interface ScoreResult {
   restriction: {
     level: RestrictionLevel;
     hits: RestrictionHit[];
+    scoringHits: RestrictionHit[];
+    requiresLegalReview: boolean;
+    mapping: HeritageMapping | null;
+    fetchedAt: string | null;
     checked: { bundled: boolean; vworld: 'ok' | 'partial' | 'none' };
   };
   composite: {
