@@ -1,3 +1,0 @@
-npm notice run prototype@0.0.0 lint
-npm notice run oxlint
-src/hooks/useNearbySites.ts:14:7: warning react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: site help: Either include it or remove the dependency array.

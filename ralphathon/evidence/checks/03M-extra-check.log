@@ -1,9 +1,0 @@
-
- RUN  v4.1.11 [WORKSPACE]/work/Camp_It_Ralph/prototype
-
-
- Test Files  1 passed (1)
-      Tests  30 passed (30)
-   Start at  18:28:45
-   Duration  383ms (transform 45ms, setup 0ms, import 94ms, tests 234ms, environment 0ms)
-
