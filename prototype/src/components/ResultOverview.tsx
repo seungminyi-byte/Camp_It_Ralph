@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react';
-import type { ScoreResult } from '../types';
+import type { ScoreResult, SiteSelection } from '../types';
 import { reviewGroups } from '../report/presentation';
 import { EvidenceList } from './ReviewFacts';
 export function ResultOverview({
   result: r,
   loading,
+  site,
   children,
 }: {
   result: ScoreResult;
   loading: boolean;
+  site?: SiteSelection;
   incomplete: boolean;
   missingEvidence: string[];
   children: ReactNode;
@@ -43,10 +45,27 @@ export function ResultOverview({
         </span>
       </div>
       <h2 tabIndex={-1}>
-        {r.emd && r.site.status !== 'outside'
-          ? `${r.emd.sigungu} ${r.emd.emd}`
+        {site?.label && /^가상\s*부지/.test(site.label) ? site.label : r.emd && r.site.status !== 'outside'
+          ? `${r.emd.emd} 내 선택 지점`
           : '선택 지점'}
       </h2>
+      <dl className="overview-key-findings" aria-label="핵심 발견">
+        <div><dt>확인된 제약</dt><dd>{groups.constraints[0]?.title ?? '현재 확인된 제약 없음 · 미확인 사항은 별도 확인'}</dd></div>
+        <div><dt>중요 미확인</dt><dd>{groups.unknowns[0]?.title ?? '추가 미확인 기록 없음 · 기관 확인 필요'}</dd></div>
+        <div><dt>다음 행동</dt><dd>{r.review.actions[0] ?? '담당 기관에 실제 공급·인허가 조건 확인'}</dd></div>
+      </dl>
+      {r.restriction.level === 'prohibited' && (
+        <p className="restriction-alert" role="status">
+          법정 보호·규제구역 해당으로 E등급으로 제한
+        </p>
+      )}
+      {r.restriction.requiresLegalReview && (
+        <p className="data-gap" role="status">
+          국가유산 관련 법적 적용 확인 필요 · 인허가·종합 참고점수 미산정
+          {r.restriction.level === 'prohibited' && ' · 다른 확인된 법적 입지 제한으로 E등급 상한 유지'}
+        </p>
+      )}
+      {score === null && <p className="overview-score-hold" role="status">필수 자료 확인 전 · 참고점수 미산정</p>}
       <div className="overview-score" aria-label="참고점수">
         <div className={`overview-grade tone-${scoreTone}`}>
           <strong>{grade ?? '—'}</strong>
@@ -58,10 +77,8 @@ export function ResultOverview({
             {score ?? (loading ? '조회 중' : '필수 자료 미확인')}
             {score !== null && <small> / 100</small>}
           </strong>
-          <p>
-            필요한 공개자료가 확인된 경우 산정합니다. 실제 공급과 사업 가능 여부는
-            면적·비용·공급조건을 포함한 후속 검토가 필요합니다.
-          </p>
+          {site?.source === 'emd' && <p className="centroid-note">읍면동 중심점 · 실제 후보 필지 미지정</p>}
+          <p>공개자료로 계산한 선택 지점의 참고점수입니다.</p>
         </div>
       </div>
       <div className="overview-score-breakdown">
@@ -102,22 +119,12 @@ export function ResultOverview({
           )}
         </div>
       )}
-      {r.restriction.level === 'prohibited' && (
-        <p className="restriction-alert" role="status">
-          법정 보호·규제구역 해당으로 E등급으로 제한
-        </p>
-      )}
-      {r.restriction.requiresLegalReview && (
-        <p className="data-gap" role="status">
-          국가유산 관련 법적 적용 확인 필요 · 인허가·종합 참고점수 미산정
-          {r.restriction.level === 'prohibited' && ' · 다른 확인된 법적 입지 제한으로 E등급 상한 유지'}
-        </p>
-      )}
+      <details className="overview-full-findings"><summary>제약·미확인·다음 행동 상세 보기</summary>
       <div className={`review-decision tone-${overview.tone}`}>
         <span>현재 검토 상태</span><strong>{overview.label}</strong><p>{overview.reason}</p>
       </div>
       <section className="overview-priorities" aria-label="주요 제약과 미확인">
-        <h3>확인된 주요 제약·검토 신호</h3>
+        <h3>확인된 주요 제약과 주의사항</h3>
         {groups.constraints.length ? <ul>{groups.constraints.map((issue, i) => <li key={i}><strong>{issue.title}</strong><p>{issue.detail}</p></li>)}</ul>
           : <p>현재 확인한 자료에서 주요 제약을 찾지 못했습니다. 미확인 자료의 제약 없음은 뜻하지 않습니다.</p>}
         <h3>중요한 미확인 사항</h3>
@@ -127,6 +134,7 @@ export function ResultOverview({
         <ol>{r.review.actions.slice(0, 3).map((action, i) => <li key={i}>{action}</li>)}</ol>
         {r.review.actions.length > 3 && <details><summary>전체 확인사항 {r.review.actions.length}개</summary><ol>{r.review.actions.map((action, i) => <li key={i}>{action}</li>)}</ol></details>}
       </section>
+      </details>
       {children}
       <details className="overview-evidence"><summary>근거 출처·기준일·범위 확인</summary><EvidenceList result={r} /></details>
       <details className="overview-reference-score"><summary>점수 계산 근거</summary>

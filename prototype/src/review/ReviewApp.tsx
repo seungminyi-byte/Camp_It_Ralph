@@ -41,6 +41,7 @@ import './workspace.css';
 import { useReviewSession } from './ReviewSession';
 import { usePinRefresh } from './usePinRefresh';
 import { useEvidenceClock } from './useEvidenceClock';
+import { exampleFromSearch, exampleInputs } from './examples';
 
 export default function ReviewApp() {
   const { data, error, retry, warnings } = useAppData();
@@ -53,10 +54,36 @@ export default function ReviewApp() {
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [workspaceView, setWorkspaceView] = useState<'result' | 'map'>('result');
+  const [expandedPane, setExpandedPane] = useState<'result' | 'map' | null>(null);
   const focusSelection = useRef(false);
   const [panelWidth, setPanelWidth] = useState(readPanelWidth);
   const panelScroll = useRef<HTMLDivElement>(null);
   const reportSection = useRef<HTMLDetailsElement>(null);
+  const [exampleRequest, setExampleRequest] = useState(() => ({ kind: exampleFromSearch(window.location.search), revision: 0 }));
+  const exampleLoaded = useRef(-1);
+  useEffect(() => {
+    const request = () => {
+      const kind = exampleFromSearch(window.location.search);
+      if (kind) setExampleRequest(previous => ({ kind, revision: previous.revision + 1 }));
+    };
+    window.addEventListener('popstate', request);
+    return () => window.removeEventListener('popstate', request);
+  }, []);
+  useEffect(() => {
+    if (!data || exampleLoaded.current === exampleRequest.revision) return;
+    const kind = exampleRequest.kind;
+    if (!kind) return;
+    exampleLoaded.current = exampleRequest.revision;
+    store.beginExample(exampleInputs(kind, data.constants));
+    queueMicrotask(() => {
+      setPinSeed(undefined);
+      setFlyTo({ lat: 36.4967, lng: 127.3007, zoom: 13 });
+      setCompareOpen(kind === 'compare');
+    });
+    const url = new URL(window.location.href);
+    url.searchParams.delete('example');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  }, [data, store, exampleRequest]);
   useEffect(() => {
     if (!focusSelection.current) return;
     focusSelection.current = false;
@@ -65,6 +92,7 @@ export default function ReviewApp() {
   }, [selectionRevision]);
   const jumpTo = (target: 'report' | 'inputs') => {
     setWorkspaceView('result');
+    setExpandedPane('result');
     requestAnimationFrame(() => {
       const detail = target === 'report' ? reportSection.current : panelScroll.current?.querySelector<HTMLDetailsElement>('.business-inputs');
       if (!detail) return;
@@ -206,10 +234,13 @@ export default function ReviewApp() {
 
   const selectSite = (selection: SiteSelection, zoom?: number) => {
     setWorkspaceView('result');
+    setExpandedPane(null);
     focusSelection.current = true;
-    setPins(resolvedPins);
+    if (inputs.exampleMode) store.endExample();
+    const availablePins = inputs.exampleMode ? store.snapshot().inputs.pins : resolvedPins;
+    setPins(availablePins);
     panelScroll.current?.scrollTo({ top: 0 });
-    const matching = resolvedPins.filter(
+    const matching = availablePins.filter(
       (pin) =>
         pin.selection.lat.toFixed(5) === selection.lat.toFixed(5) &&
         pin.selection.lng.toFixed(5) === selection.lng.toFixed(5),
@@ -224,6 +255,7 @@ export default function ReviewApp() {
   // Reopening a pin restores its overrides, so the card shows the same grade as the chip.
   const openPin = (pin: PinnedSite) => {
     setWorkspaceView('result');
+    setExpandedPane(null);
     focusSelection.current = true;
     setPins(resolvedPins);
     panelScroll.current?.scrollTo({ top: 0 });
@@ -316,7 +348,13 @@ export default function ReviewApp() {
   };
 
   return (
-    <div className={`dc-workspace print:hidden view-${workspaceView}`}>
+    <div className={`dc-workspace print:hidden view-${workspaceView} pane-${expandedPane ?? 'split'}`}>
+      {inputs.exampleMode && <div className="review-example-notice" role="region" aria-label="가상 사업조건 예시" style={{ padding: '12px 20px', background: '#fff4df', color: '#4e3820', flexShrink: 0 }}>
+        <strong>가상 사업조건 예시 · 실제 부지·가격 제안이 아닙니다</strong>
+        <p>세종 좌표의 공개자료는 실제로 조회합니다. 면적·사업비·차입금은 계산을 체험하는 가정이며 실제 필지나 가격과 무관합니다. 기존 검토는 보관됩니다.</p>
+        {inputs.exampleMode === 'area' && <button type="button" onClick={() => setConditions({ ...conditions, landAreaM2: 15000 })}>대지를 15,000㎡로 바꿔 충족 확인</button>}
+        <button type="button" onClick={() => { store.endExample(); setPinSeed(undefined); setCompareOpen(false); }}>예시 종료 · 기존 검토로 돌아가기</button>
+      </div>}
       {warnings?.length > 0 && <div role="status">일부 선택 자료를 불러오지 못했습니다. 미확인으로 표시합니다. <button onClick={retry}>자료 다시 불러오기</button></div>}
       <header className="workspace-toolbar">
         <div className="workspace-search">
@@ -330,6 +368,11 @@ export default function ReviewApp() {
         </div>
       </header>
       <div className="workspace-view-bar">
+        <div className="desktop-view-toggle" role="group" aria-label="넓게 보기">
+          <button aria-pressed={expandedPane === null} onClick={() => setExpandedPane(null)}>함께 보기</button>
+          <button aria-pressed={expandedPane === 'map'} onClick={() => setExpandedPane('map')}>지도 크게</button>
+          <button aria-pressed={expandedPane === 'result'} onClick={() => setExpandedPane('result')}>결과 크게</button>
+        </div>
         <div className="workspace-view-toggle" role="group" aria-label="검토 화면 보기">
           <button aria-pressed={workspaceView === 'result'} onClick={() => setWorkspaceView('result')}>검토 결과</button>
           <button aria-pressed={workspaceView === 'map'} onClick={() => setWorkspaceView('map')}>지도 보기</button>
@@ -340,10 +383,10 @@ export default function ReviewApp() {
       <div
         className="workspace-grid"
         style={{
-          gridTemplateColumns: `minmax(360px, 1fr) 6px ${panelWidth}px`,
+          gridTemplateColumns: expandedPane ? 'minmax(0, 1fr)' : `minmax(360px, 1fr) 6px min(${panelWidth}px, calc(100% - 366px))`,
         }}
       >
-        <div className={`map-column map-tone-${tone}`}><a className="map-skip-link" href="#review-results" onClick={event => { event.preventDefault(); setWorkspaceView('result'); requestAnimationFrame(() => { const heading = panelScroll.current?.querySelector<HTMLElement>('h2'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }); }}>검토 결과로 이동</a>
+        <div className={`map-column map-tone-${tone}`}><a className="map-skip-link" href="#review-results" onClick={event => { event.preventDefault(); setWorkspaceView('result'); setExpandedPane('result'); requestAnimationFrame(() => { const heading = panelScroll.current?.querySelector<HTMLElement>('h2'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }); }}>검토 결과로 이동</a>
           <div className="map-canvas">
             <MapView
               data={data}
@@ -381,6 +424,7 @@ export default function ReviewApp() {
             {result ? (
               <ResultOverview
                 result={result}
+                site={site ?? undefined}
                 loading={
                   zoning.status === 'loading' ||
                   restrictions.status === 'loading' ||
@@ -423,7 +467,7 @@ export default function ReviewApp() {
                   const state = rawState as typeof zoning | typeof restrictions | typeof disaster;
                   return <div key={String(label)} className="mb-2">
                     <span>{String(label)}: {state.status === 'done' ? '조회 완료' : state.status === 'loading' ? '조회 중' : state.status === 'partial' ? '일부 조회 미완료' : state.status === 'idle' ? '조회 범위 밖 · 미확인' : '조회 실패 · 미확인'}</span>
-                    {state.lookup?.stale && <p>이전 조회의 관찰을 보존하고 있습니다 · 재확인 필요{state.lookup.previousFetchedAt ? ` · 이전 조회 ${state.lookup.previousFetchedAt}` : ''}</p>}
+                    {state.lookup?.stale && <p>이전 조회 결과입니다 · 재확인 필요 · 재확인 필요{state.lookup.previousFetchedAt ? ` · 이전 조회 ${state.lookup.previousFetchedAt}` : ''}</p>}
                     {state.lookup?.fetchedAt && <p className="text-xs">조회시각 {state.lookup.fetchedAt} · 원자료 기준일과 다름</p>}
                     <button type="button" disabled={state.status === 'idle'} className="ml-2 underline" onClick={state.retry}>{String(label)} 다시 조회</button>
                   </div>;
@@ -462,6 +506,7 @@ export default function ReviewApp() {
                   부지 검토 보고서 · 선택형 AI 의견 <span>PDF 저장 ↗</span>
                 </summary>
                 <MemoPanel
+                  onPreviewOpen={() => setExpandedPane('result')}
                   entries={pinEntries}
                   currentPinId={currentPin && isPinned ? currentPin.id : null}
                   selectionRevision={selectionRevision}

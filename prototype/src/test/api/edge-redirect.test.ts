@@ -27,7 +27,7 @@ describe('Edge-compatible redirect rejection', () => {
     const response = await handler[kind](request(kind, 'success'));
     expect(response.status).toBe(200);
     if (kind === 'vworld') expect(await response.json()).toMatchObject({ lat: 36.4967, lng: 127.3007 });
-    else expect(await response.text()).toBe('검수용 응답');
+    else expect(await response.text()).toBe('\n검수용 응답');
     expect(fetch).toHaveBeenCalledTimes(1);
   });
   for (const kind of ['vworld', 'ai'] as const) it.each([301, 302, 303, 307, 308])(`${kind} rejects HTTP %s without following, consuming, or reflecting the redirect body`, async (status) => {

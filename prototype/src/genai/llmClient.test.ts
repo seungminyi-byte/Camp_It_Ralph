@@ -99,17 +99,17 @@ describe('one bounded stream lifecycle', () => {
     const cancel = vi.fn();
     vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(done => { resolve = done; })));
     const pending = generateMemo('prompt', opts());
-    const assertion = expect(pending).rejects.toThrow('65초');
-    await vi.advanceTimersByTimeAsync(65000); await assertion;
+    const assertion = expect(pending).rejects.toThrow('195초');
+    await vi.advanceTimersByTimeAsync(195000); await assertion;
     resolve(plain(new ReadableStream({ cancel })));
     await Promise.resolve(); expect(cancel).toHaveBeenCalledOnce(); expect(vi.getTimerCount()).toBe(0);
   });
   it('keeps the same deadline after late headers and cancels a stalled body', async () => {
     vi.useFakeTimers();
     const cancel = vi.fn();
-    vi.stubGlobal('fetch', vi.fn(async () => { await new Promise(resolve => setTimeout(resolve, 60000)); return plain(new ReadableStream({ cancel })); }));
-    const pending = generateMemo('prompt', opts()); const assertion = expect(pending).rejects.toThrow('65초');
-    await vi.advanceTimersByTimeAsync(65000); await assertion;
+    vi.stubGlobal('fetch', vi.fn(async () => { await new Promise(resolve => setTimeout(resolve, 190000)); return plain(new ReadableStream({ cancel })); }));
+    const pending = generateMemo('prompt', opts()); const assertion = expect(pending).rejects.toThrow('195초');
+    await vi.advanceTimersByTimeAsync(195000); await assertion;
     expect(cancel).toHaveBeenCalledOnce(); expect(vi.getTimerCount()).toBe(0);
   });
   it('has no new deadline for a stalled fallback body', async () => {
@@ -118,10 +118,10 @@ describe('one bounded stream lifecycle', () => {
     vi.stubGlobal('fetch', vi.fn());
     const options = { ...opts(), fallbackAt: { lat: 36, lng: 127, contextKey: 'exact' } };
     // Use a hanging JSON stream after the proxy failure.
-    vi.mocked(fetch).mockImplementationOnce(async () => { await new Promise(resolve => setTimeout(resolve, 60000)); return new Response('', { status: 503 }); })
+    vi.mocked(fetch).mockImplementationOnce(async () => { await new Promise(resolve => setTimeout(resolve, 190000)); return new Response('', { status: 503 }); })
       .mockResolvedValueOnce(new Response(new ReadableStream({ cancel }), { headers: { 'content-type': 'application/json' } }));
-    const pending = generateMemo('prompt', options); const assertion = expect(pending).rejects.toThrow('65초');
-    await vi.advanceTimersByTimeAsync(65000); await assertion; expect(cancel).toHaveBeenCalledOnce(); expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    const pending = generateMemo('prompt', options); const assertion = expect(pending).rejects.toThrow('195초');
+    await vi.advanceTimersByTimeAsync(195000); await assertion; expect(cancel).toHaveBeenCalledOnce(); expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
   });
   it('distinguishes abort from empty/error and does not attempt fallback on stop', async () => {
     vi.useFakeTimers(); const controller = new AbortController(); const cancel = vi.fn();
@@ -157,5 +157,51 @@ describe('one bounded stream lifecycle', () => {
   });
   it('preflights oversized input without a network call', async () => {
     vi.stubGlobal('fetch', vi.fn()); await expect(generateMemo('가'.repeat(20001), opts())).rejects.toThrow('요청 자료'); expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('safe generation failure messages', () => {
+  const opts = () => ({ signal: new AbortController().signal, onText: vi.fn(), onReplace: vi.fn(), onMode: vi.fn(), fallbackAt: null });
+  const cases = [
+    ['UPSTREAM_AUTH_FAILED', '인증이 거절'],
+    ['UPSTREAM_RATE_LIMITED', '요청 제한'],
+    ['UPSTREAM_PROVIDER_TIMEOUT', '제공자가 응답 시간초과'],
+    ['UPSTREAM_TIMEOUT', '응답 대기 제한시간'],
+    ['UPSTREAM_UNAVAILABLE', '완료하지 못'],
+  ];
+  it.each(cases)('classifies bounded plain HTTP error %s without forwarding its body', async (code, message) => {
+    const options = opts(); vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(code, { status: 502, headers: { 'content-type': 'text/plain' } })));
+    await expect(generateMemo('prompt', options)).rejects.toThrow(message); expect(options.onText).not.toHaveBeenCalled(); expect(fetch).toHaveBeenCalledOnce();
+  });
+  it.each(cases)('preserves %s across every single-byte marker and code split', async (code, message) => {
+    const cancel = vi.fn(); const bytes = new TextEncoder().encode(`\n부분 의견\n## ERROR\n${code}\n`);
+    const body = new ReadableStream<Uint8Array>({ start(controller) { for (const byte of bytes) controller.enqueue(new Uint8Array([byte])); }, cancel });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { headers: { 'content-type': 'text/plain' } })));
+    await expect(generateMemo('prompt', opts())).rejects.toThrow(message); expect(cancel).toHaveBeenCalledOnce(); expect(body.locked).toBe(false); expect(fetch).toHaveBeenCalledOnce();
+  });
+  it.each(['constructor', 'UPSTREAM_AUTH_FAILED_EXTRA', 'PRIVATE_PROVIDER_MESSAGE', 'x'.repeat(513)])('does not expose or reinterpret an unknown HTTP body: %s', async body => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status: 502, headers: { 'content-type': 'text/plain' } })));
+    const options = opts(); await expect(generateMemo('prompt', options)).rejects.toThrow('완료하지 못'); expect(options.onText).not.toHaveBeenCalled();
+  });
+  it('does not classify a partial recognized code before its line ends', async () => {
+    let controller!: ReadableStreamDefaultController<Uint8Array>;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new ReadableStream({ start(c) { controller = c; } }), { headers: { 'content-type': 'text/plain' } })));
+    const pending = generateMemo('prompt', opts()); const rejection = expect(pending).rejects.toThrow('완료하지 못');
+    controller.enqueue(new TextEncoder().encode('## ERROR\nUPSTREAM_AUTH_FAILED')); await new Promise(resolve => setTimeout(resolve, 0));
+    controller.enqueue(new TextEncoder().encode('_EXTRA\n')); await rejection;
+  });
+  it('rejects a final ERROR marker with no code', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('\n## ERROR\n', { headers: { 'content-type': 'text/plain' } })));
+    await expect(generateMemo('prompt', opts())).rejects.toThrow('완료하지 못');
+  });
+  it('accepts progress beyond the old deadline within the same new client budget', async () => {
+    vi.useFakeTimers();
+    try {
+      let stream!: ReadableStreamDefaultController<Uint8Array>; const cancel = vi.fn();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new ReadableStream({ start(c) { stream = c; }, cancel }), { headers: { 'content-type': 'text/plain' } })));
+      const options = opts(), pending = generateMemo('prompt', options);
+      await vi.advanceTimersByTimeAsync(150_000); stream.enqueue(new TextEncoder().encode('긴 정상 의견')); stream.close();
+      await pending; expect(options.onText).toHaveBeenCalledWith('긴 정상 의견'); expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
   });
 });

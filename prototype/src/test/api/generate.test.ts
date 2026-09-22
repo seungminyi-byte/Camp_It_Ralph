@@ -28,7 +28,7 @@ describe('report model routing', () => {
         body: JSON.stringify({ prompt: 'test' }),
       }),
     );
-    expect(await response.text()).toBe('완료');
+    expect(await response.text()).toBe('\n완료');
     expect(cancel).toHaveBeenCalled();
   });
   const request = () =>
@@ -55,12 +55,13 @@ describe('report model routing', () => {
     const fetch = setup(model);
     const response = await handler(request());
     const payload = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(payload).toMatchObject({ stream: true, max_tokens: 4000, reasoning: { enabled: false } });
     expect(payload.models).toEqual([
-      'google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free',
+      'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-31b-it:free',
       'google/gemma-4-26b-a4b-it:free',
     ]);
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(await response.text()).toBe('검토 결과');
+    expect(await response.text()).toBe('\n검토 결과');
     expect(response.headers.get('X-LLM-Model')).toBe('OpenRouter');
   });
   it.each(['openrouter/free', 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'])('honors explicit %s without adding alternatives', async (model) => {
@@ -69,7 +70,7 @@ describe('report model routing', () => {
     expect(JSON.parse(fetch.mock.calls[0][1].body).models).toEqual([
       model,
     ]);
-    expect(await response.text()).toBe('검토 결과');
+    expect(await response.text()).toBe('\n검토 결과');
     expect(response.headers.get('X-LLM-Model')).toBe(model);
     expect(fetch).toHaveBeenCalledTimes(1);
   });

@@ -37,7 +37,7 @@ PDF 검사에는 Python의 `pypdf`, `pdfplumber`, 렌더에는 Poppler `pdftoppm
 
 - `workflow`: 3폭의 메인 CTA, 읍면동 키보드/주소/좌표, 기본/상세, 4핀·5번째 차단·삭제/재추가, E 제외, 라우트/새로고침/뒤·앞, snapshot 및 지원 밖 위치.
 - `numbers`: 독립 기대값 15,000㎡/5,000㎡/60억원·9셀, ㎡/평, 원/억원, 명시 0/미입력, 완전 2,000/2,300 차액300, 불완전·혼합 보류, 공통 변경.
-- `lifecycle`, `ai-pending`: strict wire, partial known hit, 이전 no-hit 무효화, 실제15초, 지연역전, 비선택핀10분, AI 빈/실패/중단/65초·변경/되돌림/근거갱신/언마운트. 65초와 TTL은 가상 브라우저 시계이며 실제 wall time은 별도 과거 증거로 구분한다.
+- `lifecycle`, `ai-pending`: strict wire, partial known hit, 이전 no-hit 무효화, 실제15초, 지연역전, 비선택핀10분, AI 빈/실패/중단/195초·변경/되돌림/근거갱신/언마운트. 195초와 TTL은 가상 브라우저 시계이며 실제 wall time은 별도 과거 증거로 구분한다.
 - `recovery`: production lazy chunk 하나 실패→shell 유지→명시적 새로고침→저장 후보·조건 복원. React lazy만 다시 mount하는 재시도는 사용하지 않는다.
 - `accessibility`: 3폭 주요 상태의 axe 원본과 가로 넘침. keyboard/focus는 workflow 및 실제 IAB에서 별도 검수.
 - `security`: 잘못된 core 자료→오류→재시도, 외부 HTML 명칭 literal 표시와 unsafe URL 제외. 실제 API handler의 입력 크기/중복/스트림 경계는 `npm test`의 `src/test/api`가 검증한다. 테스트 서버 자체는 실제 API handler가 아니다.

@@ -1,3 +1,22 @@
+# 09:37 KST 최신 통합
+
+규모·사업유형 선택 제거, 가상 면적/비교 체험, 핵심 발견 우선, 선택지점 표시를 반영했다. 아래09:28 유형표시계획은 대체되었다. 최종 배포·실제AI검수 진행 중이며 후속결과는 outputs/openrouter-ui-20260922에 기록한다.
+
+# AI·화면·유형 후속 수락 체크포인트
+
+- updated_at: 2026-09-22T09:28:51.003205+09:00
+- status: `validated_release_pending`
+- latest_scope: OpenRouter연결진단,지도/보고서확대,주황마크favicon,클릭전용고지,유형9조합점수확인
+- local_validation: 단위844, 기존E2E22+추가4, 타입/린트/빌드통과
+- ai_baseline: 키인증정상,09:04무료제공자429/504실패. 새배포복구미검증
+- score_types: 3×3모든선택값결과/새보고서반영;공통부지점수정책유지·설명보완
+- implementation: [수정 및 검수](implementation/13-openrouter-readability.md)
+- delivery: 후속실제배포·AI관측은outputs/openrouter-ui-20260922에확정
+- heartbeat: dc-9삭제상태유지,새Goal/예약/계정설정/결제없음
+- hard_deadline: 2026-09-22T10:00:00+09:00
+
+## 이전 체크포인트 보존
+
 # 점수 가용성 후속 개선 상태
 
 - status: `score_availability_validated_release_pending`

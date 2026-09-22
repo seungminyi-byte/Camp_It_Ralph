@@ -13,6 +13,14 @@
 .site-footer { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:24px max(24px,calc((100vw - 1280px)/2)); color:var(--site-muted); border-top:1px solid var(--site-border); background:#fff; font-size:13px; line-height:1.65; }
 .site-footer strong { display:block; color:var(--site-ink); font-size:16px; margin-bottom:4px; }
 .site-footer a { white-space:nowrap; text-decoration:underline; text-underline-offset:4px; }
+.site-footer { position:relative; }
+.site-footer-actions { display:flex; align-items:center; gap:20px; }
+.site-footer-actions button { min-height:36px; color:#53604e; font-size:12px; text-decoration:underline; text-underline-offset:3px; }
+.site-usage-detail { position:absolute; z-index:1200; bottom:calc(100% + 4px); right:16px; width:min(460px,calc(100vw - 32px)); max-height:50dvh; overflow:auto; padding:18px; border:1px solid #bec8b7; border-radius:9px; background:#fff; box-shadow:0 8px 28px #24371c26; font-size:14px; line-height:1.8; }
+.site-usage-detail[hidden] { display:none; }
+.site-usage-detail strong { display:block!important; font-size:14px; }
+.site-usage-detail p { margin:10px 0; }
+.site-usage-detail a { display:inline!important; white-space:normal; }
 .intro-page { color:var(--site-ink); font-size:16px; line-height:1.8; background:#fafaf6; overflow-wrap:break-word; }
 .intro-page h1,.intro-page h2,.intro-page h3 { font-weight:750; line-height:1.3; letter-spacing:-.045em; word-break:keep-all; }
 .intro-page h1 { font-size:clamp(38px,4.2vw,64px); line-height:1.23; }
@@ -93,12 +101,12 @@
 .site-shell :focus-visible { outline:3px solid #23647c; outline-offset:3px; }
 .site-shell :is(h1,h2)[tabindex="-1"]:focus:not(:focus-visible) { outline:none; }
 .site-shell.is-review { height:100%; }
-.is-review .site-header { min-height:62px; padding-inline:24px; }
-.is-review .site-footer { flex:none; padding:8px 24px; font-size:12px; }
+.is-review .site-header { min-height:54px; padding-inline:16px; }
+.is-review .site-footer { flex:none; padding:2px 16px; font-size:12px; }
 .is-review .site-footer strong { display:none; }
 .is-review .site-main { display:flex; flex-direction:column; }
 .is-review .dc-workspace { flex:1; min-height:0; height:auto; }
-.review-session-bar { flex:none; display:flex; align-items:center; gap:12px 20px; padding:9px 24px; background:#f7f5ee; border-bottom:1px solid var(--site-border); }
+.review-session-bar { flex:none; display:flex; align-items:center; gap:12px 20px; padding:3px 16px; background:#f7f5ee; border-bottom:1px solid var(--site-border); }
 .review-session-bar h1 { font-size:16px; font-weight:750; white-space:nowrap; }
 .review-session-bar p { flex:1; font-size:12px; color:#4d594f; }
 .review-session-bar button { font-size:12px; text-decoration:underline; color:#555c54; min-height:32px; }
@@ -127,3 +135,21 @@
  .review-load-error p { margin:12px 0; }
  .review-load-error button { background:#b94708; color:#fff; padding:10px 14px; border-radius:6px; font:inherit; cursor:pointer; }
  .review-load-error a { display:inline-block; margin:12px; text-decoration:underline; }
+
+/* Fictional area example: text remains selectable and scales with the viewport. */
+.area-example { transform:none; }
+.area-example-body { padding:28px; }
+.area-example-kicker { font-size:14px; color:#596458; }
+.area-example-body h2 { margin:14px 0; font-size:32px; }
+.area-example-body>p:not(.area-example-kicker) { font-size:13px; color:#596458; }
+.area-example-comparison { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:12px; align-items:center; margin:24px 0; }
+.area-example-comparison>div { min-width:0; padding:18px 12px; background:#fbede4; border:1px solid #e6c5ad; border-radius:8px; }
+.area-example-comparison>div:last-child { background:#edf5e9; border-color:#bfd2b1; }
+.area-example-comparison span,.area-example-comparison strong,.area-example-comparison b { display:block; }
+.area-example-comparison span { color:#596458; font-size:12px; }
+.area-example-comparison strong { font-size:23px; margin:4px 0; white-space:nowrap; }
+.area-example-comparison b { font-size:14px; color:#923d0d; }
+.area-example-comparison>div:last-child b { color:#326323; }
+.area-example-body>.site-cta { display:flex; width:100%; gap:12px; }
+.area-example-body>.text-link { margin-top:10px; font-size:14px; }
+@media(max-width:767px) { .area-example-body { padding:20px; }.area-example-body h2 { font-size:29px; }.area-example-comparison { gap:8px; }.area-example-comparison>div { padding:14px 9px; }.area-example-comparison strong { font-size:21px; } }

@@ -38,7 +38,7 @@ describe('current candidate and pin evidence integration', () => {
     await act(async () => button('현재지점 담기+').click());
     await act(async () => button('규제구역 다시 조회').click());
     expect(container.textContent).toContain('조회 실패 · 미확인');
-    expect(container.textContent).toContain('이전 조회의 관찰을 보존');
+    expect(container.textContent).toContain('이전 조회 결과입니다');
     expect(container.textContent).toContain('개발제한구역');
     await act(async () => button('후보지 비교하기→').click());
     const dialog = document.querySelector('dialog');
