@@ -7,11 +7,12 @@ test('fictional area example removes inert type controls, fixes area, and preser
   await page.getByRole('spinbutton', { name: /대지면적/ }).fill('12345');
   await page.goto('/review?example=area');
   await expect(page.getByRole('region', { name: '가상 사업조건 예시' })).toBeVisible();
-  await expect(page.locator('.design-assessment')).toContainText('5,000');
+  await expect(page.locator('.design-assessment')).toHaveClass(/is-shortfall/);
+  await expect(page.locator('.design-assessment')).toContainText('67%');
   await expect(page.locator('input[name="project-type"]')).toHaveCount(0);
   await expect(page.getByRole('combobox', { name: '사업 유형', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '대지를 15,000㎡로 바꿔 충족 확인' }).click();
-  await expect(page.locator('.design-assessment')).toContainText('충족');
+  await expect(page.locator('.design-assessment')).toContainText('100%');
   await expect(page).toHaveURL(/\/review$/);
   await page.getByRole('button', { name: '예시 종료 · 기존 검토로 돌아가기' }).click();
   await expect(page.getByRole('region', { name: '가상 사업조건 예시' })).toHaveCount(0);
@@ -35,7 +36,7 @@ test('same-path example links load once, and selecting a real address exits the 
   await page.getByRole('link', { name: '면적 예시 재진입' }).click();
   await expect(page.getByRole('region', { name: '가상 사업조건 예시' })).toBeVisible();
   await page.getByRole('button', { name: '대지를 15,000㎡로 바꿔 충족 확인' }).click();
-  await expect(page.locator('.design-assessment')).toContainText('충족');
+  await expect(page.locator('.design-assessment')).toContainText('100%');
   await pick(page, '36.5067, 127.3007');
   await expect(page.getByRole('region', { name: '가상 사업조건 예시' })).toHaveCount(0);
   await expect(page.locator('.current-selection')).not.toContainText('가상');
