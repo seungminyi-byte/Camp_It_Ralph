@@ -37,8 +37,9 @@ interface Props {
   selectionRevision?: number;
   /** Includes query key, request revision and status, even when lookup remains null. */
   requestRevision?: string;
+  onPreviewOpen?: () => void;
 }
-export function MemoPanel({ data, input, result, site, landUseSource, zoningName, entries = [], currentPinId = null, selectionRevision = 0, requestRevision = '' }: Props) {
+export function MemoPanel({ data, input, result, site, landUseSource, zoningName, entries = [], currentPinId = null, selectionRevision = 0, requestRevision = '', onPreviewOpen }: Props) {
   const [run, setRun] = useState<Run | null>(null);
   const [showRaw, setShowRaw] = useState(false);
   const [snapshot, setSnapshot] = useState<ReportSnapshot | null>(null);
@@ -126,6 +127,7 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
     generatedBy, generatedAt: run && !stale ? run.at : null };
   const openReport = (print = false) => {
     if (!result.site.eligible) return;
+    onPreviewOpen?.();
     // Re-evaluate TTL at the user's action, including a suspended/background tab.
     const currentResult = scoreSite(input, data);
     const currentRows = buildChecklist(currentResult, data, { input, landUseSource, zoningName });
@@ -152,7 +154,7 @@ export function MemoPanel({ data, input, result, site, landUseSource, zoningName
   }, [snapshot, printPending]);
 
   return <section className="memo-panel">
-    <header className="report-tools-header"><div><span>REPORT PREVIEW</span><h2>부지 검토 보고서</h2></div>{generatedBy && <span className="report-generation-badge">{generatedBy}</span>}</header>
+    <header className="report-tools-header"><div><span>보고서 미리보기</span><h2>부지 검토 보고서</h2></div>{generatedBy && <span className="report-generation-badge">{generatedBy}</span>}</header>
     <div className="report-actions">
       <button disabled={!result.site.eligible} onClick={busy ? stop : () => void start()} className={`report-ai-button${busy ? ' is-stop' : ''}`}><span aria-hidden="true">{busy ? '■' : '✦'}</span>{busy ? '생성 중지' : run ? 'AI 검토 의견 다시 생성' : 'AI 검토 의견 생성'}</button>
       <button ref={reportButton} disabled={!result.site.eligible} onClick={() => openReport()} className="report-open-button">{snapshot ? '최신 조건으로 다시 열기' : '보고서 열기'}</button>

@@ -8,7 +8,7 @@ const OFFICIAL_TYPES = [
   'content_policy_violation', 'refusal', 'invalid_image', 'image_too_large', 'image_too_small',
   'unsupported_image_format', 'image_not_found', 'image_download_failed', 'server', 'timeout', 'unmapped',
 ];
-const DEFAULT_MODELS = ['google/gemma-4-31b-it:free', 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'];
+const DEFAULT_MODELS = ['nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-31b-it:free', 'google/gemma-4-26b-a4b-it:free'];
 const FIELDS = ['event', 'requestAtUtc', 'elapsedMs', 'phase', 'localCode', 'upstreamHttpStatus', 'upstreamCode', 'upstreamErrorType', 'errorLocation', 'errorShape', 'requestedModels', 'textEmitted'].sort();
 const PRIVATE = 'SYNTHETIC_PRIVATE_SENTINEL';
 const enc = new TextEncoder();
@@ -57,7 +57,7 @@ async function invoke(body: BodyInit | null, expected = '\n## ERROR\nUPSTREAM_UN
   const fetch = vi.fn().mockResolvedValue(sse(body)); vi.stubGlobal('fetch', fetch);
   const response = await generate(request(PRIVATE));
   expect(response.status).toBe(200);
-  expect(await response.text()).toBe(expected);
+  expect(await response.text()).toBe('\n' + expected);
   expect(response.headers.get('Cache-Control')).toBe('no-store');
   expect(response.headers.get('X-LLM-Model')).toBe('OpenRouter');
   expect(Array.from(response.headers)).toEqual([
@@ -70,11 +70,11 @@ async function invoke(body: BodyInit | null, expected = '\n## ERROR\nUPSTREAM_UN
 
 describe('generation failure diagnostics', () => {
   it('D01 records only typed fields from a top-level error', async () => {
-    await invoke(frame({ error: { code: 504, message: PRIVATE, stack: PRIVATE, metadata: { error_type: 'timeout', provider_code: PRIVATE, raw: PRIVATE } }, model: PRIVATE, provider: PRIVATE }));
-    diagnostic({ phase: 'upstream_sse', localCode: 'UPSTREAM_UNAVAILABLE', upstreamHttpStatus: 200, upstreamCode: 504, upstreamErrorType: 'timeout', errorLocation: 'top_level', errorShape: 'object', textEmitted: false, requestedModels: DEFAULT_MODELS });
+    await invoke(frame({ error: { code: 504, message: PRIVATE, stack: PRIVATE, metadata: { error_type: 'timeout', provider_code: PRIVATE, raw: PRIVATE } }, model: PRIVATE, provider: PRIVATE }), '\n## ERROR\nUPSTREAM_PROVIDER_TIMEOUT\n');
+    diagnostic({ phase: 'upstream_sse', localCode: 'UPSTREAM_PROVIDER_TIMEOUT', upstreamHttpStatus: 200, upstreamCode: 504, upstreamErrorType: 'timeout', errorLocation: 'top_level', errorShape: 'object', textEmitted: false, requestedModels: DEFAULT_MODELS });
   });
   it('D02 records a choice error after text without storing that text', async () => {
-    await invoke(content('부분 의견') + frame({ choices: [{ delta: {}, error: { code: 429, message: PRIVATE, metadata: { error_type: 'rate_limit_exceeded' } } }] }), '부분 의견\n## ERROR\nUPSTREAM_UNAVAILABLE\n');
+    await invoke(content('부분 의견') + frame({ choices: [{ delta: {}, error: { code: 429, message: PRIVATE, metadata: { error_type: 'rate_limit_exceeded' } } }] }), '부분 의견\n## ERROR\nUPSTREAM_RATE_LIMITED\n');
     const log = diagnostic({ errorLocation: 'choice', errorShape: 'object', upstreamCode: 429, upstreamErrorType: 'rate_limit_exceeded', textEmitted: true });
     expect(JSON.stringify(log)).not.toContain('부분 의견');
   });
@@ -109,7 +109,8 @@ describe('generation failure diagnostics', () => {
     diagnostic({ upstreamErrorType: 'unknown', upstreamCode: null });
   });
   it.each(OFFICIAL_TYPES)('D08 retains exact documented type %s', async (errorType) => {
-    await invoke(frame({ error: { metadata: { error_type: errorType, raw: PRIVATE }, message: PRIVATE } }));
+    const code = errorType === 'authentication' ? 'UPSTREAM_AUTH_FAILED' : errorType === 'rate_limit_exceeded' ? 'UPSTREAM_RATE_LIMITED' : errorType === 'timeout' ? 'UPSTREAM_PROVIDER_TIMEOUT' : 'UPSTREAM_UNAVAILABLE';
+    await invoke(frame({ error: { metadata: { error_type: errorType, raw: PRIVATE }, message: PRIVATE } }), `\n## ERROR\n${code}\n`);
     diagnostic({ upstreamErrorType: errorType, upstreamCode: null });
   });
   it.each([100, 599])('D09 retains numeric code %i without inferring a type', async (code) => {
@@ -125,7 +126,8 @@ describe('generation failure diagnostics', () => {
     const stream = new ReadableStream<Uint8Array>({ pull, cancel }, { highWaterMark: 0 });
     const fetch = vi.fn().mockResolvedValue(new Response(stream, { status, headers: { Location: `https://example.test/${PRIVATE}` } })); vi.stubGlobal('fetch', fetch);
     const response = await generate(request(PRIVATE));
-    expect(response.status).toBe(502); expect(await response.text()).toBe('UPSTREAM_UNAVAILABLE');
+    const code = status === 401 ? 'UPSTREAM_AUTH_FAILED' : status === 429 ? 'UPSTREAM_RATE_LIMITED' : status === 504 ? 'UPSTREAM_PROVIDER_TIMEOUT' : 'UPSTREAM_UNAVAILABLE';
+    expect(response.status).toBe(502); expect(await response.text()).toBe(code);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(fetch).toHaveBeenCalledTimes(1); expect(fetch.mock.calls[0][1].redirect).toBe('manual');
     expect(pull).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledTimes(1);
@@ -158,11 +160,11 @@ describe('generation failure diagnostics', () => {
     diagnostic({ phase: 'upstream_sse', localCode: code, errorLocation: 'none', errorShape: 'missing', textEmitted: emitted });
   });
   it('D17 keeps top-level precedence and records once', async () => {
-    await invoke(frame({ error: { code: 504, metadata: { error_type: 'timeout' } }, choices: [{ delta: {}, error: { code: 429, metadata: { error_type: 'rate_limit_exceeded' } }, finish_reason: 'error' }] }));
+    await invoke(frame({ error: { code: 504, metadata: { error_type: 'timeout' } }, choices: [{ delta: {}, error: { code: 429, metadata: { error_type: 'rate_limit_exceeded' } }, finish_reason: 'error' }] }), '\n## ERROR\nUPSTREAM_PROVIDER_TIMEOUT\n');
     diagnostic({ errorLocation: 'top_level', upstreamCode: 504, upstreamErrorType: 'timeout' });
   });
   it('D17 keeps choice precedence over error finish', async () => {
-    await invoke(frame({ choices: [{ delta: {}, error: { code: 429, metadata: { error_type: 'rate_limit_exceeded' } }, finish_reason: 'error' }] }));
+    await invoke(frame({ choices: [{ delta: {}, error: { code: 429, metadata: { error_type: 'rate_limit_exceeded' } }, finish_reason: 'error' }] }), '\n## ERROR\nUPSTREAM_RATE_LIMITED\n');
     diagnostic({ errorLocation: 'choice', upstreamCode: 429, upstreamErrorType: 'rate_limit_exceeded' });
   });
   it('D18 records idle timeout once and leaves no timer or held gate', async () => {
@@ -172,7 +174,7 @@ describe('generation failure diagnostics', () => {
     vi.spyOn(generationGate, 'reserve').mockImplementation((digest) => { const done = reserve(digest); return () => { release(); done(); }; });
     vi.stubGlobal('fetch', vi.fn(async (_url, init) => { signal = init.signal; return sse(new ReadableStream({ cancel })); }));
     const response = await generate(request()); const done = response.text(); await vi.advanceTimersByTimeAsync(15_001);
-    expect(await done).toBe('\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(signal?.aborted).toBe(true);
+    expect(await done).toBe('\n\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(signal?.aborted).toBe(true);
     expect(cancel).toHaveBeenCalledTimes(1); expect(release).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
     diagnostic({ phase: 'upstream_sse', localCode: 'UPSTREAM_TIMEOUT', textEmitted: false });
   });
@@ -180,16 +182,16 @@ describe('generation failure diagnostics', () => {
     vi.useFakeTimers(); let upstream: ReadableStreamDefaultController<Uint8Array> | undefined;
     const cancel = vi.fn(); vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse(new ReadableStream({ start(c) { upstream = c; }, cancel }))));
     const response = await generate(request()); const done = response.text();
-    for (let i = 0; i < 5; i++) { await vi.advanceTimersByTimeAsync(10_000); upstream!.enqueue(enc.encode(': processing\n')); await vi.advanceTimersByTimeAsync(0); }
-    await vi.advanceTimersByTimeAsync(5001);
-    expect(await done).toBe('\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(cancel).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+    for (let i = 0; i < 17; i++) { await vi.advanceTimersByTimeAsync(10_000); upstream!.enqueue(enc.encode(': processing\n')); await vi.advanceTimersByTimeAsync(0); }
+    await vi.advanceTimersByTimeAsync(10001);
+    expect(await done).toBe('\n\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(cancel).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
     diagnostic({ phase: 'upstream_sse', localCode: 'UPSTREAM_TIMEOUT' });
   });
   it.each(['resolve', 'reject'])('D19 contains late fetch %s after the same header timeout', async (ending) => {
     vi.useFakeTimers(); let resolveFetch: (response: Response) => void = () => {}; let rejectFetch: (error: Error) => void = () => {};
     let entered: () => void = () => {}; const started = new Promise<void>((resolve) => { entered = resolve; });
     vi.stubGlobal('fetch', vi.fn(() => { entered(); return new Promise<Response>((resolve, reject) => { resolveFetch = resolve; rejectFetch = reject; }); }));
-    const pending = generate(request()); await started; await vi.advanceTimersByTimeAsync(55_001);
+    const pending = generate(request()); await started; await vi.advanceTimersByTimeAsync(20_001);
     const response = await pending; expect(response.status).toBe(502); expect(await response.text()).toBe('UPSTREAM_TIMEOUT');
     const cancel = vi.fn();
     if (ending === 'resolve') resolveFetch(sse(new ReadableStream({ cancel })));
@@ -202,7 +204,7 @@ describe('generation failure diagnostics', () => {
     vi.useFakeTimers(); const parent = new AbortController(); const cancel = vi.fn();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse(new ReadableStream({ cancel }))));
     const response = await generate(request('의견', parent.signal));
-    if (ending === 'parent') { const done = response.text(); parent.abort(); expect(await done).toBe('\n## ERROR\nREQUEST_CANCELLED\n'); }
+    if (ending === 'parent') { const done = response.text(); parent.abort(); expect(await done).toBe('\n\n## ERROR\nREQUEST_CANCELLED\n'); }
     else await response.body!.cancel();
     await vi.advanceTimersByTimeAsync(0);
     expect(cancel).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
@@ -223,7 +225,7 @@ describe('generation failure diagnostics', () => {
   });
   it('D21 preserves the thirteenth admitted start rejection', async () => {
     const fetch = vi.fn(async () => sse(content('정상') + 'data: [DONE]\n')); vi.stubGlobal('fetch', fetch);
-    for (let i = 0; i < 12; i++) expect(await (await generate(request(String(i)))).text()).toBe('정상');
+    for (let i = 0; i < 12; i++) expect(await (await generate(request(String(i)))).text()).toBe('\n정상');
     const response = await generate(request('13')); expect(response.status).toBe(429); expect(await response.text()).toBe('RATE_LIMITED'); expect(fetch).toHaveBeenCalledTimes(12);
     diagnostic({ phase: 'gate', localCode: 'RATE_LIMITED' });
   });
@@ -240,7 +242,7 @@ describe('generation failure diagnostics', () => {
   it.each([...DEFAULT_MODELS, 'openrouter/free'])('D22 records only actual allowed route %s', async (model) => {
     vi.stubEnv('LLM_MODEL', model); const fetch = vi.fn().mockResolvedValue(sse(frame({ error: {} }))); vi.stubGlobal('fetch', fetch);
     const response = await generate(request()); await response.text();
-    const models = model === DEFAULT_MODELS[0] ? DEFAULT_MODELS : [model];
+    const models = model === 'google/gemma-4-31b-it:free' ? DEFAULT_MODELS : [model];
     expect(JSON.parse(fetch.mock.calls[0][1].body).models).toEqual(models);
     expect(response.headers.get('X-LLM-Model')).toBe(models.length > 1 ? 'OpenRouter' : model);
     diagnostic({ requestedModels: models });
@@ -253,14 +255,14 @@ describe('generation failure diagnostics', () => {
   it('D24 contains logging sink errors and releases the gate', async () => {
     logger.mockImplementation(() => { throw new Error(PRIVATE); });
     const cancel = vi.fn(); const fetch = vi.fn(() => Promise.resolve(sse(new ReadableStream({ start(c) { c.enqueue(enc.encode(frame({ error: {} }))); }, cancel })))); vi.stubGlobal('fetch', fetch);
-    for (let i = 0; i < 3; i++) { const response = await generate(request()); expect(response.status).toBe(200); expect(await response.text()).toBe('\n## ERROR\nUPSTREAM_UNAVAILABLE\n'); }
+    for (let i = 0; i < 3; i++) { const response = await generate(request()); expect(response.status).toBe(200); expect(await response.text()).toBe('\n\n## ERROR\nUPSTREAM_UNAVAILABLE\n'); }
     expect(logger).toHaveBeenCalledTimes(3); expect(fetch).toHaveBeenCalledTimes(3); expect(cancel).toHaveBeenCalledTimes(3);
   });
   it('D24 keeps abort and timer cleanup when a timeout logger throws', async () => {
     vi.useFakeTimers(); logger.mockImplementation(() => { throw new Error(PRIVATE); }); const cancel = vi.fn();
     vi.stubGlobal('fetch', vi.fn(async () => sse(new ReadableStream({ cancel }))));
     const response = await generate(request()); const done = response.text(); await vi.advanceTimersByTimeAsync(15_001);
-    expect(await done).toBe('\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(cancel).toHaveBeenCalledTimes(1); expect(logger).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+    expect(await done).toBe('\n\n## ERROR\nUPSTREAM_TIMEOUT\n'); expect(cancel).toHaveBeenCalledTimes(1); expect(logger).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
   });
   it.each([
     ['output', content('가'.repeat(50_000))], ['SSE', ':' + 'x'.repeat(1024 * 1024)],

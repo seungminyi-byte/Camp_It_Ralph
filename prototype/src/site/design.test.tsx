@@ -24,16 +24,46 @@ describe('07 source-bound content and progressive result disclosure', () => {
     expect(html.indexOf('다음 확인사항')).toBeLessThan(html.indexOf('optional-inputs'));
     expect(html.indexOf('optional-inputs')).toBeLessThan(html.indexOf('overview-reference-score'));
   });
-  it('provides a local actual-result image with synthetic response disclosure instead of loading review data', () => {
-    const html = renderToStaticMarkup(<IntroPage path="/" />);
-    expect(html).toContain('공개자료·합성 검증 예시 · 실제 부지 판정 아님');
-    expect(html).toContain('고정 조회 응답과 합성 사업조건');
-    expect(html).toContain('review-score-example-mobile.png');
-    expect(html).toContain('참고점수 77점, B등급');
-    expect(html).not.toContain('면적 부족');
-    expect(html).toContain('반곡동');
-    expect(html).not.toContain('/data/');
-    expect(html).not.toContain('종촌동');
+  it('shows fictional area examples without an actual-region score image', () => {
+    const box = document.createElement('div'); box.innerHTML = renderToStaticMarkup(<IntroPage path="/" />);
+    expect(box.textContent).toContain('가상부지 A · 계산 체험 예시');
+    expect(box.textContent).toContain('5,000㎡ 부족');
+    expect(box.textContent).toContain('면적 충족');
+    expect(box.querySelector('.product-example img')).toBeNull();
+    expect(box.innerHTML).not.toMatch(/반곡동|77점|B등급|review-score-example/);
+    expect(box.querySelector('a[href="/review?example=area"]')).not.toBeNull();
+    expect(box.querySelector('a[href="/review?example=compare"]')).not.toBeNull();
+    const project = renderToStaticMarkup(<IntroPage path="/project" />);
+    expect(project).toContain('추가로 확인할 사항');
+    expect(project).not.toContain('남겨 두는 확인');
+    expect(project).not.toMatch(/반곡동|77점|36\.4967/);
+  });
+  it('puts engine findings before the score and distinguishes point selection from a locality', () => {
+    const result = scoreSite({ lat: 36.4967, lng: 127.3007, landUse: 'unknown' }, data);
+    const box = document.createElement('div');
+    box.innerHTML = renderToStaticMarkup(<ResultOverview result={result} loading={false} incomplete missingEvidence={[]} site={{ lat: 36.4967, lng: 127.3007, source: 'emd' }}>{null}</ResultOverview>);
+    expect(box.querySelector('h2')?.textContent).toBe(`${result.emd?.emd} 내 선택 지점`);
+    expect(box.querySelector('.centroid-note')?.textContent).toBe('읍면동 중심점 · 실제 후보 필지 미지정');
+    expect(box.querySelectorAll('.overview-key-findings dd')).toHaveLength(3);
+    expect(box.innerHTML.indexOf('overview-key-findings')).toBeLessThan(box.innerHTML.indexOf('overview-score"'));
+    expect(box.querySelector('.overview-full-findings')?.hasAttribute('open')).toBe(false);
+    expect(box.querySelector('.overview-key-findings dd:last-child')?.textContent).toBeTruthy();
+    box.innerHTML = renderToStaticMarkup(<ResultOverview result={result} loading={false} incomplete missingEvidence={[]} site={{ lat: 36.4967, lng: 127.3007, source: 'coords', label: '가상부지 A' }}>{null}</ResultOverview>);
+    expect(box.querySelector('h2')?.textContent).toBe('가상부지 A');
+    expect(box.querySelector('.centroid-note')).toBeNull();
+    expect(box.querySelector('.score-type-context')).toBeNull();
+  });
+  it('keeps legal restrictions and withheld scores outside collapsed detail', () => {
+    const result = scoreSite({ lat: 36.4967, lng: 127.3007, landUse: 'unknown' }, data);
+    result.restriction.level = 'prohibited'; result.restriction.requiresLegalReview = true;
+    result.composite.grade = 'E'; result.composite.score = null;
+    const box = document.createElement('div');
+    box.innerHTML = renderToStaticMarkup(<ResultOverview result={result} loading={false} incomplete missingEvidence={[]}>{null}</ResultOverview>);
+    expect(box.querySelector('.restriction-alert')?.textContent).toContain('E등급');
+    expect(box.querySelector('.restriction-alert')?.closest('details')).toBeNull();
+    expect(box.querySelector('.data-gap')?.closest('details')).toBeNull();
+    expect(box.querySelector('.overview-score-hold')?.textContent).toContain('미산정');
+    expect(box.querySelector('.overview-score-hold')?.closest('details')).toBeNull();
   });
   it('retains supplied team experience and separates ongoing development from use', () => {
     const box = document.createElement('div'); box.innerHTML = renderToStaticMarkup(<IntroPage path="/team" />);

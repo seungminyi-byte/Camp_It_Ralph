@@ -83,7 +83,7 @@ function renderSurfaces(input: ScoreInput) {
 }
 
 describe('ARIA integration across summary surfaces', () => {
-  it('keeps the three data-center scale choices visible outside optional inputs', () => {
+  it('omits removed scale and business-type selectors while retaining actual inputs', () => {
     const project = defaultProject(data.constants);
     const html = renderToStaticMarkup(
       <BusinessInputs
@@ -95,23 +95,15 @@ describe('ARIA integration across summary surfaces', () => {
         onConditions={() => {}}
       />,
     );
-    expect(html).toContain('데이터센터 규모');
-    expect(html).toContain('엣지');
-    expect(html).toContain('일반');
-    expect(html).toContain('초대형');
-    expect(html).toContain('사업 유형');
-    expect(html).toContain('일반 클라우드');
-    expect(html).toContain('코로케이션');
-    expect(html).toContain('AI 데이터센터');
-    expect(html.indexOf('데이터센터 규모')).toBeLessThan(
-      html.indexOf('<details class="business-inputs"'),
-    );
+    for (const label of ['데이터센터 규모', '엣지', '초대형', '사업 유형', '일반 클라우드', '코로케이션', 'AI 데이터센터']) expect(html).not.toContain(label);
+    expect(html).toContain('목표 수전용량');
+    expect(html).toContain('대지면적');
   });
-  it('shows independent scale and business labels in reports and comparison', () => {
+  it('hides legacy type labels in reports and comparison while preserving requested power', () => {
     const rendered = renderSurfaces({ ...base, project: { ...defaultProject(data.constants), type: 'hyperscale', businessType: 'ai', targetMw: 40 } });
     for (const html of [...rendered.reports, rendered.compare]) {
-      expect(html).toContain('초대형');
-      expect(html).toContain('AI 데이터센터');
+      expect(html).not.toContain('초대형');
+      expect(html).not.toContain('AI 데이터센터');
       expect(html).toContain('40MW');
     }
   });

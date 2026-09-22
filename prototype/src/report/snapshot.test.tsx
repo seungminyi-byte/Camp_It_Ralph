@@ -92,8 +92,8 @@ describe('report content and captured state', () => {
     expect(dom(fresh).querySelector('.report-online-status')?.textContent).toContain('용도지역: 조회 완료');
     expect(dom(fresh).querySelector('.report-online-status')?.textContent).toContain('규제구역: 일부 조회 미완료');
     const expired = captureReport(p, 'expired', new Date('2026-09-21T10:10:01Z'));
-    expect(dom(expired).querySelector('.report-online-status')?.textContent).toContain('이전 관찰 보존');
-    expect(dom(fresh).querySelector('.report-online-status')?.textContent).not.toContain('이전 관찰 보존');
+    expect(dom(expired).querySelector('.report-online-status')?.textContent).toContain('이전 조회 결과');
+    expect(dom(fresh).querySelector('.report-online-status')?.textContent).not.toContain('이전 조회 결과');
   });
   it('preserves the engine action order and partitions issues without adding or losing a judgment', () => {
     const p = props(), groups = reviewGroups(p.result), html = dom(p);

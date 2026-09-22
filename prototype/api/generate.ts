@@ -1,12 +1,11 @@
 export const config = { runtime: 'edge' };
 import { ApiError, boundedBytes, cancelBody, cleanString, errorResponse, isRecord, methodNotAllowed, Operation } from './_http.js';
-import { generationGate } from './_generation.js';
+import { generationGate, GENERATION_OVERALL_MS, GENERATION_STARTUP_MS, GENERATION_IDLE_MS, upstreamFailure } from './_generation.js';
 import { GenerationDiagnostic } from './_generationDiagnostic.js';
 
 declare const process: { env: Record<string, string | undefined> };
 const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
 const FREE_MODELS = new Set([DEFAULT_MODEL, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free', 'openrouter/free']);
-const OVERALL_MS = 55_000, IDLE_MS = 15_000;
 const INPUT_MAX_BYTES = 96 * 1024, OUTPUT_MAX_BYTES = 128 * 1024;
 const SSE_MAX_BYTES = 1024 * 1024;
 
@@ -23,6 +22,9 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
   };
   return new ReadableStream<Uint8Array>({
     async start(controller) {
+      // Flush one transport byte before waiting for provider content. It is not generated text.
+      controller.enqueue(enc.encode('\n'));
+      outputBytes = 1;
       const emit = (text: string) => {
         const bytes = enc.encode(text);
         // Reserve enough space for a terminal safe error marker within the same cap.
@@ -48,7 +50,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
         if (!isRecord(data)) throw new ApiError('UPSTREAM_INVALID');
         if (data.error !== undefined) {
           diagnostic.upstreamError('top_level', data.error);
-          throw new ApiError('UPSTREAM_UNAVAILABLE');
+          throw new ApiError(upstreamFailure(data.error));
         }
         if (!Array.isArray(data.choices) || data.choices.length > 1) throw new ApiError('UPSTREAM_INVALID');
         // OpenRouter may send a usage-only frame with an empty choices array.
@@ -60,7 +62,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
         if (!isRecord(choice) || !isRecord(choice.delta)) throw new ApiError('UPSTREAM_INVALID');
         if (choice.error !== undefined && choice.error !== null || choice.finish_reason === 'error') {
           diagnostic.upstreamError(choice.error !== undefined && choice.error !== null ? 'choice' : 'finish_reason', choice.error);
-          throw new ApiError('UPSTREAM_UNAVAILABLE');
+          throw new ApiError(upstreamFailure(choice.error));
         }
         const content = choice.delta.content;
         if (content !== undefined && content !== null) {
@@ -74,7 +76,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
       try {
         for (;;) {
           operation.check();
-          const { done, value } = await operation.wait(reader.read(), IDLE_MS);
+          const { done, value } = await operation.wait(reader.read(), GENERATION_IDLE_MS);
           if (done) {
             buffer += dec.decode();
             if (buffer && frame(buffer.replace(/\r$/, ''))) break;
@@ -119,7 +121,9 @@ export default async function handler(req: Request): Promise<Response> {
     diagnostic.fail('METHOD_NOT_ALLOWED');
     return methodNotAllowed('POST');
   }
-  const operation = new Operation(req.signal, OVERALL_MS);
+  const operation = new Operation(req.signal, GENERATION_OVERALL_MS);
+  // This budget starts at request entry, including input validation and hashing.
+  const startupTimer = setTimeout(() => operation.abort(new ApiError('UPSTREAM_TIMEOUT')), GENERATION_STARTUP_MS);
   let release: (() => void) | undefined;
   let streaming = false;
   try {
@@ -134,7 +138,8 @@ export default async function handler(req: Request): Promise<Response> {
     const key = process.env.OPENROUTER_API_KEY;
     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
     if (!key || !cleanString(key, 512) || /\s/.test(key) || !FREE_MODELS.has(model)) throw new ApiError('SERVER_UNAVAILABLE', 503);
-    const models = model === DEFAULT_MODEL ? [model, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free'] : [model];
+    // Keep the legacy configuration selector while prioritizing the previously successful route.
+    const models = model === DEFAULT_MODEL ? ['nvidia/nemotron-3.5-lightning:free', model, 'google/gemma-4-26b-a4b-it:free'] : [model];
     diagnostic.selectModels(models);
     diagnostic.enter('gate');
     const digest = await operation.wait(crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify({ model, prompt }))));
@@ -153,11 +158,13 @@ export default async function handler(req: Request): Promise<Response> {
     });
     void pending.then((res) => { if (operation.signal.aborted) cancelBody(res.body); }, () => {});
     const res = await operation.wait(pending);
+    operation.check();
+    clearTimeout(startupTimer);
     diagnostic.enter('upstream_http');
     diagnostic.response(res.status);
     if (!res.ok || !res.body || res.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'text/event-stream') {
       cancelBody(res.body);
-      throw new ApiError(res.ok ? 'UPSTREAM_INVALID' : 'UPSTREAM_UNAVAILABLE');
+      throw new ApiError(res.ok ? 'UPSTREAM_INVALID' : upstreamFailure(res.status));
     }
     diagnostic.enter('upstream_sse');
     const response = new Response(sseToText(res, operation, release, diagnostic), { headers: {
@@ -170,5 +177,5 @@ export default async function handler(req: Request): Promise<Response> {
     diagnostic.fail(error instanceof ApiError ? error.code : 'UPSTREAM_UNAVAILABLE');
     operation.abort(); return errorResponse(error);
   }
-  finally { if (!streaming) { operation.dispose(); release?.(); } }
+  finally { clearTimeout(startupTimer); if (!streaming) { operation.dispose(); release?.(); } }
 }

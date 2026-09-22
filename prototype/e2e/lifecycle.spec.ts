@@ -34,7 +34,7 @@ test('R27 slow A cannot overwrite B; route unmount cancels pending',async({page}
 });
 test('R28 nonselected pin expires after ten minutes and report reevaluates',async({page})=>{
  await onlyLocal(page);await page.clock.install({time:new Date()});await page.goto('/review');await pick(page);await page.locator('.panel-action button').first().click();await pick(page,'36.5067, 127.3007');await page.getByRole('button',{name:'담은 후보 1',exact:true}).click();const score=page.locator('dialog tr').filter({has:page.getByRole('rowheader',{name:'참고점수',exact:true})});await expect(score).toContainText('점');await page.keyboard.press('Escape');
- await page.route('**/api/*',r=>r.fulfill({status:502,body:'expiry fixture'}));await page.clock.fastForward(600_100);await page.getByRole('button',{name:'담은 후보 1',exact:true}).click();await expect(score).toContainText('미산정');await page.keyboard.press('Escape');await report(page);await expect(page.locator('#print-root .report-comparison-detail .report-online-status')).toContainText('이전 관찰 보존 · 재확인 필요');
+ await page.route('**/api/*',r=>r.fulfill({status:502,body:'expiry fixture'}));await page.clock.fastForward(600_100);await page.getByRole('button',{name:'담은 후보 1',exact:true}).click();await expect(score).toContainText('미산정');await page.keyboard.press('Escape');await report(page);await expect(page.locator('#print-root .report-comparison-detail .report-online-status')).toContainText('이전 조회 결과 · 재확인 필요');
 });
 test('R29-R31 AI empty, error, stop, unsafe claims, revisions and default report',async({page})=>{
  await onlyLocal(page);let mode='empty',release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);const valid=readFileSync(new URL('./ai.txt',import.meta.url),'utf8');
@@ -48,6 +48,20 @@ test('R29-R31 AI empty, error, stop, unsafe claims, revisions and default report
  await ai.click();await expect(page.locator('.memo-panel input[type=checkbox]')).toHaveCount(1);await page.getByRole('button',{name:'용도지역 다시 조회',exact:true}).click();await expect(page.locator('.memo-panel')).toContainText('이전 AI 의견을 해제');await expect(page.locator('.memo-panel input[type=checkbox]')).toHaveCount(0);
  await page.locator('.report-open-button').click();await expect(page.locator('#print-root .report-ai')).toHaveCount(0);await navigate(page,'팀 소개');await navigate(page,'부지 검토');await page.getByRole('button',{name:'보고서 · PDF',exact:true}).click();await expect(page.locator('.memo-panel')).not.toContainText('총사업비는 999999');
 });
-test('R29 AI 65-second integrated deadline using virtual browser clock',async({page})=>{
- await onlyLocal(page);await page.clock.install({time:new Date()});let count=0,release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);await page.route('**/api/generate',async route=>{count++;await pending;await route.abort().catch(()=>{});});await page.goto('/review');await pick(page);await report(page);await page.locator('.report-ai-button').click();await expect.poll(()=>count).toBe(1);await page.clock.fastForward(65_100);await expect(page.locator('.memo-panel [role=alert]')).toContainText('65초');release!();await page.locator('.report-open-button').click();await expect(page.locator('#print-root')).toBeAttached();
+test('R29 AI 195-second integrated deadline using virtual browser clock',async({page})=>{
+ await onlyLocal(page);await page.clock.install({time:new Date()});let count=0,release:(()=>void)|undefined;const pending=new Promise<void>(r=>release=r);await page.route('**/api/generate',async route=>{count++;await pending;await route.abort().catch(()=>{});});await page.goto('/review');await pick(page);await report(page);await page.locator('.report-ai-button').click();await expect.poll(()=>count).toBe(1);await page.clock.fastForward(195_100);await expect(page.locator('.memo-panel [role=alert]')).toContainText('195초');release!();await page.locator('.report-open-button').click();await expect(page.locator('#print-root')).toBeAttached();
+});
+test('AI final provider errors remain distinct and never become report appendices',async({page})=>{
+ await onlyLocal(page);let response={status:502,body:'UPSTREAM_AUTH_FAILED'};let requests=0;
+ await page.route('**/api/generate',route=>{requests++;return route.fulfill({...response,contentType:'text/plain; charset=utf-8'});});
+ await page.goto('/review');await pick(page);await report(page);
+ const cases=[['UPSTREAM_AUTH_FAILED','인증이 거절'],['UPSTREAM_RATE_LIMITED','요청 제한'],['UPSTREAM_PROVIDER_TIMEOUT','제공자가 응답 시간초과']];
+ let expected=0;
+ for(const [code,message] of cases)for(const status of [502,200]){
+  response={status,body:status===200?`\n## ERROR\n${code}\n`:code};await page.locator('.report-ai-button').click();expected++;
+  await expect.poll(()=>requests).toBe(expected);await expect(page.locator('.report-ai-button')).not.toContainText('생성 중지');
+  await expect(page.locator('.memo-panel [role=alert]')).toContainText(message);await expect(page.locator('.memo-panel input[type=checkbox]')).toHaveCount(0);
+  await expect(page.locator('#print-root .report-ai')).toHaveCount(0);
+ }
+ await page.locator('.report-open-button').click();await expect(page.locator('#print-root')).toBeAttached();expect(requests).toBe(6);
 });

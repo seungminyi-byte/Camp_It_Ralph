@@ -37,12 +37,12 @@ describe('generate stream boundary', () => {
     const bytes = enc.encode(': OPENROUTER PROCESSING\r\ndata: {"choices":[{"delta":{"role":"assistant"}}]}\r\n' + chunk('한글 의견') + 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\r\ndata: {"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"total_tokens":8}}\r\ndata: [DONE]');
     const cancel = vi.fn();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(new ReadableStream({ start(controller) { for (const byte of bytes) controller.enqueue(new Uint8Array([byte])); controller.close(); }, cancel }))));
-    const res = await generate(request()); expect(await res.text()).toBe('한글 의견');
+    const res = await generate(request()); expect(await res.text()).toBe('\n한글 의견');
   });
   it('rejects non-SSE/error response and cancels its unread body without reflecting it', async () => {
     const cancel = vi.fn();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new ReadableStream({ start(c) { c.enqueue(enc.encode('test-ai-secret')); }, cancel }), { status: 429 })));
-    const res = await generate(request()); expect(res.status).toBe(502); expect(await res.text()).toBe('UPSTREAM_UNAVAILABLE'); expect(cancel).toHaveBeenCalled();
+    const res = await generate(request()); expect(res.status).toBe(502); expect(await res.text()).toBe('UPSTREAM_RATE_LIMITED'); expect(cancel).toHaveBeenCalled();
   });
   it('bounds emitted bytes including the final error marker', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(chunk('가'.repeat(50000)) + 'data: [DONE]\n')));
@@ -60,20 +60,20 @@ describe('generate stream boundary', () => {
     await vi.advanceTimersByTimeAsync(15001);
     expect(await done).toContain('UPSTREAM_TIMEOUT'); expect(upstreamSignal?.aborted).toBe(true); expect(cancel).toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
   });
-  it('bounds stalled headers at 55 seconds even when fetch ignores AbortSignal', async () => {
+  it('bounds stalled headers at 20 seconds even when fetch ignores AbortSignal', async () => {
     vi.useFakeTimers(); let entered: (() => void) | undefined;
     const started = new Promise<void>((resolve) => { entered = resolve; });
     vi.stubGlobal('fetch', vi.fn(() => { entered!(); return new Promise<Response>(() => {}); }));
     const pending = generate(request()); await started;
-    await vi.advanceTimersByTimeAsync(55001);
+    await vi.advanceTimersByTimeAsync(20001);
     const res = await pending; expect(res.status).toBe(502); expect(await res.text()).toBe('UPSTREAM_TIMEOUT'); expect(vi.getTimerCount()).toBe(0);
   });
-  it('enforces the same 55 second overall budget despite body keepalives', async () => {
+  it('enforces the same 180 second overall budget despite body keepalives', async () => {
     vi.useFakeTimers(); let upstream: ReadableStreamDefaultController<Uint8Array> | undefined;
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(new ReadableStream({ start(c) { upstream = c; } }))));
     const res = await generate(request()); const done = res.text();
-    for (let i = 0; i < 5; i++) { await vi.advanceTimersByTimeAsync(10000); upstream!.enqueue(enc.encode(': processing\n')); await vi.advanceTimersByTimeAsync(0); }
-    await vi.advanceTimersByTimeAsync(5001);
+    for (let i = 0; i < 17; i++) { await vi.advanceTimersByTimeAsync(10000); upstream!.enqueue(enc.encode(': processing\n')); await vi.advanceTimersByTimeAsync(0); }
+    await vi.advanceTimersByTimeAsync(10001);
     expect(await done).toContain('UPSTREAM_TIMEOUT'); expect(vi.getTimerCount()).toBe(0);
   });
   it('propagates downstream cancellation and releases the duplicate slot', async () => {
@@ -92,7 +92,7 @@ describe('generate stream boundary', () => {
   });
   it('permits 20,000 Korean characters under the 96KiB input budget', async () => {
     const fetch = vi.fn().mockResolvedValue(response(chunk('정상') + 'data: [DONE]\n')); vi.stubGlobal('fetch', fetch);
-    const res = await generate(request('가'.repeat(20000))); expect(await res.text()).toBe('정상'); expect(fetch).toHaveBeenCalledTimes(1);
+    const res = await generate(request('가'.repeat(20000))); expect(await res.text()).toBe('\n정상'); expect(fetch).toHaveBeenCalledTimes(1);
   });
   it.each(['provider/paid', 'provider/unknown:free', 'openrouter/auto', 'x\ntest-ai-secret'])('rejects unapproved server model %s', async (model) => {
     vi.stubEnv('LLM_MODEL', model); const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
@@ -117,7 +117,7 @@ describe('bounded request reads and instance gate', () => {
     vi.useFakeTimers(); const cancel = vi.fn();
     const req = new Request('https://example.test/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: new ReadableStream({ cancel }), duplex: 'half' } as RequestInit);
     const fetch = vi.fn(); vi.stubGlobal('fetch', fetch); const pending = generate(req);
-    await vi.advanceTimersByTimeAsync(55001);
+    await vi.advanceTimersByTimeAsync(20001);
     const res = await pending; expect(res.status).toBe(502); expect(cancel).toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
   });
   it('limits 12 admitted starts per rolling minute, then expires the rate window', () => {
@@ -129,6 +129,6 @@ describe('bounded request reads and instance gate', () => {
   it('expires abandoned duplicate entries without requiring a cleanup timer', () => {
     const gate = new GenerationGate(); gate.reserve('a', 0);
     expect(() => gate.reserve('a', 1)).toThrow('DUPLICATE_REQUEST');
-    expect(() => gate.reserve('a', 55001)).not.toThrow();
+    expect(() => gate.reserve('a', 180001)).not.toThrow();
   });
 });

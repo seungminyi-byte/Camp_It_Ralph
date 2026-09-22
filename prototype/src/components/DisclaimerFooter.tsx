@@ -1,13 +1,13 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import type { AppData } from '../types';
 
 /**
- * The 참고용 notice stays on one always-visible line; the full text sits in a popover that opens on
- * hover or keyboard focus and toggles on tap, since touch has no hover.
+ * Full source limitations are available on explicit activation only.
  */
 export function DisclaimerFooter({ data }: { data: AppData }) {
   const d = data.constants.disclaimer;
   const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
   const details = [
     d.review,
     d.power,
@@ -23,20 +23,21 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key !== 'Escape') return;
     setOpen(false);
-    (document.activeElement as HTMLElement | null)?.blur();
+    trigger.current?.focus();
   };
 
   return (
     <footer
-      className="group sticky bottom-0 z-10 mt-auto border-t border-gray-200 bg-gray-50/95 px-3 py-1.5 text-[10px] text-gray-500 backdrop-blur"
+      className="source-disclaimer"
       onKeyDown={onKeyDown}
     >
       <div className="relative">
         <div
           id="disclaimer-detail"
-          className={`absolute inset-x-0 bottom-full mb-1 max-h-[60vh] overflow-y-auto rounded border border-gray-300 bg-white p-3 leading-relaxed text-gray-600 shadow-lg ${
-            open ? 'block' : 'hidden group-hover:block group-focus-within:block'
-          }`}
+          className="source-disclaimer-detail"
+          hidden={!open}
+          role="region"
+          aria-label="자료별 유의사항 전문"
         >
           <p className="font-semibold text-gray-800">{d.main}</p>
           {details.map((p, i) => (
@@ -47,24 +48,16 @@ export function DisclaimerFooter({ data }: { data: AppData }) {
         </div>
         <button
           type="button"
+          ref={trigger}
           aria-expanded={open}
           aria-controls="disclaimer-detail"
-          onClick={(e) => {
-            // Closing must also drop focus, or focus-within keeps the popover open.
-            if (open) e.currentTarget.blur();
-            setOpen((v) => !v);
-          }}
-          className="flex w-full items-center gap-1.5 text-left"
+          onClick={() => setOpen((v) => !v)}
+          className="source-disclaimer-trigger"
         >
           <span aria-hidden className="flex-none text-[11px]">
             ⓘ
           </span>
-          <span className="min-w-0 flex-1 truncate font-semibold">
-            스크리닝 참고용 · 한전 공식 검토·법률 판단 대체 불가
-          </span>
-          <span className="flex-none underline">
-            {open ? '닫기' : '자세히'}
-          </span>
+          <span>자료별 유의사항 {open ? '닫기' : '보기'}</span>
         </button>
       </div>
     </footer>

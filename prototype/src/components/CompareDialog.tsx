@@ -9,10 +9,6 @@ import { areaLabel, fmtArea, fmtCount, fmtKrw, fmtPopulation } from '../lib/form
 import { CostReview } from './ReviewFacts';
 import { currentComparisonMessage, reviewGroups } from '../report/presentation';
 import type { ScoreResult } from '../types';
-import {
-  BUSINESS_TYPE_LABELS,
-  PROJECT_SCALE_LABELS,
-} from '../lib/reviewInputs';
 export function CompareDialog({
   open,
   entries,
@@ -74,7 +70,7 @@ export function CompareDialog({
         </button>
       </header>
       <p className="compare-caption">
-        사업 유형·규모·설계·금리 가정은 공통입니다. 면적·비용·협의 기록은
+        설계·금리 가정은 공통입니다. 면적·비용·협의 기록은
         부지별로 보관합니다. 후보는 현재 세션 동안 유지됩니다.
       </p>
       <p className="compare-caption">{currentComparisonMessage(entries, currentPinId)}</p>
@@ -132,7 +128,7 @@ export function CompareDialog({
               {row(
                 '사업조건',
                 (r) =>
-                  `${PROJECT_SCALE_LABELS[r.project.assumptions.type]} · ${BUSINESS_TYPE_LABELS[r.project.assumptions.businessType]} · 수전 ${r.project.assumptions.targetMw ?? '미입력'}MW · ${r.project.assumptions.development === 'new' ? '신축' : '기존 건물 전환'}`,
+                  `수전 ${r.project.assumptions.targetMw ?? '미입력'}MW · ${r.project.assumptions.development === 'new' ? '신축' : '기존 건물 전환'}`,
               )}
               {row(
                 '대지 / 필요 연면적',

@@ -7,6 +7,7 @@ export const SESSION_BYTES = 96 * 1024;
 export const SESSION_TTL = 24 * 60 * 60 * 1000;
 export const STORAGE_WARNING = '현재 화면의 입력은 유지됩니다. 임시 보관을 사용할 수 없어 새로고침 시 복원되지 않을 수 있습니다.';
 export interface ReviewInputs {
+  exampleMode?: 'area' | 'compare';
   site: SiteSelection | null;
   conditions: SiteConditions;
   manualLandUse: LandUse | null;
@@ -90,6 +91,7 @@ export function restoreSession(body: string | null, now = Date.now()): { inputs:
 }
 type StorageAccess = () => Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export class ReviewSessionStore {
+  private exampleBackup: ReviewInputs | null = null;
   private state: { inputs: ReviewInputs; notice: string | null; resetRevision: number };
   private listeners = new Set<() => void>();
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -112,13 +114,25 @@ export class ReviewSessionStore {
     this.timer = setTimeout(this.flush, 250);
     this.publish();
   };
+  /** Example edits remain temporary; the prior review is the only persisted input. */
+  beginExample = (example: ReviewInputs) => {
+    if (!this.exampleBackup) this.exampleBackup = this.state.inputs;
+    this.update(s => ({ ...example, selectionRevision: s.selectionRevision + 1 }));
+  };
+  endExample = () => {
+    if (!this.exampleBackup) return;
+    const previous = this.exampleBackup;
+    this.exampleBackup = null;
+    this.update(s => ({ ...previous, selectionRevision: s.selectionRevision + 1 }));
+  };
   flush = () => {
     clearTimeout(this.timer);
     if (!this.dirty) return;
-    try { this.storage().setItem(SESSION_KEY, serializeSession(this.state.inputs)); this.dirty = false; }
+    try { this.storage().setItem(SESSION_KEY, serializeSession(this.exampleBackup ?? this.state.inputs)); this.dirty = false; }
     catch { if (this.state.notice !== STORAGE_WARNING) { this.state = { ...this.state, notice: STORAGE_WARNING }; this.publish(); } }
   };
   reset = () => {
+    this.exampleBackup = null;
     clearTimeout(this.timer); this.dirty = false;
     let notice: string;
     try { this.storage().removeItem(SESSION_KEY); notice = '검토 입력과 담은 후보를 지웠습니다.'; }
