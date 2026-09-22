@@ -1,0 +1,181 @@
+{
+  "purpose": "User-required independent arithmetic and outcome expectations, fixed before implementation changes",
+  "source": "Independent arithmetic and outcome expectations established on 2026-09-21 before implementation; see docs/EXAMPLE_INPUT.md",
+  "cases": [
+    {
+      "id": "area-15000",
+      "inputs": {
+        "plannedAreaM2": 30000,
+        "farPct": 200,
+        "coveragePct": 50,
+        "floors": 4,
+        "landAreaM2": 10000
+      },
+      "derivation": "max(30000 / (200 / 100), (30000 / 4) / (50 / 100)) = max(15000,15000) = 15000; 15000 - 10000 = 5000",
+      "expected": {
+        "minimumLandM2": 15000,
+        "shortfallM2": 5000
+      },
+      "surfaces": [
+        "engine",
+        "current review UI",
+        "comparison",
+        "actual printed PDF"
+      ]
+    },
+    {
+      "id": "finance-60-eok",
+      "inputs": {
+        "averageDebtKrw": 100000000000,
+        "annualRatePct": 6,
+        "months": 12
+      },
+      "derivation": "100000000000 * (6/100) * (12/12) = 6000000000 KRW = 60 eok KRW",
+      "expected": {
+        "financeCostKrw": 6000000000,
+        "financeCostEokKrw": 60
+      },
+      "surfaces": [
+        "engine",
+        "current review UI",
+        "comparison",
+        "actual printed PDF"
+      ]
+    },
+    {
+      "id": "finance-explicit-zero",
+      "inputs": {
+        "averageDebtKrw": 0,
+        "annualRatePct": 6,
+        "months": 12
+      },
+      "derivation": "0 * 0.06 * 1 = 0; explicitly entered zero remains a known numeric zero",
+      "expected": {
+        "financeCostKrw": 0,
+        "missingDebt": false
+      }
+    },
+    {
+      "id": "finance-unknown",
+      "inputs": {
+        "averageDebtKrw": null,
+        "annualRatePct": 6,
+        "months": 12,
+        "totalProjectCostKrw": 100000000000
+      },
+      "derivation": "Total project cost is not average debt; without debt the financing calculation is withheld",
+      "expected": {
+        "financeCostKrw": null,
+        "missingDebt": true
+      }
+    },
+    {
+      "id": "invalid-area-inputs",
+      "invalidInputs": [
+        {
+          "floors": 3.5
+        },
+        {
+          "floors": 0
+        },
+        {
+          "coveragePct": 0
+        },
+        {
+          "coveragePct": 101
+        },
+        {
+          "plannedAreaM2": null
+        },
+        {
+          "plannedAreaM2": -1
+        }
+      ],
+      "expected": {
+        "calculationWithheld": true,
+        "clearMissingOrInvalidReason": true,
+        "noNaNOrInfinityText": true
+      }
+    },
+    {
+      "id": "incomplete-cost-is-not-cheapest",
+      "inputs": {
+        "candidateA": {
+          "mode": "items",
+          "knownSubtotalKrw": 10000000000,
+          "missingItems": [
+            "powerConnection"
+          ]
+        },
+        "candidateB": {
+          "mode": "total",
+          "totalKrw": 12000000000
+        }
+      },
+      "expected": {
+        "cheapestClaimAllowed": false,
+        "costDifferenceShown": false,
+        "missingCostScopeVisible": true
+      }
+    },
+    {
+      "id": "complete-like-for-like-cost-difference",
+      "inputs": {
+        "candidateA": {
+          "mode": "total",
+          "totalKrw": 200000000000
+        },
+        "candidateB": {
+          "mode": "total",
+          "totalKrw": 230000000000
+        }
+      },
+      "derivation": "230000000000 - 200000000000 = 30000000000 KRW = 300 eok KRW; same cost mode and complete scope are required",
+      "expected": {
+        "costDifferenceKrw": 30000000000,
+        "costDifferenceEokKrw": 300
+      },
+      "surfaces": [
+        "engine results",
+        "comparison",
+        "actual printed PDF"
+      ]
+    },
+    {
+      "id": "empty-upstream-is-not-no-constraint",
+      "inputs": {
+        "httpStatus": 200,
+        "body": {}
+      },
+      "expected": {
+        "complete": false,
+        "noConstraintClaimAllowed": false,
+        "retryAvailable": true
+      }
+    },
+    {
+      "id": "five-candidate-cap",
+      "inputs": {
+        "distinctSelections": 5
+      },
+      "expected": {
+        "maximumRetainedCandidates": 4,
+        "fifthActionExplained": true,
+        "deleteThenAddWorks": true
+      }
+    },
+    {
+      "id": "stale-search-does-not-win",
+      "events": [
+        "Start slow online address A",
+        "Choose coordinates or offline place B",
+        "A returns after B"
+      ],
+      "expected": {
+        "currentSelection": "B",
+        "currentEvidenceBelongsTo": "B",
+        "oldSearchTextCannotOverwrite": true
+      }
+    }
+  ]
+}

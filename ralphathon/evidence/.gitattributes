@@ -1,2 +1,0 @@
-# Preserve original command-log whitespace in curated evidence copies.
-**/*.log -whitespace

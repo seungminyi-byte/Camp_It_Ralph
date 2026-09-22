@@ -1,1 +1,0 @@
-{"found":true,"layer":"LT_C_UQ111","name":"자연녹지지역","landUse":"green","sido":"세종특별자치시","sigungu":"세종특별자치시","all":[{"layer":"LT_C_UQ111","name":"자연녹지지역"}],"queried":["LT_C_UQ111","LT_C_UQ112","LT_C_UQ113","LT_C_UQ114"],"failed":[],"complete":true,"coordinate":{"lat":36.4967,"lng":127.3007},"fetchedAt":"2026-09-21T13:18:29.659Z","version":"vworld-v2-20260921"}

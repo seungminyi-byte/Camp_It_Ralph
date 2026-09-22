@@ -1,6 +1,6 @@
 # 새 폴더 실행·검증 안내
 
-2026-09-22 실행 안내. 저장소 접근 권한이 있는 개발자와 검수 담당자를 위한 안내입니다. 저장소는 private이며 공개 서비스는 [여기 DC 돼요?](https://grand-site-dc.vercel.app)입니다. [2026-09-21 배포 검증](../ralphathon/implementation/09-reproduction-deployment.md)은 당시 SHA와 성공·실패 범위의 기록입니다. 최신 배포는 아래 6절의 절차로 별도 대조합니다. 원본 `AGENTS.md`의 2026-09-12 배포·세션 설명은 당시 이력이고, 현재 사용·실행 경계는 이 문서를 따릅니다.
+2026-09-22 실행 안내입니다. 공개 저장소의 코드를 실행하고 검증할 개발자를 위한 문서이며, 운영 서비스는 [여기 DC 돼요?](https://grand-site-dc.vercel.app)입니다. 배포 확인은 아래 6절, 서버 환경변수는 [서버 설정](CONFIGURATION.md)을 따릅니다.
 
 ## 1. 준비와 설치
 
@@ -69,7 +69,7 @@ python3 prototype/e2e/inspect-pdf.py prototype/e2e/artifacts/pdf --render
 node prototype/e2e/security-scan.mjs
 ```
 
-PDF 추출에는 `pypdf`, `pdfplumber`, 이미지 렌더에는 Poppler의 `pdftoppm`이 필요합니다. 필요한 경우 별도 Python 가상환경에만 설치합니다. 추출 통과 후 **모든 페이지 PNG를 열어** 잘림·겹침·제목 분리를 확인합니다. 검사 완료 후 첫 터미널의 `Ctrl+C`로 5208 서버를 종료합니다. 결과는 `prototype/e2e/artifacts/`에 생성되며 커밋하지 않습니다. 자세한 고정 시나리오는 [통합 QA 안내](../prototype/e2e/README.md), 구현 전 기대값은 [독립 사례](../ralphathon/validation/independent-cases.json)를 참조하세요.
+PDF 추출에는 `pypdf`, `pdfplumber`, 이미지 렌더에는 Poppler의 `pdftoppm`이 필요합니다. 필요한 경우 별도 Python 가상환경에만 설치합니다. 추출 통과 후 **모든 페이지 PNG를 열어** 잘림·겹침·제목 분리를 확인합니다. 검사 완료 후 첫 터미널의 `Ctrl+C`로 5208 서버를 종료합니다. 결과는 `prototype/e2e/artifacts/`에 생성되며 커밋하지 않습니다. 자세한 고정 시나리오는 [통합 QA 안내](../prototype/e2e/README.md), 구현 전 기대값은 [독립 사례](../prototype/e2e/independent-cases.json)를 참조하세요.
 
 운영 보고서는 합성 API를 쓰지 않고 공개 서비스에서 [예제 입력](EXAMPLE_INPUT.md)을 직접 넣어 출력합니다. 배포 SHA·출력시각·URL·온라인 실패 여부를 PDF와 함께 보관합니다. 합성 검수 PDF와 운영 조회 PDF를 구별합니다.
 
@@ -85,4 +85,4 @@ PDF 추출에는 `pypdf`, `pdfplumber`, 이미지 렌더에는 Poppler의 `pdfto
 
 선택형 AI는 HTTP 200 본문 안에서도 실패할 수 있습니다. 서버의 허용 필드만 기록하는 진단과 자체 합성 요청의 시간 구간별 확인 절차는 [AI 오류 운영 안내](AI_DIAGNOSTICS.md)를 따릅니다. 기본 보고서 정상, 연결 성공, AI 의견의 내용 검수는 서로 다른 결과입니다.
 
-`ralphathon/STATE.md` 등 제어문서의 절대 로컬 경로는 날짜별 감사 이력입니다. 이 실행 안내의 필수 파일은 모두 저장소 안에 있습니다. [이관 근거](../ralphathon/evidence/README.md)는 선별한 공개 가능 사본이며 원본 전체 세션 JSONL은 코드 저장소에 포함하지 않습니다.
+검증 산출물과 개인 작업 기록은 저장소 밖의 비공개 폴더에 보관합니다. 원본 세션 JSONL·비밀값·개인 경로는 공개 저장소에 포함하지 않습니다.

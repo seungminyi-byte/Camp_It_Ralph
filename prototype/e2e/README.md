@@ -42,4 +42,4 @@ PDF 검사에는 Python의 `pypdf`, `pdfplumber`, 렌더에는 Poppler `pdftoppm
 - `accessibility`: 3폭 주요 상태의 axe 원본과 가로 넘침. keyboard/focus는 workflow 및 실제 IAB에서 별도 검수.
 - `security`: 잘못된 core 자료→오류→재시도, 외부 HTML 명칭 literal 표시와 unsafe URL 제외. 실제 API handler의 입력 크기/중복/스트림 경계는 `npm test`의 `src/test/api`가 검증한다. 테스트 서버 자체는 실제 API handler가 아니다.
 
-기대값은 [독립 기대값](../../ralphathon/validation/independent-cases.json)과 고정 수기 식을 기준으로 한다. fixture 생성은 입력/session만 만들며 계산 엔진의 출력을 기대값으로 복사하지 않는다. 최종 결과·수정 근거·한계·09 인계는 [08 인계서](../../ralphathon/implementation/08-integration-quality.md)에 기록한다.
+기대값은 [독립 기대값](independent-cases.json)과 고정 수기 식을 기준으로 한다. fixture 생성은 입력/session만 만들며 계산 엔진의 출력을 기대값으로 복사하지 않는다. 실제 서비스·PDF 확인은 [품질 확인 절차](../../docs/QA.md)를 따른다. 검사 산출물은 Git에서 제외한 `e2e/artifacts/`에 보관한다.

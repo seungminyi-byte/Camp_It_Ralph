@@ -1,8 +1,0 @@
-2026-09-21T13:26:36.5209747Z     id		dpl_6CJbHBeRLfFJmD6YuuCG5mZG3VXo
-2026-09-21T13:26:36.5212991Z     name	grand-site-dc
-2026-09-21T13:26:36.5230888Z     target	production
-2026-09-21T13:26:36.5236818Z     status	● Ready
-2026-09-21T13:26:36.5238007Z     url		https://grand-site-g2q949cjx-camp-it-ralph.vercel.app
-2026-09-21T13:26:36.5243965Z     created	Mon Sep 21 2026 13:26:24 GMT+0000 (Coordinated Universal Time) [12s ago]
-2026-09-21T13:26:36.5246700Z     ╶ https://grand-site-dc.vercel.app
-2026-09-21T13:26:36.5247834Z     ╶ https://grand-site-dc-camp-it-ralph.vercel.app
