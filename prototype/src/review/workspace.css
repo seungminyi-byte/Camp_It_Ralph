@@ -169,3 +169,11 @@
  .overview-full-findings>summary { min-height:40px; font-size:14px; font-weight:650; color:#526249; cursor:pointer; }
  @media(max-width:600px) { .overview-key-findings>div { grid-template-columns:1fr; gap:3px; }.overview-key-findings dd { font-size:15px; } }
 }
+
+@media screen {
+ .review-example-notice { font-size:13px; line-height:1.6; }
+ .review-example-notice p { margin:3px 0 7px; }
+ .review-example-notice button { display:inline-flex; align-items:center; min-height:36px; margin:3px 10px 3px 0; padding:6px 12px; border:1px solid #b94708; border-radius:5px; background:#fff; color:#813307; font-weight:650; cursor:pointer; }
+ .review-example-notice button:first-of-type { background:#b94708; color:#fff; }
+ .review-example-notice button:focus-visible { outline:3px solid #305d83; outline-offset:3px; }
+}
