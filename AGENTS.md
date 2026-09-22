@@ -64,12 +64,13 @@
 
 ## 온라인 API·키·배포
 
-- 런타임 외부 API 의존을 늘리지 않는다. 기존 온라인 기능은 지도 타일, OpenRouter, VWorld `geocode.ts`(주소), `zoning.ts`(용도지역), `restrictions.ts`(규제), `disaster.ts`(재해), `wms.ts`(지도 표시)다. 새 자료는 원본·이용조건·가공을 검증한 뒤 빌드 시 JSON으로 묶는다.
+- 런타임 외부 API 의존을 임의로 늘리지 않는다. 온라인 기능은 지도 타일, 선택형 AI의 Google AI Studio(기존 환경은 OpenRouter), VWorld `geocode.ts`(주소), `zoning.ts`(용도지역), `restrictions.ts`(규제), `disaster.ts`(재해), `wms.ts`(지도 표시)다. 새 자료는 원본·이용조건·가공을 검증한 뒤 빌드 시 JSON으로 묶는다.
 - VWorld API는 `runtime: 'edge', regions: ['icn1']`을 유지한다. 서버 함수의 상대 import는 `.js`를 사용한다. Edge에서 Node 파일 API에 의존하는 공급자 SDK를 추가하지 않는다. AI는 `fetch`와 SSE를 사용한다.
 - 런타임 키는 Vercel 서버 환경변수에만 두고 데이터 수집 키는 GitHub Actions Secrets에서 관리한다. Codex Cloud 환경에는 API 비밀값을 복제하지 않는다. 대화·명령 인수·로그·코드·브라우저 입력 UI·번들·커밋에 비밀값을 넣지 않는다. 값 대신 등록 여부와 응답으로 확인한다.
 - 2026-09-08 운영 `OPENROUTER_API_KEY`의 Production Secret 등록과 AI 응답을 확인했다. 등록·교체는 README의 Vercel 설정 절차를 따른다. `LLM_MODEL`은 비밀키가 아닌 모델 설정값이다. 환경변수 변경 후 새 배포가 필요하다.
-- 서버 기본 `LLM_MODEL`은 `google/gemma-4-31b-it:free`. 기본값일 때 `nvidia/nemotron-3.5-lightning:free`, `google/gemma-4-26b-a4b-it:free`를 대체 목록으로 전송한다. 자동 유료 전환은 없다. 다른 모델을 명시하면 해당 모델만 사용한다. 모델 제공 상태는 변경 시 확인한다.
-- AI는 추론 모드 비활성·출력 4,000토큰이며 빈 응답/실패는 사용자에게 표시한다. SSE `[DONE]`에서 응답을 종료한다. 대체 목록 사용 시 실제 모델을 단정하지 않고 OpenRouter로 표시한다. 실패해도 기본 보고서는 출력된다.
+- 서버 Secret `GEMINI_API_KEY`가 있으면 Google 네이티브 SSE와 고정 안정 모델 `gemini-3.5-flash-lite`를 사용한다. 선택 설정 `GEMINI_MODEL`도 이 모델만 허용한다. 키 접두사를 가정하지 않으며 키는 URL이 아닌 `x-goog-api-key` 헤더로 보낸다. 무료 등급 프로젝트를 유지하고 결제·유료 모델·다른 공급자로 자동 전환하지 않는다.
+- Google AI는 최소 추론·출력 8,192토큰이며 추론 내용을 보고서에 섞지 않는다. 비어 있지 않은 본문과 명시적 `STOP`에서 종료하고 잘린 응답·차단·요청 제한은 실패로 표시한다. 18항목 구조와 수치·확정 표현 검사는 앱에서 별도로 수행한다. 짧은 응답만으로 실제 보고서 생성 성공을 주장하지 않는다.
+- Google 키가 없는 기존 환경은 `LLM_MODEL=google/gemma-4-31b-it:free` 기본값과 Nemotron·Gemma 무료 대체 목록을 사용한다. 이 경로는 추론 비활성·출력 4,000토큰·SSE `[DONE]` 종료를 유지하며 대체 목록 사용 시 OpenRouter로 표시한다. 두 경로 모두 실패해도 기본 보고서는 출력된다.
 - 사전 생성 스크립트는 `OPENROUTER_API_KEY`와 선택 `OPENROUTER_MODEL`을 사용한다. 서버 변수 `LLM_MODEL`과 혼동하지 않는다. 현재 `precomputed_memos.json`은 없으며 예전 Gemini 키나 시나리오 id→텍스트 형식은 사용하지 않는다. 생성본은 v4와 현재 전체 평가 서명이 맞아야 한다.
 - 로컬 Vite `/api/*`는 운영 서버로 전달된다. 로컬에서 `prototype/api`만 수정해도 운영 함수가 바뀌지는 않는다. 서버 수정은 API 테스트와 배포 후 응답으로 확인한다.
 - 자동 배포: `.github/workflows/vercel-prod.yml`, 기본 브랜치 `prototype`의 `prototype/**` 또는 워크플로 변경 푸시, 그리고 수동 `workflow_dispatch`. Vercel Git 연동의 Root Directory는 `prototype`이다. GitHub Actions Secret `VERCEL_TOKEN`으로 Vercel CLI 59.16.0을 실행하며 품질검사, 명시적 프로젝트 연결, production pull/build, prebuilt 배포, Ready 확인 순서다. README·AGENTS만 바뀐 푸시는 이 Actions를 실행하지 않는다. 별도 Vercel Git 배포·PR 미리보기는 자체 실행 조건을 따른다.

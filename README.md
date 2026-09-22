@@ -81,6 +81,7 @@ npm --prefix prototype run build
 
 | 키 | 발급 URL | 사용처 | 필요 시점 |
 |---|---|---|---|
+| **Google AI Studio** (무료 등급) | https://aistudio.google.com/api-keys | Vercel 서버 Secret `GEMINI_API_KEY` → `prototype/api/generate.ts`, 고정 모델 `gemini-3.5-flash-lite` | 선택형 AI 검토 의견 |
 | **OpenRouter** (무료 모델) | https://openrouter.ai/keys · 모델 목록 https://openrouter.ai/models?q=free | Vercel 환경변수 `OPENROUTER_API_KEY` + `LLM_MODEL=google/gemma-4-31b-it:free` → `prototype/api/generate.ts` | 실사 체크리스트의 AI 검토 의견 |
 | VWorld (국토부) | https://www.vworld.kr/dev/v4dv_apikey_s001.do (서비스 URL에 https://grand-site-dc.vercel.app 등록) | Vercel 환경변수 `VWORLD_API_KEY` (`vercel env add VWORLD_API_KEY production`·`preview`) → `api/disaster.ts`(재해위험지구 점 조회) · `api/wms.ts`(용도지역·규제구역 WMS 오버레이) · `api/zoning.ts`(용도지역 자동 판정) · `api/restrictions.ts`(개발제한구역 등 규제구역 점 조회) · `api/geocode.ts`(주소 검색) | 용도지역·규제구역·주소 검색 |
 | 건축HUB 건축인허가 API | https://www.data.go.kr/data/15136267/openapi.do → 활용신청(자동승인). 인증키는 마이페이지의 일반 인증키 **Decoding** 값 | GitHub Actions Secret `DATA_GO_KR_API_KEY`(Encoding·Decoding 키 모두 허용) → `data-pack/scripts/p05_permits_api.py`(구현됨) 시군구별 허가→착공 지연 통계 → `permit_delay.json` | 허가→착공 통계 |
@@ -91,7 +92,17 @@ npm --prefix prototype run build
 
 `prototype/scripts/precompute_memos.ts`는 `OPENROUTER_API_KEY`와 선택값 `OPENROUTER_MODEL`을 사용하며 서버 변수 `LLM_MODEL`을 읽지 않습니다. 필수 `--output`으로 **새 검수 후보 파일 하나**만 생성하고 두 배포 파일은 갱신하지 않습니다. [사전 생성 안내](docs/PRECOMPUTED_MEMOS.md)의 단일 무료 모델·실행 제한·내용 및 전체 평가 서명 검수·별도 게시 절차를 따릅니다.
 
-## OpenRouter 서버 키 등록·교체
+## Google AI Studio 서버 연결
+
+`GEMINI_API_KEY`를 Vercel **Production / Secret**으로 등록한 뒤 새 배포를 실행합니다. 키를 대화·코드·명령 인수·프런트엔드 환경변수에 넣지 않습니다. Google의 표준 키와 새 인증 키는 같은 `x-goog-api-key` 서버 헤더로 전달합니다. 값의 특정 접두사를 가정하지 않습니다.
+
+Google 키가 설정되어 있으면 Google의 `streamGenerateContent` API와 고정 안정 모델 `gemini-3.5-flash-lite`만 호출합니다. `GEMINI_MODEL`을 생략해도 동일하며, 승인되지 않은 모델 설정은 요청 전에 차단합니다. [모델 사양](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite)과 [무료 등급·가격](https://ai.google.dev/gemini-api/docs/pricing)을 확인할 수 있습니다. 프로젝트는 무료 등급을 유지하며 코드가 결제나 유료 모델 전환을 실행하지 않습니다. 프로젝트의 요금제 변경은 별도 관리 대상입니다.
+
+출력 한도는 8,192토큰이고 추론 수준은 최소로 지정합니다. 종합 의견·18개 항목·후속 조치·유의사항을 JSON 스키마로 고정하고, 명시적인 `STOP` 뒤 필수 내용을 검사해 기존 보고서 형식으로 전달합니다. 생성 중인 JSON과 추론 내용은 화면에 표시하지 않습니다. 계산 수치는 기본 보고서에 유지하고 AI는 근거의 의미와 다음 행동을 보완합니다. 출력 한도 초과·안전 차단·잘린 응답·시간초과는 실패로 표시합니다. 앱은 별도로 수치·확정 표현을 점검합니다. 이 검사는 원자료의 정확성이나 AI 내용 전체를 보증하지 않습니다.
+
+Google 키가 설정된 상태에서 실패하면 다른 공급자로 자동 전환하지 않습니다. 기본 조회·계산·비교·보고서는 AI 없이 계속 사용할 수 있습니다. Google 키가 없는 기존 환경에 한해 아래 OpenRouter 설정을 사용합니다. 배포 후에는 짧은 연결 확인 외에 실제 보고서 전체 생성과 화면·보고서 반영을 확인합니다.
+
+## 기존 OpenRouter 서버 키 등록·교체
 
 운영 환경 설정은 [Vercel 프로젝트 환경변수](https://vercel.com/camp-it-ralph/grand-site-dc/settings/environment-variables)에서 관리합니다.
 

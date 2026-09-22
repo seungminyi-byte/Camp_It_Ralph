@@ -4,6 +4,8 @@ import { summarizeRestriction } from '../scoring/restriction';
 import { summarizeDisaster } from '../lib/disasterSummary';
 import { fmtArea, fmtCount, fmtKrw, fmtPopulation } from '../lib/format';
 import { CONSULTATION_LABELS, CONSULTATION_STATUS } from '../lib/reviewInputs';
+import type { ChecklistKey } from '../../shared/memoContract';
+export { CHECKLIST_KEYS, type ChecklistKey } from '../../shared/memoContract';
 export type Verdict = 'good' | 'caution' | 'risk' | 'na';
 export const VERDICT_GLYPH: Record<Verdict, string> = {
   good: '○',
@@ -17,27 +19,6 @@ export const VERDICT_LABEL: Record<Verdict, string> = {
   risk: '제약 확인',
   na: '미확인',
 };
-export const CHECKLIST_KEYS = [
-  'power.gate',
-  'power.distance',
-  'power.region',
-  'permit.landUse',
-  'permit.population',
-  'permit.school',
-  'permit.regulation',
-  'permit.restriction',
-  'permit.disaster',
-  'permit.cases',
-  'permit.news',
-  'permit.delayStat',
-  'site.terrain',
-  'site.landWater',
-  'site.area',
-  'cost.business',
-  'cost.finance',
-  'infra.consultation',
-] as const;
-export type ChecklistKey = (typeof CHECKLIST_KEYS)[number];
 export interface ChecklistRow {
   key: ChecklistKey;
   group: '전력' | '인허가' | '부지' | '비용' | '기반시설';

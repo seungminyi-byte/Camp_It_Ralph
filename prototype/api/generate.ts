@@ -2,17 +2,20 @@ export const config = { runtime: 'edge' };
 import { ApiError, boundedBytes, cancelBody, cleanString, errorResponse, isRecord, methodNotAllowed, Operation } from './_http.js';
 import { generationGate, GENERATION_OVERALL_MS, GENERATION_STARTUP_MS, GENERATION_IDLE_MS, upstreamFailure } from './_generation.js';
 import { GenerationDiagnostic } from './_generationDiagnostic.js';
+import { GEMINI_MODEL, GEMINI_INSTRUCTIONS, GEMINI_REPORT_SCHEMA, formatGeminiReport, geminiFrame } from './_gemini.js';
 
 declare const process: { env: Record<string, string | undefined> };
 const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
 const FREE_MODELS = new Set([DEFAULT_MODEL, 'nvidia/nemotron-3.5-lightning:free', 'google/gemma-4-26b-a4b-it:free', 'openrouter/free']);
+const ALLOWED_MODELS = new Set([...FREE_MODELS, GEMINI_MODEL]);
 const INPUT_MAX_BYTES = 96 * 1024, OUTPUT_MAX_BYTES = 128 * 1024;
 const SSE_MAX_BYTES = 1024 * 1024;
 
-function sseToText(res: Response, operation: Operation, release: () => void, diagnostic: GenerationDiagnostic): ReadableStream<Uint8Array> {
+function sseToText(res: Response, operation: Operation, release: () => void, diagnostic: GenerationDiagnostic, google: boolean): ReadableStream<Uint8Array> {
   const enc = new TextEncoder(), dec = new TextDecoder('utf-8', { fatal: true });
   const reader = res.body!.getReader();
   let buffer = '', inputBytes = 0, outputBytes = 0, textEmitted = false, cancelled = false, finished = false;
+  let googleJson = '', googleBytes = 0;
   const cleanup = () => {
     if (finished) return;
     finished = true;
@@ -42,6 +45,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
         const payload = line.slice(5).trim();
         if (!payload) return false;
         if (payload === '[DONE]') {
+          if (google) throw new ApiError('UPSTREAM_INVALID');
           if (!textEmitted) throw new ApiError('UPSTREAM_EMPTY');
           return true;
         }
@@ -50,7 +54,16 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
         if (!isRecord(data)) throw new ApiError('UPSTREAM_INVALID');
         if (data.error !== undefined) {
           diagnostic.upstreamError('top_level', data.error);
-          throw new ApiError(upstreamFailure(data.error));
+          throw new ApiError(google && isRecord(data.error) && data.error.code === 403 ? 'UPSTREAM_AUTH_FAILED' : upstreamFailure(data.error));
+        }
+        if (google) {
+          const result = geminiFrame(data);
+          googleBytes += enc.encode(result.text).length;
+          if (googleBytes > OUTPUT_MAX_BYTES) throw new ApiError('OUTPUT_TOO_LARGE');
+          googleJson += result.text;
+          // Keep partial JSON out of the UI and never expose an incomplete report as success.
+          if (result.done) emit(formatGeminiReport(googleJson));
+          return result.done;
         }
         if (!Array.isArray(data.choices) || data.choices.length > 1) throw new ApiError('UPSTREAM_INVALID');
         // OpenRouter may send a usage-only frame with an empty choices array.
@@ -80,7 +93,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
           if (done) {
             buffer += dec.decode();
             if (buffer && frame(buffer.replace(/\r$/, ''))) break;
-            throw new ApiError(textEmitted ? 'UPSTREAM_INCOMPLETE' : 'UPSTREAM_EMPTY');
+            throw new ApiError(textEmitted || googleJson.trim() ? 'UPSTREAM_INCOMPLETE' : 'UPSTREAM_EMPTY');
           }
           inputBytes += value.byteLength;
           if (inputBytes > SSE_MAX_BYTES) throw new ApiError('OUTPUT_TOO_LARGE');
@@ -116,7 +129,7 @@ function sseToText(res: Response, operation: Operation, release: () => void, dia
 }
 
 export default async function handler(req: Request): Promise<Response> {
-  const diagnostic = new GenerationDiagnostic(FREE_MODELS);
+  const diagnostic = new GenerationDiagnostic(ALLOWED_MODELS);
   if (req.method !== 'POST') {
     diagnostic.fail('METHOD_NOT_ALLOWED');
     return methodNotAllowed('POST');
@@ -135,9 +148,12 @@ export default async function handler(req: Request): Promise<Response> {
     if (!isRecord(body) || typeof body.prompt !== 'string' || !body.prompt.trim() || body.prompt.length > 20000) throw new ApiError('BAD_REQUEST', 400);
     const prompt = body.prompt;
     diagnostic.enter('config');
-    const key = process.env.OPENROUTER_API_KEY;
-    const model = process.env.LLM_MODEL || DEFAULT_MODEL;
-    if (!key || !cleanString(key, 512) || /\s/.test(key) || !FREE_MODELS.has(model)) throw new ApiError('SERVER_UNAVAILABLE', 503);
+    // An explicitly configured Google key selects Google only, including invalid keys.
+    // A failed Google request must not silently route the prompt to another provider.
+    const google = process.env.GEMINI_API_KEY !== undefined;
+    const key = google ? process.env.GEMINI_API_KEY : process.env.OPENROUTER_API_KEY;
+    const model = google ? (process.env.GEMINI_MODEL || GEMINI_MODEL) : (process.env.LLM_MODEL || DEFAULT_MODEL);
+    if (!key || !cleanString(key, 512) || /\s/.test(key) || !(google ? model === GEMINI_MODEL : FREE_MODELS.has(model))) throw new ApiError('SERVER_UNAVAILABLE', 503);
     // Keep the legacy configuration selector while prioritizing the previously successful route.
     const models = model === DEFAULT_MODEL ? ['nvidia/nemotron-3.5-lightning:free', model, 'google/gemma-4-26b-a4b-it:free'] : [model];
     diagnostic.selectModels(models);
@@ -146,13 +162,19 @@ export default async function handler(req: Request): Promise<Response> {
     operation.check();
     release = generationGate.reserve(Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(''));
     diagnostic.enter('upstream_fetch');
-    const pending = fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const pending = fetch(google
+      ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`
+      : 'https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', signal: operation.signal, redirect: 'manual',
-      headers: {
+      headers: google ? { 'Content-Type': 'application/json', 'x-goog-api-key': key } : {
         'Content-Type': 'application/json', Authorization: `Bearer ${key}`,
         'HTTP-Referer': new URL(req.url).origin, 'X-Title': 'The Grand Site DC',
       },
-      body: JSON.stringify({ models, stream: true, temperature: 0.3, max_tokens: 4000,
+      body: JSON.stringify(google ? {
+        systemInstruction: { parts: [{ text: GEMINI_INSTRUCTIONS }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: 'MINIMAL', includeThoughts: false }, responseMimeType: 'application/json', responseJsonSchema: GEMINI_REPORT_SCHEMA },
+      } : { models, stream: true, temperature: 0.3, max_tokens: 4000,
         reasoning: { enabled: false }, messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -164,10 +186,10 @@ export default async function handler(req: Request): Promise<Response> {
     diagnostic.response(res.status);
     if (!res.ok || !res.body || res.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'text/event-stream') {
       cancelBody(res.body);
-      throw new ApiError(res.ok ? 'UPSTREAM_INVALID' : upstreamFailure(res.status));
+      throw new ApiError(res.ok ? 'UPSTREAM_INVALID' : google && res.status === 403 ? 'UPSTREAM_AUTH_FAILED' : upstreamFailure(res.status));
     }
     diagnostic.enter('upstream_sse');
-    const response = new Response(sseToText(res, operation, release, diagnostic), { headers: {
+    const response = new Response(sseToText(res, operation, release, diagnostic, google), { headers: {
       'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff', 'X-LLM-Model': models.length > 1 ? 'OpenRouter' : model,
     } });
